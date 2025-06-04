@@ -45,19 +45,28 @@ from tensorflow.keras.optimizers import SGD
 # from src.MILES_loss import evidential_cat_loss as evidential_cat_loss
 # from wandb.keras import WandbCallback, WandbMetricsLogger, WandbModelCheckpoint
 
-# ABOUT: called directly in __main__.
-# This whole script is ONE function
-# Uses function from build_baseline.py
-# Uses function from build_bn_dropout.py
-# Uses function from build_transferlearning.py (although not really being used right now, see code below redundant)
-
-
-
 
 def read_imgs_as_np_array(listims, listlabels):
-    """
-    Read in images as pixels and skip those that are severely corrupted.
-    Note the checking for severe corruption really isn't needed for training bc we have a preprocessing step that removes all the poorly corrupted images BUT keeping this code because it will be helpful for inference.
+    """ Note: this docstring is AI assisted
+    
+    This function reads a list of image file paths and corresponding labels, processes each image, and returns a list of preprocessed image arrays along with their labels.
+
+    Images are:
+    - Read using OpenCV
+    - Converted from BGR to RGB
+    - Cropped (top 20%)
+    - Resized to a target size defined in config.TARGET_SIZE
+    - Preprocessed using MobileNet's preprocessing function
+
+    Any unreadable or corrupted images are skipped and recorded.
+
+    Args:
+        listims (list of str): List of image file paths.
+        listlabels (list): Corresponding labels for the images.
+
+    Returns:
+        images_pixel (list of np.array): List of preprocessed image arrays.
+        labels_imgs (list): Labels corresponding to successfully processed images.
     """
     brokenimgs = []
     images_pixel = []
@@ -95,9 +104,31 @@ def read_imgs_as_np_array(listims, listlabels):
 
 def create_tf_datasets(tracker,
     cat_num = config.cat_num,
-    SHUFFLE_BUFFER_SIZE = config.SHUFFLE_BUFFER_SIZE,
     BATCH_SIZE = config.BATCH_SIZE):
+    """ Note: this docstring is AI assisted
 
+    This function:
+    - Reads a CSV file specified by `tracker` containing image file paths and label metadata
+    - Filters the data into training and validation subsets based on the `innerPhase` column
+    - Loads and preprocesses images using `read_imgs_as_np_array` (includes cropping, resizing, and normalization)
+    - Encodes class labels to one-hot format using a category-to-index dictionary
+    - Converts image and label arrays to TensorFlow datasets
+    - Shuffles, batches, and prefetches the datasets for efficient training
+
+    Args:
+        tracker (str): Path to CSV file with image paths and labels.
+        cat_num (int): Number of output classes (default from config).
+        SHUFFLE_BUFFER_SIZE (int): Buffer size for shuffling (default from config).
+        BATCH_SIZE (int): Batch size for training (default from config).
+
+    Returns:
+        dataset_train (tf.data.Dataset): Preprocessed and batched training dataset.
+        dataset_val (tf.data.Dataset): Preprocessed and batched validation dataset.
+        train_labels (list): Original labels for training data.
+        val_labels (list): Original labels for validation data.
+        numims_train (int): Number of training images.
+        traincatcounts (pd.Series): Class distribution in the training set.
+    """
 
     ### STEP 1: LOAD IN DATA (TF DATASETS) and PREP WEIGHTS
     df = pd.read_csv(f"{tracker}")
@@ -111,31 +142,14 @@ def create_tf_datasets(tracker,
     print(f"NUMBER OF VAL:: {len(df_val)}")
     numims_train = len(df_train)  # var used to calc what weights should be
     df_train_size = len(df_train)
-    train_labels = df_train["img_cat"]  # just for grabbing class weights
 
-    train_images = list(df_train["img_orig"])  # 3/12
+    train_images = list(df_train["img_orig"])
     train_labels = list(df_train["img_cat"])
-    # train_labels = df_train["img_cat"]#  Replace with numeric or one-hot encoded labels
-    print("through train")
-    val_images = list(df_val["img_orig"])  # 3/12
+
+
+    val_images = list(df_val["img_orig"]) 
     val_labels = list(df_val["img_cat"])
-    print("HERE66")
-    print(len(val_images))
-    print(len(train_images))
 
-    print(df_val.head())
-
-    print("heretoseeifobs")
-    print(np.unique(train_labels))
-
-    # for reference print to console
-    # df_cts = (
-    #     df[["phase", "img_cat", "img_name"]]
-    #     .groupby(["phase", "img_cat"])
-    #     .size()
-    #     .reset_index(name="counts")
-    # )
-    # print(df_cts)
 
     dftraincatcount = (
         df_train[["img_cat", "img_name"]]
@@ -147,47 +161,21 @@ def create_tf_datasets(tracker,
     traincatcounts = dftraincatcount[
         "counts"
     ]  # this is a list used to calc what weights should be given the amount that are in each cat
-    print("check here traincatcounts!!")
+
     print(traincatcounts)
 
     dict_cat_str_ind = helper_fns_adhoc.cat_str_ind_dictmap()
 
-    print("before running")
-    print(len(train_images))
-    print(len(train_labels))
     imgs_train, cats_train = read_imgs_as_np_array(train_images, train_labels)
-    print("here!!")
-    print(len(train_images))
-    print(len(imgs_train))
 
-    print("before running val")
-    print(len(val_images))
-    print(len(val_labels))
     imgs_val, cats_val = read_imgs_as_np_array(val_images, val_labels)
-    print("here!!")
-    print(len(val_images))
-    print(len(imgs_val))
-
-    
-
-    print("place2")
-    print(type(imgs_train))
-    # print(imgs_train[0:5])
-    # print(imgs_train[0][0])
-
 
     label_encoding_train = [dict_cat_str_ind[catname] for catname in cats_train]
     label_encoding_val = [dict_cat_str_ind[catname] for catname in cats_val]
-    # to subset
-    # label_encoding_train = [inputdictmap[catname] for catname in train_labels[0:SUBSETNUM]]
-    # label_encoding_val = [inputdictmap[catname] for catname in val_labels[0:SUBSETNUM]]
-
-    
 
     train_labels_one_hot = np.eye(cat_num)[label_encoding_train]
     val_labels_one_hot = np.eye(cat_num)[label_encoding_val]
 
-    print("place4")
     # Ensure dtype is float32 for ims and int for labels
     images_fortfd_train = np.array(imgs_train, dtype=np.float32)
     labels_fortfd_train = np.array(train_labels_one_hot, dtype=np.int32)
@@ -205,37 +193,44 @@ def create_tf_datasets(tracker,
         (images_fortfd_val, labels_fortfd_val)
     )
 
-    print("part6")
-    print(type(dataset_val))
-    print(type(dataset_train))
-    print("PART6VAL")
-    print(dataset_val)
     # Count the number of elements (images) in the dataset
     num_images = sum(1 for _ in dataset_val)
     print(f"Number of images in the dataset: {num_images}")
-    # Create a TensorFlow dataset from the NumPy array
-    # dataset = tf.data.Dataset.from_tensor_slices(image_array)
 
-    # Print dataset structure
-    print(dataset_train)
-
-    dataset_train = dataset_train.shuffle(SHUFFLE_BUFFER_SIZE)  # Shuffle data
+    # Shuffling with buffer size, take buffer size number of images in order, randomly select one from it, and then shift the buffer down one to maintain buffer size, select another, etc. True random shuffling will be complete if buffer >= total number of samples. (see: https://www.tensorflow.org/api_docs/python/tf/data/Dataset#shuffle) 
+    dataset_train = dataset_train.shuffle(numims_train)  # Shuffle data
     dataset_train = dataset_train.batch(BATCH_SIZE)  # Batch the data
     dataset_train = dataset_train.prefetch(tf.data.AUTOTUNE)  # Optimize pipeline
 
-    dataset_val = dataset_val.shuffle(SHUFFLE_BUFFER_SIZE)  # Shuffle data
-    print("check val size tf dataset")
-    print(dataset_val)
     dataset_val = dataset_val.batch(BATCH_SIZE)  # Batch the data
     dataset_val = dataset_val.prefetch(tf.data.AUTOTUNE)  # Optimize pipeline
 
-    print("part7")
-    print(type(dataset_val))
-    print(dataset_val)
-
     return dataset_train, dataset_val, train_labels, val_labels, numims_train, traincatcounts
 
-def compile_model(model, train_size, batchsize, lr_init = config.lr_init, lr_opt=config.lr_opt, lr_after_num_of_epoch =config.lr_after_num_of_epoch, lr_decayrate = config.lr_decayrate, momentum = config.momentum, evid = config.evid, evid_lr_init = config.evid_lr_init ):
+def compile_model(model, train_size, batchsize, lr_init = config.lr_init, lr_opt=config.lr_opt, lr_after_num_of_epoch =config.lr_after_num_of_epoch, lr_decayrate = config.lr_decayrate, momentum = config.momentum, evid = config.evid, evid_lr_init = config.evid_lr_init):
+    """ Note: this docstring is AI assisted
+
+    This function:
+    - Compiles the model using categorical crossentropy loss and SGD optimizer with optional exponential learning rate decay
+    - If `evid` is True, compiles the model using a custom evidential loss function with an Adam optimizer
+    - Configures learning rate decay using `ExponentialDecay` if `lr_opt` is True
+    - Uses predefined config values for learning rate, momentum, decay rate, and evidential loss hyperparameters
+
+    Args:
+        model (tf.keras.Model): Uncompiled Keras model.
+        train_size (int): Number of training samples, used to calculate decay steps.
+        batchsize (int): Batch size used during training.
+        lr_init (float): Initial learning rate.
+        lr_opt (bool): Whether to apply learning rate decay.
+        lr_after_num_of_epoch (int): Number of epochs after which to decay learning rate.
+        lr_decayrate (float): Learning rate decay rate.
+        momentum (float): Momentum value for SGD optimizer.
+        evid (bool): Whether to use evidential deep learning.
+        evid_lr_init (float): Initial learning rate for evidential learning.
+
+    Returns:
+        model (tf.keras.Model): Compiled model ready for training.
+    """
     if evid:
         print("evidential learning, loading in MILES GUESS loss function")
         print(f"using class weights? {classwts_normalized}")
@@ -256,8 +251,6 @@ def compile_model(model, train_size, batchsize, lr_init = config.lr_init, lr_opt
                 )
         print("evidential model is set")
     else:
-        # 6/4/2025 -- need to add the learning rate scheduler in here after getting running first
-
 
         if lr_opt == True:
             num_of_batches = train_size / batchsize  
@@ -266,7 +259,7 @@ def compile_model(model, train_size, batchsize, lr_init = config.lr_init, lr_opt
                 decay_steps=num_of_batches
                 * lr_after_num_of_epoch,  # how it's defined here, decay step will mean update after every X epochs
                 decay_rate=lr_decayrate,  # https://stackoverflow.com/questions/65620186/exponentialdecay-learning-rate-schedule-with-staircase-true-changes-the-traini
-                staircase=False,  # if set to True, then the learning rate will *jump* to 99% of initial learning rate for the 2nd epoch. Set to False meants it's actually updating every batch, jst a tiny amount such that after 2 epochs its been brought down to 99% of inital lr
+                staircase=False,  # update every batch, not jump update every epoch
             )
             print(
                 f"\n using learning rate optimization with small decrease after every batch, i.e. staircase set False, \n such that the after {lr_after_num_of_epoch} epoch(s), i.e. decay steps = {num_of_batches} batches per epoch x {lr_after_num_of_epoch} epoch, the learning rate has been reduced to {lr_decayrate} of the previous learning rate. \n Initial lr is {lr_init} \n"
@@ -298,8 +291,26 @@ def build(
     # for reading in df
     # append_details, # for w&b
     # wb_config={},
-
 ):
+    """ Note: this docstring is AI assisted
+    Trains a TF model using the provided training and validation datasets, tracks performance metrics across epochs, and prints summary statistics.
+
+    This function:
+    - Trains the model using `model.fit()` with the specified training/validation data, epochs, batch size, and callbacks
+    - Logs and prints the maximum training and validation accuracy/loss achieved
+    - Prints the number of epochs the model was trained for
+
+    Args:
+        modelinput (tf.keras.Model): Compiled Keras model to be trained.
+        traindata (tf.data.Dataset): Training dataset.
+        valdata (tf.data.Dataset): Validation dataset.
+        callbacks_list (list): List of callbacks (e.g., EarlyStopping, ModelCheckpoint).
+        epoch_set (int, optional): Number of training epochs (default from config).
+        BATCH_SIZE (int, optional): Batch size for training (default from config).
+
+    Returns:
+        history (tf.keras.callbacks.History): Training history object containing loss and accuracy per epoch.
+    """
     history = modelinput.fit(
         traindata,
         epochs=epoch_set,

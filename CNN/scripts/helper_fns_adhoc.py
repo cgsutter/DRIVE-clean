@@ -4,15 +4,11 @@ def prep_str_details_track(
     tracker_designated,
     arch_input=config.arch_set,
     epochs = config.epoch_set,
-    # earlystop = config.earlystop_patience,
-    # minepoch = config.min_epochs_before_es,
-    # batchuse = config.BATCH_SIZE,
-    # lrinituse = config.lr_init,
-    # lrdecruse = config.lr_decayrate,
     l2use = config.l2_set,
     dropoutuse = config.dr_set,
     transfer_learning = config.transfer_learning,
-    ast = config.ast
+    ast = config.ast,
+    adhoc_desc = config.adhoc_desc
     ):
 
     # make string descriptions of hyperparameters for file naming
@@ -27,10 +23,9 @@ def prep_str_details_track(
         begintracker + 1 : -4
     ]  # the base name that differentiates dataset, just remove .csv extension
 
-    tracker_rundetails = f"_A_{arch_input}_TRLE{transfer_learning}_AST{ast}_L2{l2use_desc}_DR{dropoutuse_desc}_E{epochs}"
+    tracker_rundetails = f"_A_{arch_input}_TRLE{transfer_learning}_AST{ast}_L2{l2use_desc}_DR{dropoutuse_desc}_E{epochs}_{adhoc_desc}"
     # f"_A_{arch_input}_TL{transfer_learning}_AST{ast}_{l2use_desc}_DR{dropoutuse_desc}_B{batchuse_desc}_LR{lrinituse_desc}_LRD{lrdecruse_desc}_E{epochs}_ES{earlystop}_MIN{minepoch}"
 
-    tracker_w_details = f"{tracker_filebase}" # everything that is not in the main desc which has vgg16, 6 class, and no aug # used for saving out model and results with model details):
 
     # wbtable = wandb.Table(
     #     columns=[

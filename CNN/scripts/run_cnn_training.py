@@ -28,7 +28,6 @@ def train_model(run_tracker = config.trackers_list[0], run_arch = config.arch_se
 
     tf_ds_train, tf_ds_val, labels_train, labels_val, numims_train, traincatcounts = build_compile.create_tf_datasets(tracker=run_tracker,
         cat_num = config.cat_num,
-        SHUFFLE_BUFFER_SIZE = config.SHUFFLE_BUFFER_SIZE,
         BATCH_SIZE = config.BATCH_SIZE)
 
     print(type(tf_ds_train))

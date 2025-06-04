@@ -13,6 +13,7 @@ results_path = "/home/csutter/DRIVE-clean/CNN/data_results"
 ### Flags and specifics for the type of model run
 # one-off run where you give it one specific architecture and set of hyperparams to use
 one_off = True
+adhoc_desc = "buffer" # some desc ad hoc to use, added to file naming
 arch_set = "mobilenet"# ignored if one_off is False
 transfer_learning = True 
 ast = True # used if transfer_learning is True. Set to ast True if using an architecture specific top, otherwise set to False and will use generic top of architecture
@@ -41,7 +42,7 @@ momentum = 0.9
 ### Static details: e.g. loss function, early stopping, min number of epochs, and learning rate, are the same for all runs
 TARGET_SIZE = (224, 224)  # Adjust based on model needs
 BATCH_SIZE = 32  # Adjust as needed
-SHUFFLE_BUFFER_SIZE = 1000  # Helps randomize training order
+# SHUFFLE_BUFFER_SIZE = 10000 # set this to be >= the number of images in the training dataset
 # colormode = "rgb"
 imheight = 224
 imwidth = 224
