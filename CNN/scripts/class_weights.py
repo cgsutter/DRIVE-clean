@@ -1,9 +1,8 @@
 from sklearn.utils import class_weight
 import numpy as np
-import config
+import _config as config
 
-#### find class weights (i.e. if you have uneven classes), depends on what's set in config file
-# note ONLY training data b/c class weights should only be applied to training data not val
+
 def classweights(
     labels_dict,
     wts_use,
@@ -14,6 +13,8 @@ def classweights(
     train_cat_cts=[],
 ):
     """
+    This function creates a dictionary of class weights needed for input for the CNN, where the class index is the key, and the value is the class weight for that class. 
+
     wts_use (str): if set to "yes", then class weights will be set and returned based on whether set balance var to True or set setweights
     trainlabels: list of labels which will be used to calculate the weights. Used in any scenario where class weights are required
     Note: Either balance OR setclassimportance must be used if using weights
@@ -64,6 +65,5 @@ def classweights(
     else:
         class_weight_set = None
     print(f"Class weight set is {class_weight_set}")
-    print("through new version of class weighting")
 
     return class_weight_set

@@ -1,4 +1,4 @@
-import config
+import _config as config
 
 def prep_str_details_track(
     tracker_designated,
@@ -10,6 +10,9 @@ def prep_str_details_track(
     ast = config.ast,
     adhoc_desc = config.adhoc_desc
     ):
+    """
+    This function returns two strings: the base file name (without full path and without .csv), and the details of the run, which come from architecture, dropout, all the hyperparameters and model decisions. 
+    """
 
     # make string descriptions of hyperparameters for file naming
     l2use_desc = str(l2use).replace(".", "_")
@@ -71,6 +74,9 @@ def prep_str_details_track(
     return tracker_filebase, tracker_rundetails #, wbtable
 
 def cat_str_ind_dictmap(listcats = config.category_dirs):
+    """
+    This function returns a dictionary that maps the class name to the class index, used at various other points in the code
+    """
     cs = (
         listcats
     )  # ["wet", "dry", "snow", "snow_severe", "obs", "poor_viz"]

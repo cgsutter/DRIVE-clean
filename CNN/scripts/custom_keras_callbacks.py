@@ -22,7 +22,7 @@ from keras.utils.generic_utils import Progbar
 from keras.utils.mode_keys import ModeKeys
 from tensorflow.keras import optimizers as optimizer
 
-import config 
+import _config as config
 
 # isort: off
 from tensorflow.python.platform import tf_logging as logging

@@ -13,13 +13,9 @@ from tensorflow.keras.layers import (
     Reshape,
 )
 
-import config
+import _config as config
 
-# ABOUT: used in other script build_compile.py
 # This whole script is one function
-
-# from tensorflow.keras.models import Model
-
 
 def model_baseline(
     # one_off,
