@@ -41,7 +41,6 @@ import helper_fns_adhoc  # must define cat_str_ind_dictmap()
 # from wandb.keras import WandbCallback, WandbMetricsLogger, WandbModelCheckpoint
 
 
-
 def compile_model(model, train_size, batchsize, lr_init = config.lr_init, lr_opt=config.lr_opt, lr_after_num_of_epoch =config.lr_after_num_of_epoch, lr_decayrate = config.lr_decayrate, momentum = config.momentum, evid = config.evid, evid_lr_init = config.evid_lr_init):
     """ Note: this docstring is AI assisted
 
@@ -120,6 +119,8 @@ def train_fit(
     traindata,
     valdata,
     callbacks_list,
+    class_weights_use,
+    evid = config.evid,
     epoch_set = config.epoch_set,
     BATCH_SIZE = config.BATCH_SIZE,
     # wbtable # LATER also figre out how to append # of epochs ran
@@ -146,13 +147,22 @@ def train_fit(
     Returns:
         history (tf.keras.callbacks.History): Training history object containing loss and accuracy per epoch.
     """
+
+    if evid: # class weights already incorporated in the loss function for evidential, so set it to None
+        class_weights_use = None 
+    
+    for x, y in traindata.take(1):
+        print("X shape:", x.shape)
+        print("Y shape:", y.shape)
+
+
     history = modelinput.fit(
         traindata,
         epochs=epoch_set,
         callbacks=callbacks_list,
         validation_data=valdata,
         batch_size=BATCH_SIZE,  # HERE SHOULD BE UPDATED
-        # class_weight=classweights,
+        class_weight=class_weights_use,
     )
 
     type_history = type(history)

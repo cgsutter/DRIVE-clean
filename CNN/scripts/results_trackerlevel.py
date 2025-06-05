@@ -211,6 +211,12 @@ def run_results_allobservations_for_tracker(tracker):
 
     # apply model on all data (entire tracker) to get predictions
 
+    model = tf.keras.models.load_model(modeldir, custom_objects={
+        'evidential_cat_loss': MILES_loss.evidential_cat_loss  # if applicable
+    })
+    results = model.evaluate(dataset)
+    preds = model.predict(dataset)
+
     p2 = model2.predict(dataset_train)
     # class_pred_ind
     c2 = np.argmax(p2, axis=1)

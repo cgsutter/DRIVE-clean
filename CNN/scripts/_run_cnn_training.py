@@ -5,14 +5,16 @@ import model_compile_fit
 import class_weights
 import model_build
 import callbacks
+import model_evaluation
+import model_results_summaries
 
 
 def train_model(run_tracker = config.trackers_list[0], run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set):
 
     print(f"Running {run_tracker} using architecture {run_arch}. Transfer learning {run_trle}, arch-specific top {run_ast}. Dropout is {run_dr} and l2 weight is {run_l2}.")
 
-    tracker_filebase, tracker_rundetails = helper_fns_adhoc.prep_str_details_track(
-        tracker_designated = run_tracker, 
+    tracker_filebase = prep_basefile_str(tracker_designated = run_tracker)
+    tracker_rundetails = helper_fns_adhoc.prep_str_details_track(
         arch_input= run_arch,
         l2use = run_l2,
         dropoutuse = run_dr,
@@ -20,10 +22,12 @@ def train_model(run_tracker = config.trackers_list[0], run_arch = config.arch_se
         ast = run_ast
         )
 
+    modeldir_set = f"{config.model_path}/{tracker_filebase}_{tracker_rundetails}"
+
     print("through here")
     print(tracker_filebase)
     print(tracker_rundetails)
-    print(f"saving model to dir {config.results_path}/{tracker_filebase}_{tracker_rundetails}")
+    print(f"saving model to dir {modeldir_set}")
 
     tf_ds_train, tf_ds_val, labels_train, labels_val, numims_train, traincatcounts = load_data.create_tf_datasets(tracker=run_tracker,
         cat_num = config.cat_num,
@@ -34,10 +38,11 @@ def train_model(run_tracker = config.trackers_list[0], run_arch = config.arch_se
     print(traincatcounts)
     # print(type(tfd2))
 
-    dict_cat_str_ind = helper_fns_adhoc.cat_str_ind_dictmap()
-    print(dict_cat_str_ind)
+    dict_catKey_indValue, dict_indKey_catValue = helper_fns_adhoc.cat_str_ind_dictmap()
+    print(dict_catKey_indValue)
+
     class_weight_set= class_weights.classweights(
-            labels_dict = dict_cat_str_ind,
+            labels_dict = dict_catKey_indValue,
             wts_use = config.class_wts,
             trainlabels =list(labels_train),
             balance=config.class_balance,
@@ -70,7 +75,7 @@ def train_model(run_tracker = config.trackers_list[0], run_arch = config.arch_se
     print("through compiled model")
     print("model here")
     print(type(m))
-    callbacks_use = callbacks.create_callbacks_list(savebestweights = f"{config.results_path}/{tracker_filebase}_{tracker_rundetails}", earlystop_patience = config.earlystop_patience, evid = config.evid)
+    callbacks_use = callbacks.create_callbacks_list(savebestweights = modeldir_set, earlystop_patience = config.earlystop_patience, evid = config.evid)
 
     print("ran through callbakcs")
     print(type(callbacks_use))
@@ -81,13 +86,48 @@ def train_model(run_tracker = config.trackers_list[0], run_arch = config.arch_se
         traindata = tf_ds_train,
         valdata = tf_ds_val,
         callbacks_list = callbacks_use,
+        class_weights_use = class_weight_set,
+        evid = config.evid,
         epoch_set = config.epoch_set,
         BATCH_SIZE = config.BATCH_SIZE)
 
-# def eval_model(tf_dataset, ):
+def eval_model(tf_dataset_input, dataset_imgnames, run_tracker = config.trackers_list[0], run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set):
+
+    
+    tracker_filebase = prep_basefile_str(tracker_designated = run_tracker)
+    tracker_rundetails = helper_fns_adhoc.prep_str_details_track(
+        arch_input= run_arch,
+        l2use = run_l2,
+        dropoutuse = run_dr,
+        transfer_learning = run_trle,
+        ast = run_ast
+        )
+
+    modeldir_set = f"{config.model_path}/{tracker_filebase}_{tracker_rundetails}"
+    predsdir_set = f"{config.preds_path}/{tracker_filebase}_{tracker_rundetails}"
 
 
-def main(train_flag = config.train_flag, one_off = config.one_off, hyp_run = config.hyp_run):
+    model_evaluation.evaluate(modeldir = modeldir_set, dataset = tf_dataset_input, imgnames = dataset_imgnames, savepreds = predsdir_set, trackerinput = run_tracker)
+
+def results_summaries(run_exp_desc = config.exp_desc, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set):
+
+    
+    
+    tracker_rundetails = helper_fns_adhoc.prep_str_details_track( 
+    arch_input= run_arch,
+    l2use = run_l2,
+    dropoutuse = run_dr,
+    transfer_learning = run_trle,
+    ast = run_ast
+    )
+
+
+    listy2 = model_results_summaries.results(exp_desc = run_exp_desc, preds_path = config.preds_path, exp_details = tracker_rundetails)
+
+    return listy2
+
+
+def main(train_flag = config.train_flag, eval_flag = config.eval_flag, summary_flag = config.summary_flag, one_off = config.one_off, hyp_run = config.hyp_run):
     if train_flag:
         if one_off:
             for t in config.trackers_list:
@@ -95,7 +135,24 @@ def main(train_flag = config.train_flag, one_off = config.one_off, hyp_run = con
     if eval_flag:
         if one_off:
             # only need one tracker to pull all examples, the *full* dataset is the same across the 30 trackers
-            t = config.trackers_list[0]
+            t_grabany = config.trackers_list[0]
+            dataset_all, all_labels, all_images = load_data.create_tf_datasets_for_evaluation(tracker = t_grabany,
+                arch_set = config.arch_set,
+                cat_num = config.cat_num,
+                BATCH_SIZE = config.BATCH_SIZE)
+            
+            for t in config.trackers_list:
+                print("inside loop for evaluation")
+                eval_model(tf_dataset_input = dataset_all, dataset_imgnames = all_images, run_tracker = t, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set)
+            
+    if summary_flag:
+        listy3  = results_summaries(run_exp_desc = config.exp_desc, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set)
+
+
+
+                
+            
+
             # tf_ds_train, tf_ds_val, labels_train, labels_val, numims_train, traincatcounts = load_data.create_tf_datasets(tracker=run_tracker,cat_num = config.cat_num, BATCH_SIZE = config.BATCH_SIZE)
 
 

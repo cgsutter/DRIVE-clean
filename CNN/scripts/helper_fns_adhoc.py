@@ -1,7 +1,17 @@
 import _config as config
 
+
+def prep_basefile_str(tracker_designated):
+    begintracker = tracker_designated.rfind("/")
+    tracker_filebase = tracker_designated[
+        begintracker + 1 : -4
+    ]  # the base name that differentiates dataset, just remove .csv extension
+    return tracker_filebase
+
+
+
 def prep_str_details_track(
-    tracker_designated,
+    # tracker_designated,
     arch_input=config.arch_set,
     epochs = config.epoch_set,
     l2use = config.l2_set,
@@ -21,12 +31,8 @@ def prep_str_details_track(
     # lrinituse_desc = str(lrinituse).replace(".", "_")
     # lrdecruse_desc = str(lrdecruse).replace(".", "_")
 
-    begintracker = tracker_designated.rfind("/")
-    tracker_filebase = tracker_designated[
-        begintracker + 1 : -4
-    ]  # the base name that differentiates dataset, just remove .csv extension
-
-    tracker_rundetails = f"_A_{arch_input}_TRLE{transfer_learning}_AST{ast}_L2{l2use_desc}_DR{dropoutuse_desc}_E{epochs}_{adhoc_desc}"
+    
+    tracker_rundetails = f"_A_{arch_input}_TRLE{transfer_learning}_AST{ast}_L2{l2use_desc}_DR{dropoutuse_desc}_E{epochs}{adhoc_desc}"
     # f"_A_{arch_input}_TL{transfer_learning}_AST{ast}_{l2use_desc}_DR{dropoutuse_desc}_B{batchuse_desc}_LR{lrinituse_desc}_LRD{lrdecruse_desc}_E{epochs}_ES{earlystop}_MIN{minepoch}"
 
 
@@ -71,7 +77,7 @@ def prep_str_details_track(
     #     ],
     # )
 
-    return tracker_filebase, tracker_rundetails #, wbtable
+    return tracker_rundetails #, wbtable
 
 def cat_str_ind_dictmap(listcats = config.category_dirs):
     """
@@ -88,6 +94,9 @@ def cat_str_ind_dictmap(listcats = config.category_dirs):
     # print("place3")
     cat_inds = [i for i in range(0, len(cats_alphabetical))]
 
-    dictreturn = dict(zip(cats_alphabetical, cat_inds))
+    dict_catKey_indValue = dict(zip(cats_alphabetical, cat_inds))
 
-    return dictreturn
+    # for evaluation, when mapping from ind to class name, need the dict reversed
+    dict_indKey_catValue = {value: key for key, value in dict_catKey_indValue.items()}
+
+    return dict_catKey_indValue, dict_indKey_catValue
