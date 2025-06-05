@@ -11,10 +11,12 @@ label_col = "placeholder"# the hand-labeled, "true", classification of the obser
 results_path = "/home/csutter/DRIVE-clean/CNN/data_results"
 
 ### Flags and specifics for the type of model run
+train_flag = True # if running model training
+eval_flag = False # if running model evaluation (need to have already trained models)
 # one-off run where you give it one specific architecture and set of hyperparams to use
 one_off = True
-adhoc_desc = "TEST" # some desc ad hoc to use, added to file naming
-arch_set = "mobilenet"# ignored if one_off is False
+adhoc_desc = "TEST2" # some desc ad hoc to use, added to file naming
+arch_set = "vgg16"# ignored if one_off is False
 transfer_learning = True 
 ast = True # used if transfer_learning is True. Set to ast True if using an architecture specific top, otherwise set to False and will use generic top of architecture
 l2_set = 1e-05# ignored if one_off is False

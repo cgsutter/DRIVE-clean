@@ -84,9 +84,21 @@ def train_model(run_tracker = config.trackers_list[0], run_arch = config.arch_se
         epoch_set = config.epoch_set,
         BATCH_SIZE = config.BATCH_SIZE)
 
-def main(one_off = config.one_off, hyp_run = config.hyp_run):
-    if one_off:
-        for t in config.trackers_list:
-            train_model(run_tracker = t, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set)
+# def eval_model(tf_dataset, ):
+
+
+def main(train_flag = config.train_flag, one_off = config.one_off, hyp_run = config.hyp_run):
+    if train_flag:
+        if one_off:
+            for t in config.trackers_list:
+                train_model(run_tracker = t, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set)
+    if eval_flag:
+        if one_off:
+            # only need one tracker to pull all examples, the *full* dataset is the same across the 30 trackers
+            t = config.trackers_list[0]
+            # tf_ds_train, tf_ds_val, labels_train, labels_val, numims_train, traincatcounts = load_data.create_tf_datasets(tracker=run_tracker,cat_num = config.cat_num, BATCH_SIZE = config.BATCH_SIZE)
+
+
+
 
 main()
