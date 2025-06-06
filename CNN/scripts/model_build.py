@@ -1,3 +1,5 @@
+# Portions of this code were writen with the assistance of AI tools (e.g., ChatGPT).
+
 import tensorflow as tf
 from keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPool2D
 from tensorflow.keras.layers import (

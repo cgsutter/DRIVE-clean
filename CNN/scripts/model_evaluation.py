@@ -1,5 +1,5 @@
-# pandas
-# config
+# Portions of this code were writen with the assistance of AI tools (e.g., ChatGPT).
+
 import os
 
 # UPDATE TO BETH IS WHEN IN __MAIN

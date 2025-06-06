@@ -13,16 +13,16 @@ preds_path = "/home/csutter/DRIVE-clean/CNN/data_preds"
 results_path = "/home/csutter/DRIVE-clean/CNN/data_results"
 
 ### Flags and specifics for the type of model run
-train_flag = False # if running model training
+train_flag = True # if running model training
 eval_flag = False # if running model evaluation (need to have already trained models)
-summary_flag = True
+summary_flag = False
 # one-off run where you give it one specific architecture and set of hyperparams to use
 exp_desc = "nestcv_5cat_twotrain" # identifier string that all 30 trackers (trackers_list below) have in common for a given experiment, e.g. nestcv_5cat_twotrain. This is used in results_summaries to aggregate across multiple models that come from the same base experiment
 one_off = True
-adhoc_desc = "" # Default to empty string. Used as a desc "_test" ad hoc to differentiate a test code run, added to file naming. 
-arch_set = "mobilenet"# ignored if one_off is False
+adhoc_desc = "_TESTARCHS" # Default to empty string. Used as a desc "_test" ad hoc to differentiate a test code run, added to file naming. 
+arch_set = "xcep"# ignored if one_off is False
 transfer_learning = True 
-ast = False # used if transfer_learning is True. Set to ast True if using an architecture specific top, otherwise set to False and will use generic top of architecture
+ast = True # used if transfer_learning is True. Set to ast True if using an architecture specific top, otherwise set to False and will use generic top of architecture
 l2_set = 1e-05# ignored if one_off is False
 dr_set = 0.4 # ignored if one_off is False
 # hyperparameter tuning
@@ -34,7 +34,7 @@ dr_col = "placeholder"# column name in the csv that corresponds to the dropout r
 activation_layer_def = "relu"
 activation_output_def = "softmax"
 
-epoch_set = 75 # default 75
+epoch_set = 2 # default 75
 earlystop_patience = 10  # default 10
 min_epochs_before_es = 30 
 

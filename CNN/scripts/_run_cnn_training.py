@@ -14,7 +14,7 @@ def train_model(run_tracker = config.trackers_list[0], run_arch = config.arch_se
 
     print(f"Running {run_tracker} using architecture {run_arch}. Transfer learning {run_trle}, arch-specific top {run_ast}. Dropout is {run_dr} and l2 weight is {run_l2}.")
 
-    tracker_filebase = prep_basefile_str(tracker_designated = run_tracker)
+    tracker_filebase = helper_fns_adhoc.prep_basefile_str(tracker_designated = run_tracker)
     tracker_rundetails = helper_fns_adhoc.prep_str_details_track(
         arch_input= run_arch,
         l2use = run_l2,

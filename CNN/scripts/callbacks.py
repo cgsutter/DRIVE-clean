@@ -1,3 +1,5 @@
+# Portions of this code were writen with the assistance of AI tools (e.g., ChatGPT).
+
 # Necessary imports
 import _config as config
 import custom_keras_callbacks
@@ -8,7 +10,7 @@ from wandb.keras import WandbCallback, WandbMetricsLogger, WandbModelCheckpoint
 
 
 def create_callbacks_list(savebestweights, earlystop_patience = config.earlystop_patience, evid = config.evid):
-    """ Note: this docstring is AI assisted
+    """
     Creates a list of Keras callbacks for model training.
 
     Parameters

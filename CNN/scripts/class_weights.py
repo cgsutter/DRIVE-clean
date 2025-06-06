@@ -1,3 +1,5 @@
+# Portions of this code were writen with the assistance of AI tools (e.g., ChatGPT).
+
 from sklearn.utils import class_weight
 import numpy as np
 import _config as config

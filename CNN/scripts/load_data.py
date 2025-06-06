@@ -1,3 +1,5 @@
+# Portions of this code were writen with the assistance of AI tools (e.g., ChatGPT).
+
 # System and file handling
 import os
 from glob import glob
@@ -27,7 +29,7 @@ import _config as config
 import helper_fns_adhoc
 
 def read_imgs_as_np_array(listims, listlabels, arch_for_preprocess):
-    """ Note: this docstring is AI assisted
+    """
     
     This function reads a list of image file paths and corresponding labels, processes each image, and returns a list of preprocessed image arrays along with their labels.
 
@@ -98,7 +100,7 @@ def create_tf_datasets(tracker,
     arch_set = config.arch_set,
     cat_num = config.cat_num,
     BATCH_SIZE = config.BATCH_SIZE):
-    """ Note: this docstring is AI assisted
+    """
 
     This function:
     - Reads a CSV file specified by `tracker` containing image file paths and label metadata
@@ -175,7 +177,7 @@ def create_tf_datasets(tracker,
     labels_fortfd_val = np.array(val_labels_one_hot, dtype=np.int32)
 
     print(
-        "part5 data prepped before making it to tensor slices, see if it slows down here and if so then it's just the tf dataset creation that is taking time"
+        "Through with data prepped, but prior to dataset creation from tensor slices, so if it slows down here then it's just the tf dataset creation that is taking time"
     )
     dataset_train = tf.data.Dataset.from_tensor_slices(
         (images_fortfd_train, labels_fortfd_train)
@@ -209,7 +211,7 @@ def create_tf_datasets_for_evaluation(tracker,
     cat_num = config.cat_num,
     BATCH_SIZE = config.BATCH_SIZE):
 
-    """ Note: this docstring is AI assisted
+    """
 
     Loads and preprocesses a full dataset for evaluation, returning a TensorFlow dataset along with original labels and image paths.
 
