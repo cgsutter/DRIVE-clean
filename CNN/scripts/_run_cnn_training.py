@@ -7,6 +7,7 @@ import model_build
 import callbacks
 import model_evaluation
 import model_results_summaries
+import pandas as pd
 
 
 def train_model(run_tracker = config.trackers_list[0], run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set):
@@ -146,7 +147,36 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, summary_f
                 eval_model(tf_dataset_input = dataset_all, dataset_imgnames = all_images, run_tracker = t, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set)
             
     if summary_flag:
-        listy3  = results_summaries(run_exp_desc = config.exp_desc, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set)
+
+        tracker_rundetails = helper_fns_adhoc.prep_str_details_track( 
+            arch_input= config.arch_set,
+            l2use = config.l2_set,
+            dropoutuse = config.dr_set,
+            transfer_learning = config.transfer_learning,
+            ast = config.ast
+            )
+
+        # predfiles = model_results_summaries.grab_pred_files(exp_desc = config.exp_desc, preds_path = config.preds_path, exp_details = tracker_rundetails)
+
+        # for phase in ["", "innerTrain", "innerVal", "innerTest", "outerTest"]:
+        #     model_results_summaries.run_results_by_exp(predfiles_input = predfiles, exp_desc_input = config.exp_desc, preds_path_input = config.preds_path, results_path_input = config.results_path, exp_details_input = tracker_rundetails, subsetphase = phase)
+        
+
+        model_results_summaries. exp_total_innerVal(exp_desc_input = config.exp_desc, preds_path_input = config.preds_path, results_path_input = config.results_path, exp_details_input = tracker_rundetails)
+
+        # tracker_rundetails = helper_fns_adhoc.prep_str_details_track( 
+        #     arch_input= run_arch,
+        #     l2use = run_l2,
+        #     dropoutuse = run_dr,
+        #     transfer_learning = run_trle,
+        #     ast = run_ast
+        #     )
+            
+        # results_30dicts = []
+
+
+
+        # listy3  = results_summaries(run_exp_desc = config.exp_desc, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set)
 
 
 

@@ -10,6 +10,7 @@ label_col = "placeholder"# the hand-labeled, "true", classification of the obser
 ### Path where results should be saved
 model_path = "/home/csutter/DRIVE-clean/CNN/data_models"
 preds_path = "/home/csutter/DRIVE-clean/CNN/data_preds"
+results_path = "/home/csutter/DRIVE-clean/CNN/data_results"
 
 ### Flags and specifics for the type of model run
 train_flag = False # if running model training

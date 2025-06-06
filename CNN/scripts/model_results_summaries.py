@@ -1,11 +1,9 @@
 import pandas as pd
 import os
 import _config as config
+import csv
+import datetime
 
-# def results(predsfile_csv):
-#     df = pd.read_csv(predsfile_csv)
-#     tracker_filebase
-#     tracker_rundetails
 
 
 def identify_ok_preds(ytrue, ypred):
@@ -39,11 +37,11 @@ def identify_ok_preds(ytrue, ypred):
 def calcstats_onefold(ytrueinput, ypredinput):
     dfforcalc = pd.DataFrame({"img_cat": ytrueinput, "pred": ypredinput})
 
-    splitspecific_list = []
+    results_list = []
 
     dfforcalc["correct_flag"] = ytrueinput == ypredinput
-    splitspecific_list.append(len(dfforcalc))
-    splitspecific_list.append(sum(dfforcalc["correct_flag"]))
+    results_list.append(len(dfforcalc))
+    results_list.append(sum(dfforcalc["correct_flag"]))
 
     # by class
     for c in [
@@ -57,36 +55,121 @@ def calcstats_onefold(ytrueinput, ypredinput):
         sub = dfforcalc[dfforcalc["img_cat"] == c]
         cat_total = len(sub)
         cat_correct = len(sub[sub["correct_flag"] == True])
-        splitspecific_list.append(cat_total)
-        splitspecific_list.append(cat_correct)
+        results_list.append(cat_total)
+        results_list.append(cat_correct)
     
 
     oks = identify_ok_preds(ytrue = ytrueinput, ypred = ypredinput)
     sum(oks)
-    splitspecific_list.append(sum(oks))
+    results_list.append(sum(oks))
 
-    print("end and printing splitspecific_list")
-    print(splitspecific_list)
-    return splitspecific_list
+    # print("end and printing results_list")
+    # print(results_list)
+
+    metrics_list = ["totalims","correctims","nims_snow_severe","correct_snow_severe","nims_snow","correct_snow","nims_wet","correct_wet","nims_dry","correct_dry","nims_poor_viz","correct_poor_viz", "ok"]
 
 
-def results(exp_desc = config.exp_desc, preds_path = config.preds_path, exp_details = ""):
+    return metrics_list, results_list
 
-    """
-    exp_details come from helper function, this is just another differentiator of the experiment, beyond just the simple exp_desc
-    """
 
+def grab_pred_files(exp_desc = config.exp_desc, preds_path = config.preds_path, exp_details = ""):
     entiredir = os.listdir(preds_path)
     subset_to_exp = [i for i in entiredir if exp_desc in i]
     pred_csv_list = [i for i in subset_to_exp if exp_details in i]
-
     print(len(pred_csv_list))
+    return pred_csv_list
 
-    for c in pred_csv_list[0:2]:
-        df = pd.read_csv(f"{config.preds_path}/{c}")
-        print(df.columns)
-        l = calcstats_onefold(ytrueinput = df["img_cat"], ypredinput= df["model_pred"])
-        print(l)
+def calc_summary(dfinput = "", pred_csv_name = "",exp_desc = config.exp_desc, preds_path = config.preds_path, exp_details = ""):
+    # print(dfinput.columns)
+    metrics_list, results_list = calcstats_onefold(ytrueinput = dfinput["img_cat"], ypredinput= dfinput["model_pred"])
+    # print(results_dict)
+    
+    # grab the info that differentiates this tracker from the others in this experiment, which is done by taking the tracker name, and removing the string text with "exp_desc" and also removes "exp_details", both of these are the same across. Also must remove path.
+    tracker_desc = pred_csv_name.replace(exp_desc, '').replace(preds_path, '').replace('.csv', '').replace(exp_details, '')
+
+    # these will be the same across all 30 trackers, just adding for thoroughness
+    results_list.append(exp_desc)
+    metrics_list.append("exp_desc")
+    results_list.append(exp_details)
+    metrics_list.append("exp_details")
+    # this will be unique differentiator for the tracker specifically
+    results_list.append(tracker_desc)
+    metrics_list.append("tracker")
+    # print(metrics_list)
+
+    dict_results = dict(zip(metrics_list, results_list))
+    # print(dict_results)
+
+    return dict_results
+
+
+# exp_details come from helper function, this is just another differentiator of the experiment, beyond just the simple exp_desc
+
+
+def save_results(listofdics = [], newresultsfile = ""):
+    # newresultsfile = f"{config.results_path}/{exp_desc}_{exp_details}.csv"
+    with open(newresultsfile, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=listofdics[0].keys())
+        writer.writeheader()
+        writer.writerows(listofdics)
+    
+
+def run_results_by_exp(predfiles_input, exp_desc_input = config.exp_desc, preds_path_input = config.preds_path, results_path_input = config.results_path, exp_details_input = "", subsetphase = ""):
+
+    results_30dicts = []
+
+    for predfile_i in predfiles_input:
+        df = pd.read_csv(f"{preds_path_input}/{predfile_i}")
+        if ((subsetphase == "innerTrain")|(subsetphase == "innerVal")|(subsetphase == "innerTest")):
+            df = df[df["innerPhase"] == subsetphase]
+            df = df.reset_index()
+        elif (subsetphase == "outerTest"):
+            df = df[df["outerPhase"] == subsetphase]
+            df = df.reset_index()
+        # o/w no subsetting
+
+        if subsetphase == "":
+            phase_save_string = "All"
+        else:
+            phase_save_string = subsetphase
+
+        dict_i = calc_summary(dfinput = df, pred_csv_name = predfile_i, exp_desc = exp_desc_input, preds_path = preds_path_input, exp_details = exp_details_input)
+
+        results_30dicts.append(dict_i)
 
 
 
+    csvsave = f"{results_path_input}/{exp_desc_input}_{exp_details_input}_{phase_save_string}.csv"
+    print(f"saving to {csvsave}")
+    save_results(listofdics = results_30dicts, newresultsfile = csvsave)
+
+def exp_total_innerVal(exp_desc_input = config.exp_desc, preds_path_input = config.preds_path, results_path_input = config.results_path, exp_details_input = ""):
+    resultssaved = f"{results_path_input}/{exp_desc_input}_{exp_details_input}_innerVal.csv"
+    df_innerVal = pd.read_csv(resultssaved)
+
+    # summing across these cols wont work, just append as one value for the one row being produced
+    df_innerVal = df_innerVal.drop(columns = ["exp_desc","exp_details","tracker"])
+
+    now = datetime.datetime.now() # for logging this experiment
+
+    # aggregate across all 30 models to get final resul
+    column_sums = df_innerVal.sum().tolist()
+    print(type(column_sums))
+    column_sums.extend([exp_desc_input,exp_details_input,now])
+    column_names = list(df_innerVal.columns)
+    print(type(column_names))
+    column_names.extend(["exp_desc","exp_details", "rundatetime"])
+
+    dict_results = dict(zip(column_names, column_sums))
+    print(dict_results)
+
+    # save out to a main file that will collect all model results, even hyptuning
+    newresultsfile = f"{config.results_path}/results_by_exp_innerVal.csv"
+
+    file_exists = os.path.isfile(newresultsfile)
+
+    with open(newresultsfile, 'a', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=dict_results.keys())
+        if not file_exists:
+            writer.writeheader()  # write header only once
+        writer.writerow(dict_results)     # always write the data row
