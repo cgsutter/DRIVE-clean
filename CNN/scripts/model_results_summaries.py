@@ -7,6 +7,11 @@ import datetime
 
 
 def identify_ok_preds(ytrue, ypred):
+    """
+    Determines which predictions are 'acceptable' based on relaxed class-matching logic.
+
+    Returns a list of booleans indicating whether each prediction is acceptable.
+    """
     oks = []
     for i in range(0, len(ytrue)):
         if ytrue[i] == ypred[i]:
@@ -35,6 +40,11 @@ def identify_ok_preds(ytrue, ypred):
     return oks
 
 def calcstats_onefold(ytrueinput, ypredinput):
+    """
+    Calculates summary statistics from true and predicted labels, including accuracy and class-wise totals.
+
+    Returns a tuple of (metric names list, results list).
+    """
     dfforcalc = pd.DataFrame({"img_cat": ytrueinput, "pred": ypredinput})
 
     results_list = []
@@ -73,6 +83,9 @@ def calcstats_onefold(ytrueinput, ypredinput):
 
 
 def grab_pred_files(exp_desc = config.exp_desc, preds_path = config.preds_path, exp_details = ""):
+    """
+    Returns a list of prediction CSV filenames in the specified directory matching given experiment descriptors.
+    """
     entiredir = os.listdir(preds_path)
     subset_to_exp = [i for i in entiredir if exp_desc in i]
     pred_csv_list = [i for i in subset_to_exp if exp_details in i]
@@ -80,6 +93,12 @@ def grab_pred_files(exp_desc = config.exp_desc, preds_path = config.preds_path, 
     return pred_csv_list
 
 def calc_summary(dfinput = "", pred_csv_name = "",exp_desc = config.exp_desc, preds_path = config.preds_path, exp_details = ""):
+    """
+    Summarizes metrics for a single prediction file, including overall and class-wise accuracy,
+    and attaches identifying experiment details.
+
+    Returns a dictionary of metrics and values.
+    """
     # print(dfinput.columns)
     metrics_list, results_list = calcstats_onefold(ytrueinput = dfinput["img_cat"], ypredinput= dfinput["model_pred"])
     # print(results_dict)
@@ -107,6 +126,9 @@ def calc_summary(dfinput = "", pred_csv_name = "",exp_desc = config.exp_desc, pr
 
 
 def save_results(listofdics = [], newresultsfile = ""):
+    """
+    Saves a list of result dictionaries to a CSV file, writing the header only once.
+    """
     # newresultsfile = f"{config.results_path}/{exp_desc}_{exp_details}.csv"
     with open(newresultsfile, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=listofdics[0].keys())
@@ -115,6 +137,10 @@ def save_results(listofdics = [], newresultsfile = ""):
     
 
 def run_results_by_exp(predfiles_input, exp_desc_input = config.exp_desc, preds_path_input = config.preds_path, results_path_input = config.results_path, exp_details_input = "", subsetphase = ""):
+    """
+    Processes multiple prediction CSVs for a given experiment, optionally subsetting by phase,
+    calculates summary metrics for each, and saves results to a combined CSV, with one model per row. 
+    """
 
     results_30dicts = []
 
@@ -144,6 +170,10 @@ def run_results_by_exp(predfiles_input, exp_desc_input = config.exp_desc, preds_
     save_results(listofdics = results_30dicts, newresultsfile = csvsave)
 
 def exp_total_innerVal(exp_desc_input = config.exp_desc, preds_path_input = config.preds_path, results_path_input = config.results_path, exp_details_input = ""):
+    """
+    Loads results from all models in the inner validation set, sums their metrics,
+    adds metadata, and appends to a main results file.
+    """
     resultssaved = f"{results_path_input}/{exp_desc_input}_{exp_details_input}_innerVal.csv"
     df_innerVal = pd.read_csv(resultssaved)
 
@@ -171,5 +201,5 @@ def exp_total_innerVal(exp_desc_input = config.exp_desc, preds_path_input = conf
     with open(newresultsfile, 'a', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=dict_results.keys())
         if not file_exists:
-            writer.writeheader()  # write header only once
-        writer.writerow(dict_results)     # always write the data row
+            writer.writeheader() # write header only once
+        writer.writerow(dict_results) # always write the data row
