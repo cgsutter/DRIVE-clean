@@ -20,7 +20,9 @@ def prep_str_details_track(
     dropoutuse = config.dr_set,
     transfer_learning = config.transfer_learning,
     ast = config.ast,
-    adhoc_desc = config.adhoc_desc
+    adhoc_desc = config.adhoc_desc,
+    exp_desc = config.exp_desc,
+    auguse = config.aug
     ):
     """
     This function returns two strings: the base file name (without full path and without .csv), and the details of the run, which come from architecture, dropout, all the hyperparameters and model decisions. 
@@ -33,11 +35,13 @@ def prep_str_details_track(
     # lrinituse_desc = str(lrinituse).replace(".", "_")
     # lrdecruse_desc = str(lrdecruse).replace(".", "_")
 
+
     
     tracker_rundetails = f"_A_{arch_input}_TRLE{transfer_learning}_AST{ast}_L2{l2use_desc}_DR{dropoutuse_desc}_E{epochs}{adhoc_desc}"
     # f"_A_{arch_input}_TL{transfer_learning}_AST{ast}_{l2use_desc}_DR{dropoutuse_desc}_B{batchuse_desc}_LR{lrinituse_desc}_LRD{lrdecruse_desc}_E{epochs}_ES{earlystop}_MIN{minepoch}"
 
 
+    dict_for_wb = {"exp_desc": exp_desc, "arch":arch_input,"transfer_learning":transfer_learning, "ast":ast, "aug":auguse, "epochs":epochs, "l2":l2use, "dropoutuse":dropoutuse, "adhoc_desc":adhoc_desc}
     # wbtable = wandb.Table(
     #     columns=[
     #         "arch",
@@ -79,7 +83,7 @@ def prep_str_details_track(
     #     ],
     # )
 
-    return tracker_rundetails #, wbtable
+    return tracker_rundetails, dict_for_wb #, wbtable
 
 def cat_str_ind_dictmap(listcats = config.category_dirs):
     """

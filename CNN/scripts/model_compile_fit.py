@@ -36,11 +36,6 @@ import _config as config # holds constants like BATCH_SIZE, cat_num, etc.
 import class_weights  # likely defines weight functions
 import helper_fns_adhoc  # must define cat_str_ind_dictmap()
 
-# comment out for now 6/3/25
-# import wandb
-# from src import MILES_callbacks as MILES_callbacks
-# from src.MILES_loss import evidential_cat_loss as evidential_cat_loss
-# from wandb.keras import WandbCallback, WandbMetricsLogger, WandbModelCheckpoint
 
 
 def compile_model(model, train_size, batchsize, lr_init = config.lr_init, lr_opt=config.lr_opt, lr_after_num_of_epoch =config.lr_after_num_of_epoch, lr_decayrate = config.lr_decayrate, momentum = config.momentum, evid = config.evid, evid_lr_init = config.evid_lr_init):
@@ -67,6 +62,7 @@ def compile_model(model, train_size, batchsize, lr_init = config.lr_init, lr_opt
     Returns:
         model (tf.keras.Model): Compiled model ready for training.
     """
+
     if evid:
         print("evidential learning, loading in MILES GUESS loss function")
         print(f"using class weights? {classwts_normalized}")

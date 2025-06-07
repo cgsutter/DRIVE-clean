@@ -30,10 +30,10 @@ from tensorflow.python.util import deprecation
 from tensorflow.python.util.tf_export import keras_export
 from tensorflow.tools.docs import doc_controls
 
-try:
-    import requests
-except ImportError:
-    requests = None
+# try:
+#     import requests
+# except ImportError:
+#     requests = None
 
 
 # Note: `configure_callbacks` is only used in TF1.

@@ -8,20 +8,36 @@ import callbacks
 import model_evaluation
 import model_results_summaries
 import pandas as pd
+import wandb
 
-
-def train_model(run_tracker = config.trackers_list[0], run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set):
+def train_model(run_tracker = config.trackers_list[0], run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug):
 
     print(f"Running {run_tracker} using architecture {run_arch}. Transfer learning {run_trle}, arch-specific top {run_ast}. Dropout is {run_dr} and l2 weight is {run_l2}.")
 
     tracker_filebase = helper_fns_adhoc.prep_basefile_str(tracker_designated = run_tracker)
-    tracker_rundetails = helper_fns_adhoc.prep_str_details_track(
-        arch_input= run_arch,
+    tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track(
+        # tracker_designated = run_tracker,
+        arch_input=run_arch,
+        epochs = config.epoch_set,
         l2use = run_l2,
         dropoutuse = run_dr,
         transfer_learning = run_trle,
-        ast = run_ast
+        ast = run_ast,
+        adhoc_desc = config.adhoc_desc,
+        exp_desc = config.exp_desc,
+        auguse = run_aug
         )
+
+    print("logging to wb")
+    print(wandblog)
+    wandblog["data_desc"] = tracker_filebase
+
+
+    wandb.init(
+        project="road-surface-cnn",  # your project name
+        config=wandblog
+    )
+
 
     modeldir_set = f"{config.model_path}/{tracker_filebase}_{tracker_rundetails}"
 
@@ -91,17 +107,24 @@ def train_model(run_tracker = config.trackers_list[0], run_arch = config.arch_se
         evid = config.evid,
         epoch_set = config.epoch_set,
         BATCH_SIZE = config.BATCH_SIZE)
+    
+    wandb.finish()
 
-def eval_model(tf_dataset_input, dataset_imgnames, run_tracker = config.trackers_list[0], run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set):
+def eval_model(tf_dataset_input, dataset_imgnames, run_tracker = config.trackers_list[0], run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set,run_aug = config.aug):
 
     
     tracker_filebase = prep_basefile_str(tracker_designated = run_tracker)
-    tracker_rundetails = helper_fns_adhoc.prep_str_details_track(
-        arch_input= run_arch,
+    tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track(
+        # tracker_designated = run_tracker,
+        arch_input=run_arch,
+        epochs = config.epoch_set,
         l2use = run_l2,
         dropoutuse = run_dr,
         transfer_learning = run_trle,
-        ast = run_ast
+        ast = run_ast,
+        adhoc_desc = config.adhoc_desc,
+        exp_desc = config.exp_desc,
+        auguse = run_aug
         )
 
     modeldir_set = f"{config.model_path}/{tracker_filebase}_{tracker_rundetails}"
@@ -110,30 +133,27 @@ def eval_model(tf_dataset_input, dataset_imgnames, run_tracker = config.trackers
 
     model_evaluation.evaluate(modeldir = modeldir_set, dataset = tf_dataset_input, imgnames = dataset_imgnames, savepreds = predsdir_set, trackerinput = run_tracker)
 
-def results_summaries(run_exp_desc = config.exp_desc, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set):
-
-    
-    
-    tracker_rundetails = helper_fns_adhoc.prep_str_details_track( 
-    arch_input= run_arch,
-    l2use = run_l2,
-    dropoutuse = run_dr,
-    transfer_learning = run_trle,
-    ast = run_ast
-    )
-
-
-    listy2 = model_results_summaries.results(exp_desc = run_exp_desc, preds_path = config.preds_path, exp_details = tracker_rundetails)
-
-    return listy2
-
 
 def main(train_flag = config.train_flag, eval_flag = config.eval_flag, summary_flag = config.summary_flag, one_off = config.one_off, hyp_run = config.hyp_run):
     if train_flag:
         if one_off:
             for t in config.trackers_list:
-                train_model(run_tracker = t, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set)
-    if eval_flag:
+                train_model(run_tracker = t, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug)
+        elif hyp_run:
+            dfhyp = pd.read_csv(config.hyp_path)
+            print(dfhyp)
+            for i in range(9,18): #len(dfhyp)
+                print(i)
+                print(dfhyp["arch"][i]) 
+                print(dfhyp["trle"][i])
+                print(dfhyp["ast"][i])
+                print(dfhyp["l2"][i])
+                print(dfhyp["dr"][i])
+                for t in config.trackers_list:
+                    train_model(run_tracker = t, run_arch = dfhyp["arch"][i], run_trle = dfhyp["trle"][i], run_ast = dfhyp["ast"][i], run_l2 =  dfhyp["l2"][i], run_dr = dfhyp["dr"][i], run_aug = dfhyp["aug"][i])
+
+    # right now not working for hyp. Will need to pass in hyps like for model training
+    if eval_flag: # note that this is ran after the model training, rather than in the same script, bc need to evaluate it on the full dataset (not just the val subset)
         if one_off:
             # only need one tracker to pull all examples, the *full* dataset is the same across the 30 trackers
             t_grabany = config.trackers_list[0]
@@ -146,14 +166,18 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, summary_f
                 print("inside loop for evaluation")
                 eval_model(tf_dataset_input = dataset_all, dataset_imgnames = all_images, run_tracker = t, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set)
             
-    if summary_flag:
+    if summary_flag: # right now not working for hyp. Will need to pass in hyps like for model training
 
-        tracker_rundetails = helper_fns_adhoc.prep_str_details_track( 
-            arch_input= config.arch_set,
+        tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track( 
+            arch_input=config.arch_set,
+            epochs = config.epoch_set,
             l2use = config.l2_set,
             dropoutuse = config.dr_set,
             transfer_learning = config.transfer_learning,
-            ast = config.ast
+            ast = config.ast,
+            adhoc_desc = config.adhoc_desc,
+            exp_desc = config.exp_desc,
+            run_aug = config.aug
             )
 
         # predfiles = model_results_summaries.grab_pred_files(exp_desc = config.exp_desc, preds_path = config.preds_path, exp_details = tracker_rundetails)
@@ -165,11 +189,14 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, summary_f
         model_results_summaries. exp_total_innerVal(exp_desc_input = config.exp_desc, preds_path_input = config.preds_path, results_path_input = config.results_path, exp_details_input = tracker_rundetails)
 
         # tracker_rundetails = helper_fns_adhoc.prep_str_details_track( 
-        #     arch_input= run_arch,
-        #     l2use = run_l2,
-        #     dropoutuse = run_dr,
-        #     transfer_learning = run_trle,
-        #     ast = run_ast
+            # arch_input=config.arch_set,
+            # epochs = config.epoch_set,
+            # l2use = config.l2_set,
+            # dropoutuse = config.dr_set,
+            # transfer_learning = config.transfer_learning,
+            # ast = config.ast,
+            # adhoc_desc = config.adhoc_desc,
+            # exp_desc = config.exp_desc
         #     )
             
         # results_30dicts = []
