@@ -5,3 +5,5 @@ CNN/data_trackers
 Downstream/data_results
 Downstream/data_trackers
 CNN/scripts/__pycache__
+temp_env/
+wandb/
