@@ -11,6 +11,16 @@ def prep_basefile_str(tracker_designated):
     ]  # the base name that differentiates dataset, just remove .csv extension
     return tracker_filebase
 
+def prep_filedetails(tracker_designated, rundetails):
+    """
+    This puts together the basefile name (i.e. the data split) and the model details (which are not unique to each of the 30 trackers, but are unique per one broad experiment) - needed for grabbing the model names that were saved out for each run, and also for saving out results preds. 
+    """
+
+    tracker_filebase = prep_basefile_str(tracker_designated)
+    tracker_alldetails = f"{tracker_filebase}_{rundetails}"
+    # no path nor file extension bc this may be used in multiple contexts
+    return tracker_alldetails
+
 
 
 def prep_str_details_track(
@@ -46,9 +56,12 @@ def prep_str_details_track(
     momentumuse_desc = str(momentumuse).replace(".", "_")
 
 
-    
-    tracker_rundetails = f"_A{arch_input}_T{transfer_learning}{ast}_A{auguse}_L2{l2use_desc}_D{dropoutuse_desc}_LR{lrinituse_desc}{lrdecruse_desc}{momentumuse_desc}_E{epochs}{adhoc_desc}"
-    # f"_A_{arch_input}_TL{transfer_learning}_AST{ast}_{l2use_desc}_DR{dropoutuse_desc}_B{batchuse_desc}_LR{lrinituse_desc}_LRD{lrdecruse_desc}_E{epochs}_ES{earlystop}_MIN{minepoch}"
+    # should use this way
+    # tracker_rundetails = f"_A{arch_input}_T{transfer_learning}{ast}_A{auguse}_L2{l2use_desc}_D{dropoutuse_desc}_LR{lrinituse_desc}{lrdecruse_desc}{momentumuse_desc}_E{epochs}{adhoc_desc}"
+
+    # revert to old way for running summary code -- delete later
+    tracker_rundetails = f"_A_{arch_input}_TRLE{transfer_learning}_AST{ast}_L2{l2use_desc}_DR{dropoutuse_desc}_E{epochs}{adhoc_desc}"
+
 
 
     dict_for_wb = {"exp_desc": exp_desc, "arch":arch_input,"transfer_learning":transfer_learning, "ast":ast, "aug":auguse, "l2":l2use, "dropoutuse":dropoutuse, 

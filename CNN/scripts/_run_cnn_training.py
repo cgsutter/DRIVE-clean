@@ -146,7 +146,7 @@ def train_model(run_tracker = config.trackers_list[0], run_arch = config.arch_se
 def main(train_flag = config.train_flag, eval_flag = config.eval_flag, summary_flag = config.summary_flag, one_off = config.one_off, hyp_run = config.hyp_run):
     if train_flag:
         if one_off:
-            for t in config.trackers_list[20:21]:
+            for t in config.trackers_list:
                 train_model(run_tracker = t, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug)
         elif hyp_run:
             dfhyp = pd.read_csv(config.hyp_path)
@@ -173,7 +173,7 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, summary_f
             BATCH_SIZE = config.BATCH_SIZE)
         if one_off:
             print("one_off evalA")
-            tracker_filebase = helper_fns_adhoc.prep_basefile_str(tracker_designated = config.trackers_list[0])
+            # tracker_filebase = helper_fns_adhoc.prep_basefile_str(tracker_designated = config.trackers_list[0])
             tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track(
                 # tracker_designated = run_tracker,
                 arch_input=config.arch_set,
@@ -188,35 +188,42 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, summary_f
                 )
             print("one_off evalB")
 
-            modeldir_set = f"{config.model_path}/{tracker_filebase}_{tracker_rundetails}"
-            predsdir_set = f"{config.preds_path}/{tracker_filebase}_{tracker_rundetails}"
+            # modeldir_set = f"{config.model_path}/{tracker_filebase}_{tracker_rundetails}"
+            # print(modeldir_set)
+            # predsdir_set = f"{config.preds_path}/{tracker_filebase}_{tracker_rundetails}"
 
             preddfs_30 = []
             descs_30 = []
             for t in config.trackers_list:
-                print("one_off evalB")
-                print("inside loop for evaluation")
-                df_preds = model_evaluation.evaluate(modeldir = modeldir_set, dataset = dataset_all, imgnames = all_images, trackerinput = t)
-
-                t_name = os.path.basename(t)[:-4]
-                print(t_name)
-                predssaveto = f"{config.preds_path}/{t_name}_{tracker_rundetails}.csv"
-                df_preds.to_csv(predssaveto) # saving the preds df to csv for one-off runs
+            #     print("one_off evalB")
+            #     print("inside loop for evaluation")
+                print(t)
+                tracker_details = helper_fns_adhoc.prep_filedetails(tracker_designated = t, rundetails = tracker_rundetails)
+                df_preds, t_name = model_evaluation.evaluate(modeldir = f"{config.model_path}/{tracker_details}", dataset = dataset_all, imgnames = all_images, trackerinput = t, saveto = f"{config.preds_path}/{tracker_details}.csv", saveflag = True)
                 preddfs_30.append(df_preds)
-                # grab the tracker differentiator
-                # trackerdesc = helper_fns_adhoc.tracker_differentiator(t)
                 descs_30.append(t_name)
 
-            print("one_off evalC")
-            for phase in ["", "innerTrain", "innerVal", "innerTest", "outerTest"]:
-                results_df_of30 = model_results_summaries.run_results_by_exp(preddfs_input = preddfs_30, preddfs_desc = descs_30,  exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails, subsetphase = phase)
-                csvsave = f"{config.results_path}/{config.exp_desc}_{tracker_rundetails}_{phase}.csv"
-                print(f"saving to {csvsave}")
-                results_df_of30.to_csv(csvsave) # save out all phases to csv
-                print("one_off evalD")
-                if phase == "innerVal": # Append to Main tracker of all experiments performance, but only for innerVal
-                    model_results_summaries.exp_total_innerVal(df_innerval = results_df_of30, exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails)
-                    print("one_off evalE")
+            
+            # just for not having to re-do all the preds in the loop above, this is one off to keep testing the rest of the code -- should delete this chunk after done testing :) and uncomment the loop above
+            # for t in config.trackers_list:
+            #     df_preds, t_name = model_evaluation.evaluate(modeldir = modeldir_set, dataset = dataset_all, imgnames = all_images, trackerinput = t,  rundetails = tracker_rundetails, saveflag = True)
+            #     preddfs_30.append(df_preds)
+            #     descs_30.append(t_name)
+
+
+
+
+            # print("one_off evalC")
+            # for phase in ["", "innerTrain", "innerVal", "innerTest", "outerTest"]:
+            #     results_df_of30 = model_results_summaries.run_results_by_exp(preddfs_input = preddfs_30, preddfs_desc = descs_30,  exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails, subsetphase = phase)
+            #     csvsave = f"{config.results_path}/{config.exp_desc}_{tracker_rundetails}_{phase}.csv"
+            #     print(f"saving to {csvsave}")
+            #     results_df_of30.to_csv(csvsave) # save out all phases to csv
+            #     print(results_df_of30.head(4))
+            #     print("one_off evalD")
+            #     if phase == "innerVal": # Append to Main tracker of all experiments performance, but only for innerVal
+            #         model_results_summaries.exp_total_innerVal(df_innerVal = results_df_of30, exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails)
+            #         print("one_off evalE")
 
                     
             

@@ -7,7 +7,6 @@ import csv
 import datetime
 
 
-
 def identify_ok_preds(ytrue, ypred):
     """
     Determines which predictions are 'acceptable' based on relaxed class-matching logic.
@@ -146,7 +145,7 @@ def run_results_by_exp(preddfs_input = [], preddfs_desc = [], exp_desc_input = c
 
     results_30dicts = []
 
-    for df_i, desc_i in preddfs_input, preddfs_desc:
+    for df_i, desc_i in zip(preddfs_input, preddfs_desc):
         if ((subsetphase == "innerTrain")|(subsetphase == "innerVal")|(subsetphase == "innerTest")):
             df_i = df_i[df_i["innerPhase"] == subsetphase]
             df_i = df_i.reset_index()
@@ -169,7 +168,7 @@ def run_results_by_exp(preddfs_input = [], preddfs_desc = [], exp_desc_input = c
     return results_df_of30
 
 
-def exp_total_innerVal(df_innerval, exp_desc_input = config.exp_desc, exp_details_input = ""):
+def exp_total_innerVal(df_innerVal, exp_desc_input = config.exp_desc, exp_details_input = ""):
     """
     Loads results from all models in the inner validation set, sums their metrics,
     adds metadata, and appends to a main results file.

@@ -20,9 +20,10 @@ from tensorflow.keras.applications.mobilenet import preprocess_input
 # For a given run, evaluate each of the 30 CNNs on the full dataset; which is the same for all 30 models. Each model differed in terms of the data (folds) that was used for training and validation, but evaluation should be run on the full dataset (all folds), which is the same. Thus, to save memory and data loading time, load the full dataset just once, and then evaluate that same dataset on each of the 30 models, rather than loading the same data 30 times.
 
 
-def evaluate(modeldir, dataset, imgnames, trackerinput):
+def evaluate(modeldir, dataset, imgnames, trackerinput, saveflag = False, saveto = ""):
     
     print(modeldir)
+    print(f"loading model {modeldir}")
     model = tf.keras.models.load_model(modeldir, compile=False)
     print("got through model load!!") # note: this is not set up right now for evid, which requires loading of the custom loss function to deserialize (and that requires class weights which are unique to each of the 30 datasets, come back to this..
 
@@ -77,4 +78,13 @@ def evaluate(modeldir, dataset, imgnames, trackerinput):
 
     df_final["tracker"] = tracker_ident
 
-    return df_final
+    t_name = os.path.basename(trackerinput)[:-4]
+    # print(t_name)
+    if saveflag:
+        # predssaveto = f"{config.preds_path}/{t_name}_{rundetails}.csv"
+        df_final.to_csv(saveto) # saving the preds df to csv for one-off runs    
+        print("saved to")
+        print(saveto)
+
+    return df_final, t_name
+
