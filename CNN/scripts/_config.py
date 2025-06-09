@@ -25,10 +25,10 @@ arch_set = "mobilenet"# ignored if one_off is False
 transfer_learning = True 
 ast = False # used if transfer_learning is True. Set to ast True if using an architecture specific top, otherwise set to False and will use generic top of architecture
 aug = False
-l2_set = 1e-05# ignored if one_off is False
-dr_set = 0.4 # ignored if one_off is False
+l2_set = 1e-05 # ignored if one_off is False, sel: 1e-05
+dr_set = 0.4 # ignored if one_off is False, sel: 0.4
 # hyperparameter tuning
-hyp_run = False
+hyp_run = True
 hyp_path = "/home/csutter/DRIVE-clean/CNN/data_trackers/baseline_hyperparams.csv"# path to CSV which has the list of hyperparameters
 arch_col = "placeholder"# column name in the csv that corresponds to the architecture
 l2_col = "placeholder"# column name in the csv that corresponds to the l2 rate
@@ -38,18 +38,18 @@ activation_output_def = "softmax"
 
 epoch_set = 75 # default 75
 earlystop_patience = 10  # default 10
-min_epochs_before_es = 30 
+min_epochs_before_es = 30 # should be 25 
 
 # define if using learning rate optimizationop
 lr_opt = True
 lr_init = 0.01
 lr_after_num_of_epoch = 1
-lr_decayrate = 0.99
-momentum = 0.9
+lr_decayrate = 0.95 
+momentum = 0.25
 
 ### Static details: e.g. loss function, early stopping, min number of epochs, and learning rate, are the same for all runs
 TARGET_SIZE = (224, 224)  # Adjust based on model needs
-BATCH_SIZE = 32  # Adjust as needed
+BATCH_SIZE = 128  # Adjust as needed
 imheight = 224
 imwidth = 224
 class_wts = "yes"

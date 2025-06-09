@@ -23,7 +23,11 @@ def prep_str_details_track(
     ast = config.ast,
     adhoc_desc = config.adhoc_desc,
     exp_desc = config.exp_desc,
-    auguse = config.aug
+    auguse = config.aug,
+    batchuse = config.BATCH_SIZE,
+    lrinituse = config.lr_init,
+    lrdecruse = config.lr_decayrate,
+    momentumuse = config.momentum
     ):
     """
     This function grabs details for tracking information about the run, which is used for saving models with the right name, logging to w&b, etc. It is only unique at the experiment & arch/hyp level - not at the tracker level (e.g. all 30 trackers have the same information returned from this function). 
@@ -36,17 +40,24 @@ def prep_str_details_track(
     # make string descriptions of hyperparameters for file naming
     l2use_desc = str(l2use).replace(".", "_")
     dropoutuse_desc = str(dropoutuse).replace(".", "_")
-    # batchuse_desc = str(batchuse).replace(".", "_")
-    # lrinituse_desc = str(lrinituse).replace(".", "_")
-    # lrdecruse_desc = str(lrdecruse).replace(".", "_")
+    batchuse_desc = str(batchuse).replace(".", "_")
+    lrinituse_desc = str(lrinituse).replace(".", "_")
+    lrdecruse_desc = str(lrdecruse).replace(".", "_")
+    momentumuse_desc = str(momentumuse).replace(".", "_")
 
 
     
-    tracker_rundetails = f"_A_{arch_input}_TRLE{transfer_learning}_AST{ast}_L2{l2use_desc}_DR{dropoutuse_desc}_E{epochs}{adhoc_desc}"
+    tracker_rundetails = f"_A{arch_input}_T{transfer_learning}{ast}_A{auguse}_L2{l2use_desc}_D{dropoutuse_desc}_LR{lrinituse_desc}{lrdecruse_desc}{momentumuse_desc}_E{epochs}{adhoc_desc}"
     # f"_A_{arch_input}_TL{transfer_learning}_AST{ast}_{l2use_desc}_DR{dropoutuse_desc}_B{batchuse_desc}_LR{lrinituse_desc}_LRD{lrdecruse_desc}_E{epochs}_ES{earlystop}_MIN{minepoch}"
 
 
-    dict_for_wb = {"exp_desc": exp_desc, "arch":arch_input,"transfer_learning":transfer_learning, "ast":ast, "aug":auguse, "epochs":epochs, "l2":l2use, "dropoutuse":dropoutuse, "adhoc_desc":adhoc_desc}
+    dict_for_wb = {"exp_desc": exp_desc, "arch":arch_input,"transfer_learning":transfer_learning, "ast":ast, "aug":auguse, "l2":l2use, "dropoutuse":dropoutuse, 
+    "LR_init": lrinituse_desc,
+    "LR_decayrate": lrdecruse_desc,
+    "batchsize": batchuse_desc,
+    "momentum": momentumuse_desc,
+    "adhoc_desc":adhoc_desc,
+    "epochs":epochs,}
     # wbtable = wandb.Table(
     #     columns=[
     #         "arch",

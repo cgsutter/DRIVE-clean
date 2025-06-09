@@ -146,7 +146,7 @@ def train_model(run_tracker = config.trackers_list[0], run_arch = config.arch_se
 def main(train_flag = config.train_flag, eval_flag = config.eval_flag, summary_flag = config.summary_flag, one_off = config.one_off, hyp_run = config.hyp_run):
     if train_flag:
         if one_off:
-            for t in config.trackers_list:
+            for t in config.trackers_list[20:21]:
                 train_model(run_tracker = t, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug)
         elif hyp_run:
             dfhyp = pd.read_csv(config.hyp_path)
