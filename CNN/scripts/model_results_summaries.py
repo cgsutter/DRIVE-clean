@@ -94,7 +94,7 @@ def grab_pred_files(exp_desc = config.exp_desc, preds_path = config.preds_path, 
     print(len(pred_csv_list))
     return pred_csv_list
 
-def calc_summary(dfinput = "", pred_csv_name = "",exp_desc = config.exp_desc, preds_path = config.preds_path, exp_details = ""):
+def calc_summary(dfinput = "", tracker_desc = "", exp_desc = config.exp_desc,  exp_details = ""):
     """
     Summarizes metrics for a single prediction file, including overall and class-wise accuracy,
     and attaches identifying experiment details.
@@ -104,9 +104,7 @@ def calc_summary(dfinput = "", pred_csv_name = "",exp_desc = config.exp_desc, pr
     # print(dfinput.columns)
     metrics_list, results_list = calcstats_onefold(ytrueinput = dfinput["img_cat"], ypredinput= dfinput["model_pred"])
     # print(results_dict)
-    
-    # grab the info that differentiates this tracker from the others in this experiment, which is done by taking the tracker name, and removing the string text with "exp_desc" and also removes "exp_details", both of these are the same across. Also must remove path.
-    tracker_desc = pred_csv_name.replace(exp_desc, '').replace(preds_path, '').replace('.csv', '').replace(exp_details, '')
+
 
     # these will be the same across all 30 trackers, just adding for thoroughness
     results_list.append(exp_desc)
@@ -138,46 +136,46 @@ def save_results(listofdics = [], newresultsfile = ""):
         writer.writerows(listofdics)
     
 
-def run_results_by_exp(predfiles_input, exp_desc_input = config.exp_desc, preds_path_input = config.preds_path, results_path_input = config.results_path, exp_details_input = "", subsetphase = ""):
+def run_results_by_exp(preddfs_input = [], preddfs_desc = [], exp_desc_input = config.exp_desc, exp_details_input = "", subsetphase = ""):
     """
+    Aggregates summaries ACROSS multiple (30) experiments.
+
     Processes multiple prediction CSVs for a given experiment, optionally subsetting by phase,
     calculates summary metrics for each, and saves results to a combined CSV, with one model per row. 
     """
 
     results_30dicts = []
 
-    for predfile_i in predfiles_input:
-        df = pd.read_csv(f"{preds_path_input}/{predfile_i}")
+    for df_i, desc_i in preddfs_input, preddfs_desc:
         if ((subsetphase == "innerTrain")|(subsetphase == "innerVal")|(subsetphase == "innerTest")):
-            df = df[df["innerPhase"] == subsetphase]
-            df = df.reset_index()
+            df_i = df_i[df_i["innerPhase"] == subsetphase]
+            df_i = df_i.reset_index()
         elif (subsetphase == "outerTest"):
-            df = df[df["outerPhase"] == subsetphase]
-            df = df.reset_index()
+            df_i = df_i[df_i["outerPhase"] == subsetphase]
+            df_i = df_i.reset_index()
         # o/w no subsetting
 
         if subsetphase == "":
             phase_save_string = "All"
         else:
             phase_save_string = subsetphase
-
-        dict_i = calc_summary(dfinput = df, pred_csv_name = predfile_i, exp_desc = exp_desc_input, preds_path = preds_path_input, exp_details = exp_details_input)
+        
+        dict_i = calc_summary(dfinput = df_i, tracker_desc = desc_i, exp_desc = exp_desc_input,  exp_details = exp_details_input)
 
         results_30dicts.append(dict_i)
 
+    results_df_of30 = pd.DataFrame(results_30dicts)
+    
+    return results_df_of30
 
 
-    csvsave = f"{results_path_input}/{exp_desc_input}_{exp_details_input}_{phase_save_string}.csv"
-    print(f"saving to {csvsave}")
-    save_results(listofdics = results_30dicts, newresultsfile = csvsave)
-
-def exp_total_innerVal(exp_desc_input = config.exp_desc, preds_path_input = config.preds_path, results_path_input = config.results_path, exp_details_input = ""):
+def exp_total_innerVal(df_innerval, exp_desc_input = config.exp_desc, exp_details_input = ""):
     """
     Loads results from all models in the inner validation set, sums their metrics,
     adds metadata, and appends to a main results file.
     """
-    resultssaved = f"{results_path_input}/{exp_desc_input}_{exp_details_input}_innerVal.csv"
-    df_innerVal = pd.read_csv(resultssaved)
+    # resultssaved = f"{results_path_input}/{exp_desc_input}_{exp_details_input}_innerVal.csv"
+    # df_innerVal = pd.read_csv(resultssaved)
 
     # summing across these cols wont work, just append as one value for the one row being produced
     df_innerVal = df_innerVal.drop(columns = ["exp_desc","exp_details","tracker"])

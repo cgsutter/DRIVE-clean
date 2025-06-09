@@ -13,22 +13,22 @@ preds_path = "/home/csutter/DRIVE-clean/CNN/data_preds"
 results_path = "/home/csutter/DRIVE-clean/CNN/data_results"
 
 ### Flags and specifics for the type of model run
-train_flag = True # if running model training
-eval_flag = False # if running model evaluation (need to have already trained models)
+train_flag = False # if running model training
+eval_flag = True # if running model evaluation (need to have already trained models)
 summary_flag = False
 # one-off run where you give it one specific architecture and set of hyperparams to use
 # Should be used for all experiments, one_off and hyp_run
 exp_desc = "nestcv_5cat_twotrain" # identifier string that all 30 trackers (trackers_list below) have in common for a given experiment, e.g. nestcv_5cat_twotrain. This is used in results_summaries to aggregate across multiple models that come from the same base experiment
-one_off = False
+one_off = True
 adhoc_desc = "" # Default to empty string. Used as a desc "_TEST" ad hoc to differentiate a test code run, added to file naming. 
-arch_set = "resnet"# ignored if one_off is False
+arch_set = "mobilenet"# ignored if one_off is False
 transfer_learning = True 
 ast = False # used if transfer_learning is True. Set to ast True if using an architecture specific top, otherwise set to False and will use generic top of architecture
 aug = False
 l2_set = 1e-05# ignored if one_off is False
 dr_set = 0.4 # ignored if one_off is False
 # hyperparameter tuning
-hyp_run = True
+hyp_run = False
 hyp_path = "/home/csutter/DRIVE-clean/CNN/data_trackers/baseline_hyperparams.csv"# path to CSV which has the list of hyperparameters
 arch_col = "placeholder"# column name in the csv that corresponds to the architecture
 l2_col = "placeholder"# column name in the csv that corresponds to the l2 rate

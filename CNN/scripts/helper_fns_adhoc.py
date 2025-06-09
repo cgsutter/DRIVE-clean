@@ -1,6 +1,7 @@
 # Portions of this code were writen with the assistance of AI tools (e.g., ChatGPT).
 
 import _config as config
+import os
 
 
 def prep_basefile_str(tracker_designated):
@@ -25,7 +26,11 @@ def prep_str_details_track(
     auguse = config.aug
     ):
     """
-    This function returns two strings: the base file name (without full path and without .csv), and the details of the run, which come from architecture, dropout, all the hyperparameters and model decisions. 
+    This function grabs details for tracking information about the run, which is used for saving models with the right name, logging to w&b, etc. It is only unique at the experiment & arch/hyp level - not at the tracker level (e.g. all 30 trackers have the same information returned from this function). 
+
+    This function:
+    Returns a string that includes details of the run, which are NOT unique to the 30 trackers, they are only unique to the experiment + arch/hyp details. 
+    Returns a dictionary that is used to log details to w&b (and then outside of this function, the 30 tracker-level differentiators are also added to the dict for tracking, but that does not happen within this function)
     """
 
     # make string descriptions of hyperparameters for file naming
@@ -84,6 +89,14 @@ def prep_str_details_track(
     # )
 
     return tracker_rundetails, dict_for_wb #, wbtable
+
+def tracker_differentiator(trackerpath):
+
+    filename = os.path.basename(trackerpath)
+
+    tracker_identifier = filename.replace(f'{config.exp_desc}_', '').replace('.csv', '')
+
+    return tracker_identifier
 
 def cat_str_ind_dictmap(listcats = config.category_dirs):
     """
