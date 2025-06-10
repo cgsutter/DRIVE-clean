@@ -133,7 +133,6 @@ def train_model(run_tracker = config.trackers_list[0], tracker_rundetails = "", 
 def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off = config.one_off, hyp_run = config.hyp_run):
     # prepare tracker detail information which will be used for any step, whether model training of evaluation. It's unique to whether running for one-off or hyp tuning
     if one_off:
-        print("one_off evalA")
         tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track(
             # tracker_designated = run_tracker,
             arch_input=config.arch_set,
@@ -146,50 +145,19 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
             exp_desc = config.exp_desc,
             auguse = config.aug
             )
-        print("one_off evalB")
-    elif hyp_run:
-        tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track(
-            # tracker_designated = run_tracker,
-            arch_input=dfhyp["arch"][i],
-            epochs = config.epoch_set,
-            l2use = dfhyp["l2"][i],
-            dropoutuse = dfhyp["dr"][i],
-            transfer_learning = dfhyp["trle"][i],
-            ast = dfhyp["ast"][i],
-            adhoc_desc = config.adhoc_desc,
-            exp_desc = config.exp_desc,
-            auguse = dfhyp["aug"][i]
-            )
-
-    if train_flag:
-        if one_off:
+        if train_flag:
             for t in config.trackers_list:
                 train_model(run_tracker = t, tracker_rundetails = tracker_rundetails, wandblog = wandblog, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug)
-        elif hyp_run:
-            dfhyp = pd.read_csv(config.hyp_path)
-            print(dfhyp)
-            for i in range(9,18): #len(dfhyp)
-                for t in config.trackers_list:
-                    train_model(run_tracker = t, tracker_rundetails = tracker_rundetails, wandblog = wandblog, run_arch = dfhyp["arch"][i], run_trle = dfhyp["trle"][i], run_ast = dfhyp["ast"][i], run_l2 =  dfhyp["l2"][i], run_dr = dfhyp["dr"][i], run_aug = dfhyp["aug"][i])
-
-
-    if eval_flag: # note that this is ran after the model training, rather than in the same script, bc need to evaluate it on the full dataset (not just the val subset)
-        # only need one tracker to pull all examples, the *full* dataset is the same across the 30 trackers. Note that this is the same regardless of one-off of hyperparameter tuning run - just need to create one tf dataset of all data observations
-
-        print("eval1")
-        t_grabany = config.trackers_list[0]
-        dataset_all, all_labels, all_images = load_data.create_tf_datasets_for_evaluation(tracker = t_grabany,
-            arch_set = config.arch_set,
-            cat_num = config.cat_num,
-            BATCH_SIZE = config.BATCH_SIZE)
-
-        if one_off:
-
+        if eval_flag:# note that this is ran after the model training, rather than in the same script, bc need to evaluate it on the full dataset (not just the val subset)
+            # only need one tracker to pull all examples, the *full* dataset is the same across the 30 trackers. Note that this is the same regardless of one-off of hyperparameter tuning run - just need to create one tf dataset of all data observations
+            dataset_all, all_labels, all_images = load_data.create_tf_datasets_for_evaluation(tracker = config.trackers_list[0],
+                arch_set = config.arch_set,
+                cat_num = config.cat_num,
+                BATCH_SIZE = config.BATCH_SIZE)
+            
             preddfs_30 = []
             descs_30 = []
             for t in config.trackers_list:
-                # print("one_off evalB")
-                # print("inside loop for evaluation")
                 print(t)
                 tracker_details = helper_fns_adhoc.prep_filedetails(tracker_designated = t, rundetails = tracker_rundetails)
                 df_preds, t_name = model_evaluation.evaluate(modeldir = f"{config.model_path}/{tracker_details}", dataset = dataset_all, imgnames = all_images, trackerinput = t, saveto = f"{config.preds_path}/{tracker_details}.csv", saveflag = True)
@@ -208,22 +176,106 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
                     model_results_summaries.exp_total_innerVal(df_innerVal = results_df_of30, exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails)
                     print("one_off evalE")
 
-        if hyp_run:
-            for i in range(9,18): #len(dfhyp)
+                
+
+    elif hyp_run:
+        dfhyp = pd.read_csv(config.hyp_path)
+        # print(dfhyp)
+        if eval_flag:
+            # if running eval, read in the full dataset only once, outside the HT and Tracker loops -- would be redundant to read in for each since it's the same full dataframe.
+            dataset_all, all_labels, all_images = load_data.create_tf_datasets_for_evaluation(tracker = config.trackers_list[0], arch_set = config.arch_set, cat_num = config.cat_num, BATCH_SIZE = config.BATCH_SIZE)
+        for i in range(0,2): #len(dfhyp)
+            tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track(
+                # tracker_designated = run_tracker,
+                arch_input=dfhyp["arch"][i],
+                epochs = config.epoch_set,
+                l2use = dfhyp["l2"][i],
+                dropoutuse = dfhyp["dr"][i],
+                transfer_learning = dfhyp["trle"][i],
+                ast = dfhyp["ast"][i],
+                adhoc_desc = config.adhoc_desc,
+                exp_desc = config.exp_desc,
+                auguse = dfhyp["aug"][i]
+                )
+            if train_flag:
+                for t in config.trackers_list:
+                    train_model(run_tracker = t, tracker_rundetails = tracker_rundetails, wandblog = wandblog, run_arch = dfhyp["arch"][i], run_trle = dfhyp["trle"][i], run_ast = dfhyp["ast"][i], run_l2 =  dfhyp["l2"][i], run_dr = dfhyp["dr"][i], run_aug = dfhyp["aug"][i])
+            if eval_flag:
                 preddfs_30 = []
                 descs_30 = []
                 for t in config.trackers_list:
                     print("inside loop for evaluation")
-                    df_preds = model_evaluation.evaluate(modeldir = modeldir_set, dataset = dataset_all, imgnames = all_images, trackerinput = t)
-
-                    # do not save all preds for all trackers under HTing -- too much data, and not needed since all we need is summary analysis
+                    tracker_details = helper_fns_adhoc.prep_filedetails(tracker_designated = t, rundetails = tracker_rundetails)
+                    df_preds, t_name = model_evaluation.evaluate(modeldir = f"{config.model_path}/{tracker_details}", dataset = dataset_all, imgnames = all_images, trackerinput = t, saveto = f"{config.preds_path}/{tracker_details}.csv", saveflag = False)
                     preddfs_30.append(df_preds)
-                    trackerdesc = helper_fns_adhoc.tracker_differentiator(t)
-                    descs_30.append(trackerdesc)
+                    descs_30.append(t_name)
                 # only run for inner val, no need to run for all phases bc not saving those to csv, only need inner val to then run the final summary analysis to append to Main tracker for experiment results in total
+
                 results_df_of30 = model_results_summaries.run_results_by_exp(preddfs_input = preddfs_30, preddfs_desc = descs_30,  exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails, subsetphase = "innerVal")
 
-                model_results_summaries.model_results_summaries.exp_total_innerVal(df_innerval = results_df_of30, exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails)
+                model_results_summaries.exp_total_innerVal(df_innerVal = results_df_of30, exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails)
+            
+
+        
+
+    # if train_flag:
+    #     if one_off:
+
+    #     elif hyp_run:
+            
+            
+
+    # if eval_flag: # note that this is ran after the model training, rather than in the same script, bc need to evaluate it on the full dataset (not just the val subset)
+    #     # only need one tracker to pull all examples, the *full* dataset is the same across the 30 trackers. Note that this is the same regardless of one-off of hyperparameter tuning run - just need to create one tf dataset of all data observations
+
+    #     print("eval1")
+    #     t_grabany = config.trackers_list[0]
+    #     dataset_all, all_labels, all_images = load_data.create_tf_datasets_for_evaluation(tracker = t_grabany,
+    #         arch_set = config.arch_set,
+    #         cat_num = config.cat_num,
+    #         BATCH_SIZE = config.BATCH_SIZE)
+
+    #     if one_off:
+
+    #         preddfs_30 = []
+    #         descs_30 = []
+    #         for t in config.trackers_list:
+    #             # print("one_off evalB")
+    #             # print("inside loop for evaluation")
+    #             print(t)
+    #             tracker_details = helper_fns_adhoc.prep_filedetails(tracker_designated = t, rundetails = tracker_rundetails)
+    #             df_preds, t_name = model_evaluation.evaluate(modeldir = f"{config.model_path}/{tracker_details}", dataset = dataset_all, imgnames = all_images, trackerinput = t, saveto = f"{config.preds_path}/{tracker_details}.csv", saveflag = True)
+    #             preddfs_30.append(df_preds)
+    #             descs_30.append(t_name)
+
+    #         print("one_off evalC")
+    #         for phase in ["", "innerTrain", "innerVal", "innerTest", "outerTest"]:
+    #             results_df_of30 = model_results_summaries.run_results_by_exp(preddfs_input = preddfs_30, preddfs_desc = descs_30,  exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails, subsetphase = phase)
+    #             csvsave = f"{config.results_path}/{config.exp_desc}_{tracker_rundetails}_{phase}.csv"
+    #             print(f"saving to {csvsave}")
+    #             results_df_of30.to_csv(csvsave) # save out all phases to csv
+    #             print(results_df_of30.head(4))
+    #             print("one_off evalD")
+    #             if phase == "innerVal": # Append to Main tracker of all experiments performance, but only for innerVal
+    #                 model_results_summaries.exp_total_innerVal(df_innerVal = results_df_of30, exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails)
+    #                 print("one_off evalE")
+
+    #     if hyp_run:
+    #         for i in range(9,18): #len(dfhyp)
+    #             preddfs_30 = []
+    #             descs_30 = []
+    #             for t in config.trackers_list:
+    #                 print("inside loop for evaluation")
+    #                 df_preds = model_evaluation.evaluate(modeldir = modeldir_set, dataset = dataset_all, imgnames = all_images, trackerinput = t)
+
+    #                 # do not save all preds for all trackers under HTing -- too much data, and not needed since all we need is summary analysis
+    #                 preddfs_30.append(df_preds)
+    #                 trackerdesc = helper_fns_adhoc.tracker_differentiator(t)
+    #                 descs_30.append(trackerdesc)
+    #             # only run for inner val, no need to run for all phases bc not saving those to csv, only need inner val to then run the final summary analysis to append to Main tracker for experiment results in total
+    #             results_df_of30 = model_results_summaries.run_results_by_exp(preddfs_input = preddfs_30, preddfs_desc = descs_30,  exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails, subsetphase = "innerVal")
+
+    #             model_results_summaries.model_results_summaries.exp_total_innerVal(df_innerval = results_df_of30, exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails)
 
 
 main()
