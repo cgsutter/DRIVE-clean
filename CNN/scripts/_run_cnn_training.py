@@ -11,24 +11,12 @@ import pandas as pd
 import wandb
 import os
 
-def train_model(run_tracker = config.trackers_list[0], run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug):
+def train_model(run_tracker = config.trackers_list[0], tracker_rundetails = "", wandblog = "", run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug):
 
     print(f"Running {run_tracker} using architecture {run_arch}. Transfer learning {run_trle}, arch-specific top {run_ast}. Dropout is {run_dr} and l2 weight is {run_l2}.")
 
     # really should move this outside of this function! It's only unique to an experiment & hyperparams NOT tracker, so since this def train_model is ran for each of the 30, it's superfluous.  Can actually probably remove this and move it outside under the first one_off and hyp_flag
     tracker_filebase = helper_fns_adhoc.prep_basefile_str(tracker_designated = run_tracker)
-    tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track(
-        # tracker_designated = run_tracker,
-        arch_input=run_arch,
-        epochs = config.epoch_set,
-        l2use = run_l2,
-        dropoutuse = run_dr,
-        transfer_learning = run_trle,
-        ast = run_ast,
-        adhoc_desc = config.adhoc_desc,
-        exp_desc = config.exp_desc,
-        auguse = run_aug
-        )
 
     print("logging to wb")
     print(wandblog)
@@ -138,30 +126,53 @@ def train_model(run_tracker = config.trackers_list[0], run_arch = config.arch_se
 #         df_preds.to_csv(predsdir_set)
 
 #     return df_preds
-    
-    
 
 
 
-def main(train_flag = config.train_flag, eval_flag = config.eval_flag, summary_flag = config.summary_flag, one_off = config.one_off, hyp_run = config.hyp_run):
+
+def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off = config.one_off, hyp_run = config.hyp_run):
+    # prepare tracker detail information which will be used for any step, whether model training of evaluation. It's unique to whether running for one-off or hyp tuning
+    if one_off:
+        print("one_off evalA")
+        tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track(
+            # tracker_designated = run_tracker,
+            arch_input=config.arch_set,
+            epochs = config.epoch_set,
+            l2use = config.l2_set,
+            dropoutuse = config.dr_set,
+            transfer_learning = config.transfer_learning,
+            ast = config.ast,
+            adhoc_desc = config.adhoc_desc,
+            exp_desc = config.exp_desc,
+            auguse = config.aug
+            )
+        print("one_off evalB")
+    elif hyp_run:
+        tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track(
+            # tracker_designated = run_tracker,
+            arch_input=dfhyp["arch"][i],
+            epochs = config.epoch_set,
+            l2use = dfhyp["l2"][i],
+            dropoutuse = dfhyp["dr"][i],
+            transfer_learning = dfhyp["trle"][i],
+            ast = dfhyp["ast"][i],
+            adhoc_desc = config.adhoc_desc,
+            exp_desc = config.exp_desc,
+            auguse = dfhyp["aug"][i]
+            )
+
     if train_flag:
         if one_off:
             for t in config.trackers_list:
-                train_model(run_tracker = t, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug)
+                train_model(run_tracker = t, tracker_rundetails = tracker_rundetails, wandblog = wandblog, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug)
         elif hyp_run:
             dfhyp = pd.read_csv(config.hyp_path)
             print(dfhyp)
             for i in range(9,18): #len(dfhyp)
-                print(i)
-                print(dfhyp["arch"][i]) 
-                print(dfhyp["trle"][i])
-                print(dfhyp["ast"][i])
-                print(dfhyp["l2"][i])
-                print(dfhyp["dr"][i])
                 for t in config.trackers_list:
-                    train_model(run_tracker = t, run_arch = dfhyp["arch"][i], run_trle = dfhyp["trle"][i], run_ast = dfhyp["ast"][i], run_l2 =  dfhyp["l2"][i], run_dr = dfhyp["dr"][i], run_aug = dfhyp["aug"][i])
+                    train_model(run_tracker = t, tracker_rundetails = tracker_rundetails, wandblog = wandblog, run_arch = dfhyp["arch"][i], run_trle = dfhyp["trle"][i], run_ast = dfhyp["ast"][i], run_l2 =  dfhyp["l2"][i], run_dr = dfhyp["dr"][i], run_aug = dfhyp["aug"][i])
 
-    # right now not working for hyp. Will need to pass in hyps like for model training
+
     if eval_flag: # note that this is ran after the model training, rather than in the same script, bc need to evaluate it on the full dataset (not just the val subset)
         # only need one tracker to pull all examples, the *full* dataset is the same across the 30 trackers. Note that this is the same regardless of one-off of hyperparameter tuning run - just need to create one tf dataset of all data observations
 
@@ -171,82 +182,33 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, summary_f
             arch_set = config.arch_set,
             cat_num = config.cat_num,
             BATCH_SIZE = config.BATCH_SIZE)
-        if one_off:
-            print("one_off evalA")
-            # tracker_filebase = helper_fns_adhoc.prep_basefile_str(tracker_designated = config.trackers_list[0])
-            tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track(
-                # tracker_designated = run_tracker,
-                arch_input=config.arch_set,
-                epochs = config.epoch_set,
-                l2use = config.l2_set,
-                dropoutuse = config.dr_set,
-                transfer_learning = config.transfer_learning,
-                ast = config.ast,
-                adhoc_desc = config.adhoc_desc,
-                exp_desc = config.exp_desc,
-                auguse = config.aug
-                )
-            print("one_off evalB")
 
-            # modeldir_set = f"{config.model_path}/{tracker_filebase}_{tracker_rundetails}"
-            # print(modeldir_set)
-            # predsdir_set = f"{config.preds_path}/{tracker_filebase}_{tracker_rundetails}"
+        if one_off:
 
             preddfs_30 = []
             descs_30 = []
             for t in config.trackers_list:
-            #     print("one_off evalB")
-            #     print("inside loop for evaluation")
+                # print("one_off evalB")
+                # print("inside loop for evaluation")
                 print(t)
                 tracker_details = helper_fns_adhoc.prep_filedetails(tracker_designated = t, rundetails = tracker_rundetails)
                 df_preds, t_name = model_evaluation.evaluate(modeldir = f"{config.model_path}/{tracker_details}", dataset = dataset_all, imgnames = all_images, trackerinput = t, saveto = f"{config.preds_path}/{tracker_details}.csv", saveflag = True)
                 preddfs_30.append(df_preds)
                 descs_30.append(t_name)
 
-            
-            # just for not having to re-do all the preds in the loop above, this is one off to keep testing the rest of the code -- should delete this chunk after done testing :) and uncomment the loop above
-            # for t in config.trackers_list:
-            #     df_preds, t_name = model_evaluation.evaluate(modeldir = modeldir_set, dataset = dataset_all, imgnames = all_images, trackerinput = t,  rundetails = tracker_rundetails, saveflag = True)
-            #     preddfs_30.append(df_preds)
-            #     descs_30.append(t_name)
+            print("one_off evalC")
+            for phase in ["", "innerTrain", "innerVal", "innerTest", "outerTest"]:
+                results_df_of30 = model_results_summaries.run_results_by_exp(preddfs_input = preddfs_30, preddfs_desc = descs_30,  exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails, subsetphase = phase)
+                csvsave = f"{config.results_path}/{config.exp_desc}_{tracker_rundetails}_{phase}.csv"
+                print(f"saving to {csvsave}")
+                results_df_of30.to_csv(csvsave) # save out all phases to csv
+                print(results_df_of30.head(4))
+                print("one_off evalD")
+                if phase == "innerVal": # Append to Main tracker of all experiments performance, but only for innerVal
+                    model_results_summaries.exp_total_innerVal(df_innerVal = results_df_of30, exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails)
+                    print("one_off evalE")
 
-
-
-
-            # print("one_off evalC")
-            # for phase in ["", "innerTrain", "innerVal", "innerTest", "outerTest"]:
-            #     results_df_of30 = model_results_summaries.run_results_by_exp(preddfs_input = preddfs_30, preddfs_desc = descs_30,  exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails, subsetphase = phase)
-            #     csvsave = f"{config.results_path}/{config.exp_desc}_{tracker_rundetails}_{phase}.csv"
-            #     print(f"saving to {csvsave}")
-            #     results_df_of30.to_csv(csvsave) # save out all phases to csv
-            #     print(results_df_of30.head(4))
-            #     print("one_off evalD")
-            #     if phase == "innerVal": # Append to Main tracker of all experiments performance, but only for innerVal
-            #         model_results_summaries.exp_total_innerVal(df_innerVal = results_df_of30, exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails)
-            #         print("one_off evalE")
-
-                    
-            
-    
         if hyp_run:
-            dfhyp = pd.read_csv(config.hyp_path)
-            print(dfhyp)
-            tracker_filebase = helper_fns_adhoc.prep_basefile_str(tracker_designated = config.trackers_list[0])
-            tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track(
-                # tracker_designated = run_tracker,
-                arch_input=dfhyp["arch"][i],
-                epochs = config.epoch_set,
-                l2use = dfhyp["l2"][i],
-                dropoutuse = dfhyp["dr"][i],
-                transfer_learning = dfhyp["trle"][i],
-                ast = dfhyp["ast"][i],
-                adhoc_desc = config.adhoc_desc,
-                exp_desc = config.exp_desc,
-                auguse = config.aug
-                )
-
-            modeldir_set = f"{config.model_path}/{tracker_filebase}_{tracker_rundetails}"
-            predsdir_set = f"{config.preds_path}/{tracker_filebase}_{tracker_rundetails}"
             for i in range(9,18): #len(dfhyp)
                 preddfs_30 = []
                 descs_30 = []
@@ -262,56 +224,6 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, summary_f
                 results_df_of30 = model_results_summaries.run_results_by_exp(preddfs_input = preddfs_30, preddfs_desc = descs_30,  exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails, subsetphase = "innerVal")
 
                 model_results_summaries.model_results_summaries.exp_total_innerVal(df_innerval = results_df_of30, exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails)
-
-
-
-                
-    if summary_flag: # right now not working for hyp. Will need to pass in hyps like for model training
-
-        tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track( 
-            arch_input=config.arch_set,
-            epochs = config.epoch_set,
-            l2use = config.l2_set,
-            dropoutuse = config.dr_set,
-            transfer_learning = config.transfer_learning,
-            ast = config.ast,
-            adhoc_desc = config.adhoc_desc,
-            exp_desc = config.exp_desc,
-            run_aug = config.aug
-            )
-
-        predfiles = model_results_summaries.grab_pred_files(exp_desc = config.exp_desc, preds_path = config.preds_path, exp_details = tracker_rundetails)
-
-        for phase in ["", "innerTrain", "innerVal", "innerTest", "outerTest"]:
-            model_results_summaries.run_results_by_exp(preddfs_input = predfiles, exp_desc_input = config.exp_desc, preds_path_input = config.preds_path, results_path_input = config.results_path, exp_details_input = tracker_rundetails, subsetphase = phase)
-        
-        model_results_summaries.exp_total_innerVal(exp_desc_input = config.exp_desc, preds_path_input = config.preds_path, results_path_input = config.results_path, exp_details_input = tracker_rundetails)
-
-        # tracker_rundetails = helper_fns_adhoc.prep_str_details_track( 
-            # arch_input=config.arch_set,
-            # epochs = config.epoch_set,
-            # l2use = config.l2_set,
-            # dropoutuse = config.dr_set,
-            # transfer_learning = config.transfer_learning,
-            # ast = config.ast,
-            # adhoc_desc = config.adhoc_desc,
-            # exp_desc = config.exp_desc
-        #     )
-            
-        # results_30dicts = []
-
-
-
-        # listy3  = results_summaries(run_exp_desc = config.exp_desc, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set)
-
-
-
-                
-            
-
-            # tf_ds_train, tf_ds_val, labels_train, labels_val, numims_train, traincatcounts = load_data.create_tf_datasets(tracker=run_tracker,cat_num = config.cat_num, BATCH_SIZE = config.BATCH_SIZE)
-
-
 
 
 main()
