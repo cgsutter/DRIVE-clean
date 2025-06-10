@@ -18,7 +18,7 @@ eval_flag = False # if running model evaluation (need to have already trained mo
 # one-off run where you give it one specific architecture and set of hyperparams to use
 # Should be used for all experiments, one_off and hyp_run
 exp_desc = "nestcv_5cat_twotrain" # identifier string that all 30 trackers (trackers_list below) have in common for a given experiment, e.g. nestcv_5cat_twotrain. This is used in results_summaries to aggregate across multiple models that come from the same base experiment
-one_off = True
+one_off = False
 adhoc_desc = "" # Default to empty string. Used as a desc "_TEST" ad hoc to differentiate a test code run, added to file naming. 
 arch_set = "mobilenet"# ignored if one_off is False
 transfer_learning = True 
@@ -27,7 +27,7 @@ aug = False
 l2_set = 0 # ignored if one_off is False, sel: 1e-05
 dr_set = 0 # ignored if one_off is False, sel: 0.4
 # hyperparameter tuning
-hyp_run = False
+hyp_run = True
 hyp_path = "/home/csutter/DRIVE-clean/CNN/data_trackers/baseline_hyperparams.csv"# path to CSV which has the list of hyperparameters
 arch_col = "placeholder"# column name in the csv that corresponds to the architecture
 l2_col = "placeholder"# column name in the csv that corresponds to the l2 rate
@@ -80,7 +80,7 @@ evid_lr_init = 0.00001  # 0.0027750619126744817
 trackers_list = [
     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT5_m0_T0V1.csv",
     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT4_m3_T5V0.csv",
-    # "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT5_m4_T4V0.csv",
+    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT5_m4_T4V0.csv",
     # "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT3_m4_T2V4.csv",
     # "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT5_m3_T3V4.csv",
     # "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT4_m0_T0V1.csv",
