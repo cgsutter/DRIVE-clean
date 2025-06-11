@@ -15,7 +15,6 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
 
     if one_off:
         tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track(
-            # tracker_designated = run_tracker,
             arch_input=config.arch_set,
             epochs = config.epoch_set,
             l2use = config.l2_set,
@@ -32,14 +31,12 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
         if eval_flag: # Evaluation code has to be ran after the model training, rather than in the same script, bc need to evaluate it on the full dataset (not just the val subset)
             call_model_results.evaluate_exp_models(trackerslist = config.trackers_list, tracker_rundetails = tracker_rundetails, oneoff_flag = config.one_off, hyp_flag = config.hyp_run, dfhyp = None, dataset_all = dataset_all, all_labels = all_labels, all_images = all_images)
 
-
-
     elif hyp_run:
         dfhyp = pd.read_csv(config.hyp_path)
         # print(dfhyp)
-        for i in range(0,2): #len(dfhyp)
+        for i in range(27,36): #len(dfhyp) # here!!
+            # unique to an experiment -- hyperparams and exp_desc
             tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track(
-                # tracker_designated = run_tracker,
                 arch_input=dfhyp["arch"][i],
                 epochs = config.epoch_set,
                 l2use = dfhyp["l2"][i],
@@ -55,6 +52,5 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
                     call_model_train.train_model(run_tracker = t, tracker_rundetails = tracker_rundetails, wandblog = wandblog, run_arch = dfhyp["arch"][i], run_trle = dfhyp["trle"][i], run_ast = dfhyp["ast"][i], run_l2 =  dfhyp["l2"][i], run_dr = dfhyp["dr"][i], run_aug = dfhyp["aug"][i])
             if eval_flag:
                 call_model_results.evaluate_exp_models(trackerslist = config.trackers_list, tracker_rundetails = tracker_rundetails, oneoff_flag = config.one_off, hyp_flag = config.hyp_run, dfhyp = dfhyp, dataset_all = dataset_all, all_labels = all_labels, all_images = all_images)
-
 
 main()

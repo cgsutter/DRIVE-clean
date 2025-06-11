@@ -70,19 +70,20 @@ def read_imgs_as_np_array(listims, listlabels, arch_for_preprocess):
 
             image_array = cv2.resize(image_array, config.TARGET_SIZE)  # Resize
 
-            # Apply architecture-specific preprocessing
-            if arch_for_preprocess == "densenet":
-                image_array = densenet_preprocess(image_array)
-            elif arch_for_preprocess == "incep":
-                image_array = inception_preprocess(image_array)
-            elif arch_for_preprocess == "mobilenet":
-                image_array = mobilenet_preprocess(image_array)
-            elif arch_for_preprocess == "resnet":
-                image_array = resnet_preprocess(image_array)
-            elif arch_for_preprocess == "vgg16":
-                image_array = vgg_preprocess(image_array)
-            elif arch_for_preprocess == "xcep":
-                image_array = xception_preprocess(image_array)
+            # moved into augmentation function
+            # # Apply architecture-specific preprocessing
+            # if arch_for_preprocess == "densenet":
+            #     image_array = densenet_preprocess(image_array)
+            # elif arch_for_preprocess == "incep":
+            #     image_array = inception_preprocess(image_array)
+            # elif arch_for_preprocess == "mobilenet":
+            #     image_array = mobilenet_preprocess(image_array)
+            # elif arch_for_preprocess == "resnet":
+            #     image_array = resnet_preprocess(image_array)
+            # elif arch_for_preprocess == "vgg16":
+            #     image_array = vgg_preprocess(image_array)
+            # elif arch_for_preprocess == "xcep":
+            #     image_array = xception_preprocess(image_array)
 
             images_pixel.append(image_array)
             labels_imgs.append(listlabels[im_i])
@@ -95,6 +96,39 @@ def read_imgs_as_np_array(listims, listlabels, arch_for_preprocess):
     print(f"number of broken imgs is {len(brokenimgs)}")
     print(f"preprocessed data for arch {arch_for_preprocess}")
     return images_pixel, labels_imgs
+
+def preprocess_and_aug(image_np, arch_for_preprocess, augflag):
+
+    image_tensor = tf.convert_to_tensor(image_np)
+
+    # Apply augmentation
+    if augflag:
+        # these augmentations require values ranging from 0 to 1. Immediately following augmentation, it will be preprocessed back according to the architecture chosen
+        image_tensor = tf.cast(image_tensor, tf.float32) / 255.0
+        image_tensor = tf.image.random_flip_left_right(image_tensor)
+        image_tensor = tf.image.random_brightness(image_tensor, max_delta=0.1)
+        image_tensor = tf.image.random_contrast(image_tensor, lower=0.8, upper=1.2)
+
+        # After augmentation - need to convert back to 0 to 255, so first clip to be between 0 and 1 then multipy by 255 
+        image_tensor = tf.clip_by_value(image_tensor, 0.0, 1.0)
+        # Scale back up to 0-255 for preprocessing
+        image_tensor = image_tensor * 255.0
+
+    # preprocessing unique to the architecture
+    if arch_for_preprocess == "densenet":
+        image_array = densenet_preprocess(image_tensor)
+    elif arch_for_preprocess == "incep":
+        image_array = inception_preprocess(image_tensor)
+    elif arch_for_preprocess == "mobilenet":
+        image_array = mobilenet_preprocess(image_tensor)
+    elif arch_for_preprocess == "resnet":
+        image_array = resnet_preprocess(image_tensor)
+    elif arch_for_preprocess == "vgg16":
+        image_array = vgg_preprocess(image_tensor)
+    elif arch_for_preprocess == "xcep":
+        image_array = xception_preprocess(image_tensor)
+
+    return image_array
 
 def create_tf_datasets(tracker,
     arch_set = config.arch_set,
@@ -162,19 +196,62 @@ def create_tf_datasets(tracker,
 
     imgs_train, cats_train = read_imgs_as_np_array(train_images, train_labels, arch_for_preprocess = arch_set)
 
+    # print("inspect images and their values")
+    # print(imgs_train[0])
+    # print(imgs_train[0][0])
+    # print(imgs_train[0][0][0])
+
+
+
     imgs_val, cats_val = read_imgs_as_np_array(val_images, val_labels, arch_for_preprocess = arch_set)
 
     label_encoding_train = [dict_catKey_indValue[catname] for catname in cats_train]
     label_encoding_val = [dict_catKey_indValue[catname] for catname in cats_val]
+    print("label encoding done")
 
     train_labels_one_hot = np.eye(cat_num)[label_encoding_train]
     val_labels_one_hot = np.eye(cat_num)[label_encoding_val]
+    print("one hot encoding done")
 
     # Ensure dtype is float32 for ims and int for labels
-    images_fortfd_train = np.array(imgs_train, dtype=np.float32)
-    labels_fortfd_train = np.array(train_labels_one_hot, dtype=np.int32)
-    images_fortfd_val = np.array(imgs_val, dtype=np.float32)
-    labels_fortfd_val = np.array(val_labels_one_hot, dtype=np.int32)
+    # images_fortfd_train = np.array(imgs_train, dtype=np.float32)
+    # labels_fortfd_train = np.array(train_labels_one_hot, dtype=np.int32)
+    # images_fortfd_val = np.array(imgs_val, dtype=np.float32)
+    # labels_fortfd_val = np.array(val_labels_one_hot, dtype=np.int32)
+
+    # 6/10 adjust tensor way
+    print("starting convert_to_tensor")
+    imgs_train_np = np.array(imgs_train, dtype=np.float32)
+    # 
+    print("t1")
+    labels_fortfd_train = tf.convert_to_tensor(train_labels_one_hot)
+    print("t2")
+    imgs_val_np = np.array(imgs_val, dtype=np.float32)
+    # images_tensor_val = tf.convert_to_tensor(imgs_val_np)
+    print("t3")
+    labels_fortfd_val = tf.convert_to_tensor(val_labels_one_hot)
+    print("t4")
+
+    print("starting preprocess_and_aug")
+
+    images_prepped_train = []
+    for im_np in imgs_train_np:
+        im_prepped = preprocess_and_aug(image_np = im_np, arch_for_preprocess = arch_set, augflag = config.aug)
+        images_prepped_train.append(im_prepped)
+    images_fortfd_train = tf.convert_to_tensor(images_prepped_train, dtype=tf.float32)
+    print("done augmenting train")
+    # print("an example to show aug - switch aug on and off to see this one image print differently with the two run")
+    # # print(images_prepped_train[0][0])
+
+    images_prepped_val = []
+    for im_np in imgs_val_np:
+        im_prepped = preprocess_and_aug(image_np = im_np, arch_for_preprocess = arch_set, augflag = False)# aug should always be false for validation
+        images_prepped_val.append(im_prepped)
+    images_fortfd_val= tf.convert_to_tensor(images_prepped_val, dtype=tf.float32)
+    print("done augmenting val")
+
+
+    print("done preprocess_and_aug")
 
     print(
         "Through with data prepped, but prior to dataset creation from tensor slices, so if it slows down here then it's just the tf dataset creation that is taking time"
@@ -256,12 +333,18 @@ def create_tf_datasets_for_evaluation(tracker,
     all_labels_one_hot = np.eye(cat_num)[label_encoding_all]
 
     # Ensure dtype is float32 for ims and int for labels
-    images_fortfd_all = np.array(imgs_all, dtype=np.float32)
-    labels_fortfd_all = np.array(all_labels_one_hot, dtype=np.int32)
+    # images_fortfd_all = np.array(imgs_all, dtype=np.float32)
+    # labels_fortfd_all = np.array(all_labels_one_hot, dtype=np.int32)
+    # 6/10 adjust tensor way
+    images_fortfd_all = tf.convert_to_tensor(imgs_all, dtype=tf.float32)
+    labels_fortfd_all = tf.convert_to_tensor(all_labels_one_hot, dtype=tf.float32)
+
+
 
     print(
         "time lag check: data prepped before making it to tensor slices, see if it slows down here and if so then it's just the tf dataset creation that is taking time"
     )
+
     dataset_all = tf.data.Dataset.from_tensor_slices(
         (images_fortfd_all, labels_fortfd_all)
     )
