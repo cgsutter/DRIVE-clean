@@ -11,7 +11,7 @@ import pandas as pd
 import wandb
 import os
 
-def train_model(run_tracker = config.trackers_list[0], tracker_rundetails = "", wandblog = "", run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug):
+def train_model(run_tracker = config.trackers_list[0], tracker_rundetails = "", wandblog = "", run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug, wandb_flag = config.wandb_flag):
 
     print(f"Running {run_tracker} using architecture {run_arch}. Transfer learning {run_trle}, arch-specific top {run_ast}. Dropout is {run_dr} and l2 weight is {run_l2}.")
 
@@ -22,11 +22,13 @@ def train_model(run_tracker = config.trackers_list[0], tracker_rundetails = "", 
     print(wandblog)
     wandblog["data_desc"] = tracker_filebase
 
-
-    wandb.init(
-        project="DRIVE-clean",  # your project name
-        config=wandblog
-    )
+    if wandb_flag:
+        wandb.init(
+            project=config.wanb_projectname,  # your project name
+            config=wandblog
+        )
+    else:
+        print("not logging exp to wandb")
 
 
     modeldir_set = f"{config.model_path}/{tracker_filebase}_{tracker_rundetails}"
@@ -38,7 +40,8 @@ def train_model(run_tracker = config.trackers_list[0], tracker_rundetails = "", 
 
     tf_ds_train, tf_ds_val, labels_train, labels_val, numims_train, traincatcounts = load_data.create_tf_datasets(tracker=run_tracker,
         cat_num = config.cat_num,
-        BATCH_SIZE = config.BATCH_SIZE)
+        BATCH_SIZE = config.BATCH_SIZE,
+        augflag_use = run_aug)
 
     print(type(tf_ds_train))
     print(numims_train)
@@ -97,5 +100,5 @@ def train_model(run_tracker = config.trackers_list[0], tracker_rundetails = "", 
         evid = config.evid,
         epoch_set = config.epoch_set,
         BATCH_SIZE = config.BATCH_SIZE)
-    
-    wandb.finish()
+    if wandb_flag:
+        wandb.finish()

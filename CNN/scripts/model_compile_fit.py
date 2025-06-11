@@ -193,7 +193,6 @@ def train_fit(
 
     # run.finish()
 
-    comment = f"val images: {len(valdata)} imgs" f"train images: {len(traindata)} imgs"
 
     # titleloss_final = f"{titleloss} \n {comment}"
     # titleacc_final = f"{titleacc} \n {comment}"

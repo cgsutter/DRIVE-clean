@@ -28,17 +28,16 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 import _config as config
 import helper_fns_adhoc
 
-def read_imgs_as_np_array(listims, listlabels, arch_for_preprocess):
+def read_imgs_as_np_array(listims, listlabels): # remove arch input
     """
     
-    This function reads a list of image file paths and corresponding labels, processes each image, and returns a list of preprocessed image arrays along with their labels.
+    This function reads a list of image file paths and corresponding labels, crops & resizes, checks for broken images, and returns a list of the read-in image arrays along with their labels.
 
     Images are:
     - Read using OpenCV
     - Converted from BGR to RGB
     - Cropped (top 20%)
     - Resized to a target size defined in config.TARGET_SIZE
-    - Preprocessed using MobileNet's preprocessing function
 
     Any unreadable or corrupted images are skipped and recorded.
 
@@ -70,21 +69,6 @@ def read_imgs_as_np_array(listims, listlabels, arch_for_preprocess):
 
             image_array = cv2.resize(image_array, config.TARGET_SIZE)  # Resize
 
-            # moved into augmentation function
-            # # Apply architecture-specific preprocessing
-            # if arch_for_preprocess == "densenet":
-            #     image_array = densenet_preprocess(image_array)
-            # elif arch_for_preprocess == "incep":
-            #     image_array = inception_preprocess(image_array)
-            # elif arch_for_preprocess == "mobilenet":
-            #     image_array = mobilenet_preprocess(image_array)
-            # elif arch_for_preprocess == "resnet":
-            #     image_array = resnet_preprocess(image_array)
-            # elif arch_for_preprocess == "vgg16":
-            #     image_array = vgg_preprocess(image_array)
-            # elif arch_for_preprocess == "xcep":
-            #     image_array = xception_preprocess(image_array)
-
             images_pixel.append(image_array)
             labels_imgs.append(listlabels[im_i])
 
@@ -94,15 +78,28 @@ def read_imgs_as_np_array(listims, listlabels, arch_for_preprocess):
     #     print(f"total number of corrupted images {len(broken)}")
     #     print(f"corrupted image that can't be fixed: {broken}")
     print(f"number of broken imgs is {len(brokenimgs)}")
-    print(f"preprocessed data for arch {arch_for_preprocess}")
     return images_pixel, labels_imgs
 
 def preprocess_and_aug(image_np, arch_for_preprocess, augflag):
+    """This function takes one image (np array), adjusts it with random augmentation IF aug flag is True, and then regardless of augmentation or not, preprocesses it according to the architecture used. 
+    
+    Note that augmentations functions require as inputs images to be a TF tensor that ranges 0 and 1 (divide by 255). Then and after augmentation, which may return values slightly below 0 or above 1, the values need to be converted back to range 0 to 255 for architecture specific preprocessing, so they are again adjusted to be first clipped to 0 and 1 and then multiplied by 255.
 
+    Args:
+        image_np (np array): An image
+        arch_for_preprocess (str): arhcitecture name
+        augflag (bool): 
+
+    Returns:
+       Image np array that is preprocessed
+    """
+
+    # print("entered img-level fn")
     image_tensor = tf.convert_to_tensor(image_np)
-
+    # print("converted to tensor")
     # Apply augmentation
     if augflag:
+        # print("inside augmentation")
         # these augmentations require values ranging from 0 to 1. Immediately following augmentation, it will be preprocessed back according to the architecture chosen
         image_tensor = tf.cast(image_tensor, tf.float32) / 255.0
         image_tensor = tf.image.random_flip_left_right(image_tensor)
@@ -115,6 +112,7 @@ def preprocess_and_aug(image_np, arch_for_preprocess, augflag):
         image_tensor = image_tensor * 255.0
 
     # preprocessing unique to the architecture
+    # print("starting preprocessing for arch")
     if arch_for_preprocess == "densenet":
         image_array = densenet_preprocess(image_tensor)
     elif arch_for_preprocess == "incep":
@@ -127,13 +125,49 @@ def preprocess_and_aug(image_np, arch_for_preprocess, augflag):
         image_array = vgg_preprocess(image_tensor)
     elif arch_for_preprocess == "xcep":
         image_array = xception_preprocess(image_tensor)
+    
+    # print("finsihed preprocessing for arch")
 
     return image_array
 
+def prepare_tf_dataset(imginput, labelsinput, arch, aug):
+
+    # prepare labels
+    dict_catKey_indValue, dict_indKey_catValue = helper_fns_adhoc.cat_str_ind_dictmap()
+    label_encoding = [dict_catKey_indValue[catname] for catname in labelsinput]
+    labels_one_hot = np.eye(config.cat_num)[label_encoding]
+    labels_fortfd = tf.convert_to_tensor(labels_one_hot)
+
+    # prepare images
+    imgs_np = np.array(imginput, dtype=np.float32)
+    images_prepped = []
+    for im_np in imgs_np:
+        im_prepped = preprocess_and_aug(image_np = im_np, arch_for_preprocess = arch, augflag = aug)
+        images_prepped.append(im_prepped)
+
+    # images_fortfd = tf.convert_to_tensor(images_prepped, dtype=tf.float32)
+
+    # for loading in images into the tf dataset batches, generate them as they're being batched from tf rather than reading all at once, for efficiency. Do this with a generator.
+    def image_generator(images_list, labels_list):
+        for img, label in zip(images_list, labels_list):
+            yield img, label
+
+    dataset = tf.data.Dataset.from_generator(
+        lambda: image_generator(images_prepped, labels_fortfd),
+        output_signature=(
+            tf.TensorSpec(shape=(config.imheight, config.imwidth, 3), dtype=tf.float32), 
+            tf.TensorSpec(shape=(5), dtype=tf.int32)
+        )
+    )
+    return dataset
+
+
+
 def create_tf_datasets(tracker,
-    arch_set = config.arch_set,
-    cat_num = config.cat_num,
-    BATCH_SIZE = config.BATCH_SIZE):
+    arch_set = config.arch_set, 
+    cat_num = config.cat_num, # remove
+    BATCH_SIZE = config.BATCH_SIZE,
+    augflag_use = config.aug):
     """
 
     This function:
@@ -141,6 +175,7 @@ def create_tf_datasets(tracker,
     - Filters the data into training and validation subsets based on the `innerPhase` column
     - Loads and preprocesses images using `read_imgs_as_np_array` (includes cropping, resizing, and normalization)
     - Encodes class labels to one-hot format using a category-to-index dictionary
+    - Preprocesses image using 'preprocess_and_aug' based on  architecture, and also augments if that flag is set
     - Converts image and label arrays to TensorFlow datasets
     - Shuffles, batches, and prefetches the datasets for efficient training
 
@@ -192,77 +227,66 @@ def create_tf_datasets(tracker,
 
     print(traincatcounts)
 
-    dict_catKey_indValue, dict_indKey_catValue = helper_fns_adhoc.cat_str_ind_dictmap()
+    # dict_catKey_indValue, dict_indKey_catValue = helper_fns_adhoc.cat_str_ind_dictmap() # REMOVE
 
-    imgs_train, cats_train = read_imgs_as_np_array(train_images, train_labels, arch_for_preprocess = arch_set)
+    imgs_train, cats_train = read_imgs_as_np_array(train_images, train_labels)#, arch_for_preprocess = arch_set)
+
+    imgs_val, cats_val = read_imgs_as_np_array(val_images, val_labels)#, arch_for_preprocess = arch_set)
 
     # print("inspect images and their values")
     # print(imgs_train[0])
     # print(imgs_train[0][0])
     # print(imgs_train[0][0][0])
 
+    dataset_train = prepare_tf_dataset(imgs_train, cats_train, arch = arch_set, aug = augflag_use)
+    dataset_val = prepare_tf_dataset(imgs_val, cats_val, arch = arch_set, aug = augflag_use)
 
+    # # here 1
+    # label_encoding_train = [dict_catKey_indValue[catname] for catname in cats_train]
+    # label_encoding_val = [dict_catKey_indValue[catname] for catname in cats_val]
+    # print("label encoding done")
 
-    imgs_val, cats_val = read_imgs_as_np_array(val_images, val_labels, arch_for_preprocess = arch_set)
+    # train_labels_one_hot = np.eye(cat_num)[label_encoding_train]
+    # val_labels_one_hot = np.eye(cat_num)[label_encoding_val]
+    # print("one hot encoding done")
 
-    label_encoding_train = [dict_catKey_indValue[catname] for catname in cats_train]
-    label_encoding_val = [dict_catKey_indValue[catname] for catname in cats_val]
-    print("label encoding done")
+    # # here 2
+    # # prep train images
+    # imgs_train_np = np.array(imgs_train, dtype=np.float32)
+    # labels_fortfd_train = tf.convert_to_tensor(train_labels_one_hot)
 
-    train_labels_one_hot = np.eye(cat_num)[label_encoding_train]
-    val_labels_one_hot = np.eye(cat_num)[label_encoding_val]
-    print("one hot encoding done")
+    # # prep val images
+    # imgs_val_np = np.array(imgs_val, dtype=np.float32)
+    # labels_fortfd_val = tf.convert_to_tensor(val_labels_one_hot)
 
-    # Ensure dtype is float32 for ims and int for labels
-    # images_fortfd_train = np.array(imgs_train, dtype=np.float32)
-    # labels_fortfd_train = np.array(train_labels_one_hot, dtype=np.int32)
-    # images_fortfd_val = np.array(imgs_val, dtype=np.float32)
-    # labels_fortfd_val = np.array(val_labels_one_hot, dtype=np.int32)
-
-    # 6/10 adjust tensor way
-    print("starting convert_to_tensor")
-    imgs_train_np = np.array(imgs_train, dtype=np.float32)
-    # 
-    print("t1")
-    labels_fortfd_train = tf.convert_to_tensor(train_labels_one_hot)
-    print("t2")
-    imgs_val_np = np.array(imgs_val, dtype=np.float32)
-    # images_tensor_val = tf.convert_to_tensor(imgs_val_np)
-    print("t3")
-    labels_fortfd_val = tf.convert_to_tensor(val_labels_one_hot)
-    print("t4")
-
-    print("starting preprocess_and_aug")
-
-    images_prepped_train = []
-    for im_np in imgs_train_np:
-        im_prepped = preprocess_and_aug(image_np = im_np, arch_for_preprocess = arch_set, augflag = config.aug)
-        images_prepped_train.append(im_prepped)
-    images_fortfd_train = tf.convert_to_tensor(images_prepped_train, dtype=tf.float32)
-    print("done augmenting train")
-    # print("an example to show aug - switch aug on and off to see this one image print differently with the two run")
+    # # preprocess and augment -- train images
+    # images_prepped_train = []
+    # for im_np in imgs_train_np:
+    #     im_prepped = preprocess_and_aug(image_np = im_np, arch_for_preprocess = arch_set, augflag = augflag_use)
+    #     images_prepped_train.append(im_prepped)
+    # images_fortfd_train = tf.convert_to_tensor(images_prepped_train, dtype=tf.float32)
+    # # print("an example to show aug - switch aug on and off to see this one image print differently with the two run")
     # # print(images_prepped_train[0][0])
 
-    images_prepped_val = []
-    for im_np in imgs_val_np:
-        im_prepped = preprocess_and_aug(image_np = im_np, arch_for_preprocess = arch_set, augflag = False)# aug should always be false for validation
-        images_prepped_val.append(im_prepped)
-    images_fortfd_val= tf.convert_to_tensor(images_prepped_val, dtype=tf.float32)
-    print("done augmenting val")
+    # # preprocess and augment -- val images
+    # images_prepped_val = []
+    # for im_np in imgs_val_np:
+    #     im_prepped = preprocess_and_aug(image_np = im_np, arch_for_preprocess = arch_set, augflag = False)# aug should always be false for validation
+    #     images_prepped_val.append(im_prepped)
+    # images_fortfd_val= tf.convert_to_tensor(images_prepped_val, dtype=tf.float32)
 
-
-    print("done preprocess_and_aug")
+    # print("done preprocess_and_aug")
 
     print(
         "Through with data prepped, but prior to dataset creation from tensor slices, so if it slows down here then it's just the tf dataset creation that is taking time"
     )
-    dataset_train = tf.data.Dataset.from_tensor_slices(
-        (images_fortfd_train, labels_fortfd_train)
-    )
+    # dataset_train = tf.data.Dataset.from_tensor_slices(
+    #     (images_fortfd_train, labels_fortfd_train)
+    # )
 
-    dataset_val = tf.data.Dataset.from_tensor_slices(
-        (images_fortfd_val, labels_fortfd_val)
-    )
+    # dataset_val = tf.data.Dataset.from_tensor_slices(
+    #     (images_fortfd_val, labels_fortfd_val)
+    # )
 
     # Count the number of elements (images) in the dataset
     num_images = sum(1 for _ in dataset_val)
@@ -286,29 +310,34 @@ def create_tf_datasets(tracker,
 def create_tf_datasets_for_evaluation(tracker,
     arch_set = config.arch_set,
     cat_num = config.cat_num,
-    BATCH_SIZE = config.BATCH_SIZE):
+    BATCH_SIZE = config.BATCH_SIZE,
+    augflag_use = False):
 
     """
 
-    Loads and preprocesses a full dataset for evaluation, returning a TensorFlow dataset along with original labels and image paths.
+    Loads and preprocesses a FULL dataset for evaluation, returning a TensorFlow dataset along with original labels and image paths.
 
     This function:
-    - Reads a CSV file specified by `tracker` that includes image paths and class labels
-    - Loads and preprocesses all images using `read_imgs_as_np_array`, with architecture-specific preprocessing
-    - Encodes class labels to one-hot format using a string-to-index mapping
-    - Converts the preprocessed image and label arrays to a batched and prefetched TensorFlow dataset (no shuffling)
-    - Returns original labels and image paths for downstream use, such as pairing predictions with inputs
+    - Reads a CSV file specified by `tracker` containing image file paths and label metadata
+    - Loads and preprocesses images using `read_imgs_as_np_array` (includes cropping, resizing, and normalization)
+    - Encodes class labels to one-hot format using a category-to-index dictionary
+    - Preprocesses image using 'preprocess_and_aug' based on  architecture, and also augments if that flag is set
+    - Converts image and label arrays to TensorFlow datasets
+    - Shuffles, batches, and prefetches the datasets for efficient training
 
     Args:
-        tracker (str): Path to CSV file containing image metadata (e.g., columns `img_orig` and `img_cat`).
-        arch_set (str): Name of the model architecture, used to determine preprocessing behavior (e.g., 'mobilenet').
-        cat_num (int): Number of classification categories.
-        BATCH_SIZE (int): Batch size to use in the returned TensorFlow dataset.
+        tracker (str): Path to CSV file with image paths and labels.
+        cat_num (int): Number of output classes (default from config).
+        SHUFFLE_BUFFER_SIZE (int): Buffer size for shuffling (default from config).
+        BATCH_SIZE (int): Batch size for training (default from config).
 
     Returns:
-        dataset_all (tf.data.Dataset): Batched and prefetched TensorFlow dataset for evaluation (no shuffle).
-        all_labels (list): List of original class labels (strings) for each image.
-        all_images (list): List of original image file paths.
+        dataset_train (tf.data.Dataset): Preprocessed and batched training dataset.
+        dataset_val (tf.data.Dataset): Preprocessed and batched validation dataset.
+        train_labels (list): Original labels for training data.
+        val_labels (list): Original labels for validation data.
+        numims_train (int): Number of training images.
+        traincatcounts (pd.Series): Class distribution in the training set.
     """
 
     ### STEP 1: LOAD IN DATA (TF DATASETS) and PREP WEIGHTS
@@ -326,7 +355,7 @@ def create_tf_datasets_for_evaluation(tracker,
 
     dict_catKey_indValue, dict_indKey_catValue = helper_fns_adhoc.cat_str_ind_dictmap()
 
-    imgs_all, cats_all = read_imgs_as_np_array(all_images, all_labels, arch_for_preprocess = arch_set)
+    imgs_all, cats_all = read_imgs_as_np_array(all_images, all_labels) #arch_for_preprocess = arch_set
 
     label_encoding_all = [dict_catKey_indValue[catname] for catname in cats_all]
 
@@ -335,21 +364,77 @@ def create_tf_datasets_for_evaluation(tracker,
     # Ensure dtype is float32 for ims and int for labels
     # images_fortfd_all = np.array(imgs_all, dtype=np.float32)
     # labels_fortfd_all = np.array(all_labels_one_hot, dtype=np.int32)
+
+    # images_fortfd_all = tf.convert_to_tensor(imgs_all, dtype=tf.float32)
+    # labels_fortfd_all = tf.convert_to_tensor(all_labels_one_hot, dtype=tf.float32)
+
     # 6/10 adjust tensor way
-    images_fortfd_all = tf.convert_to_tensor(imgs_all, dtype=tf.float32)
-    labels_fortfd_all = tf.convert_to_tensor(all_labels_one_hot, dtype=tf.float32)
+    print("starting convert_to_tensor")
+    imgs_all_np = np.array(imgs_all, dtype=np.float32)
+    
+    print("t1")
+    labels_fortfd_all = tf.convert_to_tensor(all_labels_one_hot)
+    print("t2")
 
+    print("starting preprocess_and_aug")
 
+    images_prepped_all = []
+    for im_np in imgs_all_np:
+        im_prepped = preprocess_and_aug(image_np = im_np, arch_for_preprocess = arch_set, augflag = augflag_use)
+        images_prepped_all.append(im_prepped)
 
-    print(
-        "time lag check: data prepped before making it to tensor slices, see if it slows down here and if so then it's just the tf dataset creation that is taking time"
+    print("though image preparation for arch")
+    print(images_prepped_all[0][0])
+
+    print('types')
+    print(type(images_prepped_all))
+    print(len(images_prepped_all))
+    print(type(images_prepped_all[0]))
+    print(type(images_prepped_all[0][0]))
+    print(images_prepped_all[0])
+
+    print(type(labels_fortfd_all))
+    print(len(labels_fortfd_all))
+    print(labels_fortfd_all[0])
+    print(type(labels_fortfd_all[0]))
+    # print(type(images_prepped_all[0][0]))
+
+    # for loading in 22k images, need to generate them as they're being batched from tf rather than reading all 22k in at once. Do this with a generator.
+    def image_generator(images_list, labels_list):
+        for img, label in zip(images_list, labels_list):
+            yield img, label
+
+    dataset_all = tf.data.Dataset.from_generator(
+        lambda: image_generator(images_prepped_all, labels_fortfd_all),
+        output_signature=(
+            tf.TensorSpec(shape=(config.imheight, config.imwidth, 3), dtype=tf.float32), 
+            tf.TensorSpec(shape=(5), dtype=tf.int32)
+        )
     )
 
-    dataset_all = tf.data.Dataset.from_tensor_slices(
-        (images_fortfd_all, labels_fortfd_all)
-    )
+    # BEGIN OLD WAY
+    # # print(type())
+    # print("starting conversion to tensor")
+    # print(type(images_prepped_all))
+    # images_fortfd_all = tf.convert_to_tensor(np.array(images_prepped_all), dtype=tf.float32)
+    # print("through conversion to tf dataset")
 
-    print("through the time lag part")
+    # # print("an example to show aug - switch aug on and off to see this one image print differently with the two run")
+    # # # print(images_prepped_all[0][0])
+
+
+    # print(
+    #     "time lag check: data prepped before making it to tensor slices, see if it slows down here and if so then it's just the tf dataset creation that is taking time"
+    # )
+
+    # # try immediately converting from list
+    # print("try immediately converting to dataset rather than converting to tensor first")
+    # dataset_all = tf.data.Dataset.from_tensor_slices(
+    #     (images_fortfd_all, labels_fortfd_all)
+    # )
+
+    # print("through the time lag part")
+    # END OLD WAY
 
     # Count the number of elements (images) in the dataset
     num_images = sum(1 for _ in dataset_all)
