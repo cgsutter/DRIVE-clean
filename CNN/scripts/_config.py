@@ -7,18 +7,18 @@ preds_path = "/home/csutter/DRIVE-clean/CNN/data_preds"
 results_path = "/home/csutter/DRIVE-clean/CNN/data_results"
 
 ### Flags and specifics for the type of model run
-train_flag = True # if running model training
-eval_flag = False # if running model evaluation (need to have already trained models)
+train_flag = False # if running model training
+eval_flag = True # if running model evaluation (need to have already trained models)
 wandb_flag = True # flag for whether to save experiments to w&b
 # one-off run where you give it one specific architecture and set of hyperparams to use
 wanb_projectname = "DRIVE-side_experiments" # for pure BL or HT runs, "DRIVE-clean", o/w adjust here also for adhoc_desc "DRIVE-side_experiments"
 exp_desc = "nestcv_5cat_twotrain" # identifier string that all 30 trackers (trackers_list below) have in common for a given experiment, e.g. nestcv_5cat_twotrain. This is used in results_summaries to aggregate across multiple models that come from the same base experiment
 # Should be used for all experime`≥ntsq, one_off and hyp_run
 adhoc_desc = "_TESTAug" # Default to empty string. Used as a desc "_TEST" ad hoc to differentiate a test code run, added to file naming. 
-one_off = False
-arch_set = "mobilenet"# ignored if one_off is False
+one_off = True
+arch_set = "incep"# ignored if one_off is False
 transfer_learning = True 
-ast = False # used if transfer_learning is True. Set to ast True if using an architecture specific top, otherwise set to False and will use generic top of architecture
+ast = True # used if transfer_learning is True. Set to ast True if using an architecture specific top, otherwise set to False and will use generic top of architecture
 aug = True
 l2_set = 0 # ignored if one_off is False, sel: 1e-05
 dr_set = 0 # ignored if one_off is False, sel: 0.4
