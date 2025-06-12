@@ -4,6 +4,7 @@ import load_data
 import call_model_train
 import call_model_results
 import pandas as pd
+import load_data_evaluation
 
 
 def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off = config.one_off, hyp_run = config.hyp_run):
@@ -11,7 +12,8 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
     if eval_flag:
         # This is for evaluation, where the same full dataset is used regardless of one-off vs hyp tune run, and this data should be prepared and read in outside of any loops (trackers, HT hyperparams, etc) -- would be redundant to read in for each since it's the same full dataframe.
         # Note that we only need one tracker to pull all examples, the *full* dataset is the same across the 30 trackers. 
-        dataset_all, all_labels, all_images = load_data.create_tf_datasets_for_evaluation(tracker = config.trackers_list[0], arch_set = config.arch_set, cat_num = config.cat_num, BATCH_SIZE = config.BATCH_SIZE, augflag_use = False) # evaluation dataset is never augmented, should be set to False always
+        # dataset_all, all_labels, all_images = load_data.create_tf_datasets_for_evaluation(tracker = config.trackers_list[0], arch_set = config.arch_set, cat_num = config.cat_num, BATCH_SIZE = config.BATCH_SIZE, augflag_use = False) # evaluation dataset is never augmented, should be set to False always
+        dataset_all = load_data_evaluation.load_data(trackerinput = config.trackers_list[0], phaseinput = "", archinput = "mobilenet", auginput = False)
 
     if one_off:
         tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track(
