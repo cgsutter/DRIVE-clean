@@ -1,3 +1,5 @@
+# DEPRECATED: This data loading process eagerly loaded all image pixel data into RAM upfront -- this worked fine for training and validation where it was < 10k images, but for larger datasets like 22k when doing total dataset evaluation, it runs out of memory - not robust to larger datasets. Keeping this code for rerference, but the data loading process is now in /home/csutter/DRIVE-clean/CNN/scripts/load_dataset.py
+
 # Portions of this code were writen with the assistance of AI tools (e.g., ChatGPT).
 
 # System and file handling

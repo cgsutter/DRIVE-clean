@@ -1,5 +1,3 @@
-# Portions of this code were writen with the assistance of AI tools (e.g., ChatGPT).
-
 import pandas as pd
 import os
 import _config as config
@@ -82,17 +80,6 @@ def calcstats_onefold(ytrueinput, ypredinput):
 
     return metrics_list, results_list
 
-
-def grab_pred_files(exp_desc = config.exp_desc, preds_path = config.preds_path, exp_details = ""):
-    """
-    Returns a list of prediction CSV filenames in the specified directory matching given experiment descriptors.
-    """
-    entiredir = os.listdir(preds_path)
-    subset_to_exp = [i for i in entiredir if exp_desc in i]
-    pred_csv_list = [i for i in subset_to_exp if exp_details in i]
-    print(len(pred_csv_list))
-    return pred_csv_list
-
 def calc_summary(dfinput = "", tracker_desc = "", exp_desc = config.exp_desc,  exp_details = ""):
     """
     Summarizes metrics for a single prediction file, including overall and class-wise accuracy,
@@ -120,20 +107,6 @@ def calc_summary(dfinput = "", tracker_desc = "", exp_desc = config.exp_desc,  e
 
     return dict_results
 
-
-# exp_details come from helper function, this is just another differentiator of the experiment, beyond just the simple exp_desc
-
-
-def save_results(listofdics = [], newresultsfile = ""):
-    """
-    Saves a list of result dictionaries to a CSV file, writing the header only once.
-    """
-    # newresultsfile = f"{config.results_path}/{exp_desc}_{exp_details}.csv"
-    with open(newresultsfile, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=listofdics[0].keys())
-        writer.writeheader()
-        writer.writerows(listofdics)
-    
 
 def run_results_by_exp(preddfs_input = [], preddfs_desc = [], exp_desc_input = config.exp_desc, exp_details_input = "", subsetphase = ""):
     """
@@ -170,11 +143,8 @@ def run_results_by_exp(preddfs_input = [], preddfs_desc = [], exp_desc_input = c
 
 def exp_total_innerVal(df_innerVal, exp_desc_input = config.exp_desc, exp_details_input = ""):
     """
-    Loads results from all models in the inner validation set, sums their metrics,
-    adds metadata, and appends to a main results file.
+    Loads results from all models in the inner validation set, sums their metrics, adds metadata, and appends to a main results file.
     """
-    # resultssaved = f"{results_path_input}/{exp_desc_input}_{exp_details_input}_innerVal.csv"
-    # df_innerVal = pd.read_csv(resultssaved)
 
     # summing across these cols wont work, just append as one value for the one row being produced
     df_innerVal = df_innerVal.drop(columns = ["exp_desc","exp_details","tracker"])
@@ -193,11 +163,11 @@ def exp_total_innerVal(df_innerVal, exp_desc_input = config.exp_desc, exp_detail
     print(dict_results)
 
     # save out to a main file that will collect all model results, even hyptuning
-    newresultsfile = f"{config.results_path}/results_by_exp_innerVal.csv"
+    mainresultsfile = f"{config.results_path}/results_by_exp_innerVal.csv"
 
-    file_exists = os.path.isfile(newresultsfile)
+    file_exists = os.path.isfile(mainresultsfile)
 
-    with open(newresultsfile, 'a', newline='') as f:
+    with open(mainresultsfile, 'a', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=dict_results.keys())
         if not file_exists:
             writer.writeheader() # write header only once

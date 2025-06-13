@@ -17,46 +17,36 @@ from tensorflow import keras
 from tensorflow.keras.applications.mobilenet import preprocess_input
 
 
-# For a given run, evaluate each of the 30 CNNs on the full dataset; which is the same for all 30 models. Each model differed in terms of the data (folds) that was used for training and validation, but evaluation should be run on the full dataset (all folds), which is the same. Thus, to save memory and data loading time, load the full dataset just once, and then evaluate that same dataset on each of the 30 models, rather than loading the same data 30 times.
-
 
 def evaluate(modeldir, dataset, imgnames, trackerinput, saveflag = False, saveto = ""):
+    """For a given run, evaluate each of the 30 CNNs on the full dataset; which is the same for all 30 models. Each model differed in terms of the data (folds) that was used for training and validation, but evaluation should be run on the full dataset (all folds), which is the same. Thus, to save memory and data loading time, load the full dataset just once, and then evaluate that same dataset on each of the 30 models, rather than loading the same data 30 times.
+
+    Args:
+        modeldir (str): path to one model
+        dataset (tf dataset): data that is alrealy prepared for evaluation on model
+        imgnames (list): list of image names, which is used for connecting preds to the full tracker that has all info by observation
+        trackerinput (str): path to original tracker
+        saveflag (bool, optional): whether to save prediction csvs out (usually only set to True for one-off models, don't want to save 30x csvs for each BL and hyperparam model). Defaults to False.
+        saveto (str, optional): path to save csv to (if saveflag is True). Defaults to "".
+
+    Returns:
+        Pandas dataframe: model predictions for each observation
+        String: tracker name
+    """
     
     print(modeldir)
     print(f"loading model {modeldir}")
     model = tf.keras.models.load_model(modeldir, compile=False)
     print("got through model load!!") # note: this is not set up right now for evid, which requires loading of the custom loss function to deserialize (and that requires class weights which are unique to each of the 30 datasets, come back to this..
 
+    print("Starting evaluate() in results_predictions.py")
 
-
-    # for x, y in dataset.take(1):
-    #     print("X shape:", x.shape)
-    #     print("Y shape:", y.shape)
-
-
-
-    # results = model.evaluate(dataset) # metrics of model skill, like loss and acc
-    print("inside results predictions")
-    print(type(dataset))
-    print(type(model))
     p2 = model.predict(dataset)
     c2 = np.argmax(p2, axis=1)
 
     dict_catKey_indValue, dict_indKey_catValue= helper_fns_adhoc.cat_str_ind_dictmap()
 
     predicted_classname = [dict_indKey_catValue[i] for i in c2]
-
-    print(len(predicted_classname))
-
-    print(predicted_classname[0:5])
-
-    # just a df of results will concat these COLS to the end of the tracker df
-
-    # print("major check here")
-    # print(np.unique(p2[0]))
-    # print(len(p2[0]))
-    # columns = [f"prob_{dict_indKey_catValue[i]}" for i in range(len(dict_indKey_catValue))]
-    # print(np.unique(columns))
 
     df_results = pd.DataFrame(
         p2, columns=[f"prob_{dict_indKey_catValue[i]}" for i in range(len(dict_indKey_catValue))]
@@ -73,8 +63,6 @@ def evaluate(modeldir, dataset, imgnames, trackerinput, saveflag = False, saveto
     df_all = pd.read_csv(trackerinput)
     df_final = df_all.merge(df_results, how = "inner", on = "img_orig")
 
-    # print(df_final[0:10])
-    # print(df_final.columns)
     print(len(df_final))
 
     tracker_ident = helper_fns_adhoc.tracker_differentiator(trackerpath = trackerinput)
@@ -82,7 +70,7 @@ def evaluate(modeldir, dataset, imgnames, trackerinput, saveflag = False, saveto
     df_final["tracker"] = tracker_ident
 
     t_name = os.path.basename(trackerinput)[:-4]
-    # print(t_name)
+
     if saveflag:
         # predssaveto = f"{config.preds_path}/{t_name}_{rundetails}.csv"
         df_final.to_csv(saveto) # saving the preds df to csv for one-off runs    
