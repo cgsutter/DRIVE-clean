@@ -1,6 +1,7 @@
 import _config as config
 import helper_fns_adhoc
-import load_data
+# import load_data
+import load_data_evaluation
 import model_compile_fit
 import class_weights
 import model_build
@@ -38,15 +39,25 @@ def train_model(run_tracker = config.trackers_list[0], tracker_rundetails = "", 
     print(tracker_rundetails)
     print(f"saving model to dir {modeldir_set}")
 
-    tf_ds_train, tf_ds_val, labels_train, labels_val, numims_train, traincatcounts = load_data.create_tf_datasets(tracker=run_tracker,
-        cat_num = config.cat_num,
-        BATCH_SIZE = config.BATCH_SIZE,
-        augflag_use = run_aug)
+    # tf_ds_train, tf_ds_val, labels_train, labels_val, numims_train, traincatcounts = load_data.create_tf_datasets(tracker=run_tracker,
+    #     cat_num = config.cat_num,
+    #     BATCH_SIZE = config.BATCH_SIZE,
+    #     augflag_use = run_aug)
 
+    tf_ds_train, train_imgnames, labels_train, numims_train, traincatcounts = load_data_evaluation.load_data(trackerinput = run_tracker, phaseinput = "innerTrain", archinput = run_arch, auginput = run_aug)
+
+
+    tf_ds_val, val_imgnames, labels_val, numims_val, valcatcounts = load_data_evaluation.load_data(trackerinput = run_tracker, phaseinput = "innerVal", archinput = run_arch, auginput = False) # should always be false for val data
+
+    print("training data")
     print(type(tf_ds_train))
     print(numims_train)
     print(traincatcounts)
-    # print(type(tfd2))
+
+    print("validation data")
+    print(type(tf_ds_val))
+    print(numims_val)
+    print(valcatcounts)
 
     dict_catKey_indValue, dict_indKey_catValue = helper_fns_adhoc.cat_str_ind_dictmap()
     print(dict_catKey_indValue)

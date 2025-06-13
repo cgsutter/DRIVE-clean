@@ -35,9 +35,11 @@ def classweights(
     # labels_ind = le.transform(trainlabels)
 
     # print(trainlabels)
+    # print(labels_dict)
 
-    labels_ind = [labels_dict[catname] for catname in trainlabels]
 
+    # labels_ind = [labels_dict[catname] for catname in trainlabels]
+    labels_ind = trainlabels
     # try doing class weighting on trainlables instead of labels_ind (values)
     if wts_use == "yes":
         if balance:

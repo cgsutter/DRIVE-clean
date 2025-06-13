@@ -31,20 +31,42 @@ import helper_fns_adhoc
 
 
 def grab_img_paths_labels(tracker, phase= ""):
+
+
     ### STEP 1: LOAD IN DATA (TF DATASETS) and PREP WEIGHTS
     df = pd.read_csv(f"{tracker}")
+
     print(f"using {tracker}")
-    df_train = df[df[f"innerPhase"] == "innerTrain"]
-    df_val = df[df[f"innerPhase"] == "innerVal"]
         
     # create variable and list that are sometimes used as an input in class weights function
 
     if phase != "":
+        print("filtering by phase")
         df = df[df[f"innerPhase"] == phase]
+    
+    # grab catcount information 
+    dfcatcount = (
+        df[["img_cat", "img_name"]]
+        .groupby(["img_cat"])
+        .size()
+        .reset_index(name="counts")
+        .sort_values(["img_cat"])
+    )
+    catcounts = dfcatcount[
+        "counts"
+    ]  # this is a list used to calc what weights should be given the amount that are in each cat
+
+    # print(catcounts)
+
     images_list = list(df["img_orig"])
     labels_list = list(df["img_cat"])
+    images_names = list(df["img_name"])
 
-    return images_list, labels_list
+    # encode the label
+    dict_catKey_indValue, dict_indKey_catValue = helper_fns_adhoc.cat_str_ind_dictmap()
+    label_encoding = [dict_catKey_indValue[catname] for catname in labels_list]
+
+    return images_list, label_encoding, catcounts, images_names # labels_list
 
 
 
@@ -64,6 +86,7 @@ def preprocess_and_aug(image_np, arch_for_preprocess, augflag):
 
     # print("entered img-level fn")
     image_tensor = tf.convert_to_tensor(image_np)
+    image_tensor = tf.cast(image_tensor, tf.float32)
     # print("converted to tensor")
     # Apply augmentation
     if augflag:
@@ -98,7 +121,7 @@ def preprocess_and_aug(image_np, arch_for_preprocess, augflag):
 
     return image_array
 
-def load_and_preprocess_image(image_path, arch_str, aug_bool):
+def load_and_ready_image(image_path, arch_str, aug_bool):
     # NEED TO MAKE INPUTS TF STRINGS?
     # image_path will be a TensorFlow string tensor.
     # We need to convert it to a Python string to use with cv2.
@@ -121,15 +144,15 @@ def load_and_preprocess_image(image_path, arch_str, aug_bool):
     except:
     
         print(f"Warning: Could not read image {image_path_format}. Returning dummy array.")
-        image_array = np.zeros((config.imgheight, config.imwidth, 3), dtype=np.float32)
+        image_array = np.zeros(config.TARGET_SIZE, dtype=np.float32)
 
 
 
     # images_pixel.append(image_array)
     # labels_imgs.append(listlabels[im_i])
-    img_processed = preprocess_and_aug(image_np = image_array, arch_for_preprocess = arch_str_format, augflag = aug_bool_format) # ADJUST HERE IF USE STRING
+    img_processed = preprocess_and_aug(image_np = image_array, arch_for_preprocess = arch_str_format, augflag = aug_bool_format) 
     
-    return img_processed
+    return img_processed.numpy() # return numpy object so that when called on in tf.py_function, which automatically converts it to a tf tensor, it won't already be a tf object (which can cause problems)
 
 
 def tf_load_and_preprocess_with_label(image_path, label, arch_for_preprocess_tensor, augflag_tensor):
@@ -137,29 +160,38 @@ def tf_load_and_preprocess_with_label(image_path, label, arch_for_preprocess_ten
     # arch_for_preprocess_tensor and augflag_tensor are passed in as explicit tf.Tensor constants (see map call below)
 
     processed_image = tf.py_function(
-        func=load_and_preprocess_image,
+        func=load_and_ready_image,
         inp=[image_path, arch_for_preprocess_tensor, augflag_tensor], # Pass all four tf.Tensor inputs
         Tout=tf.float32 # Only the image (as a NumPy array) is returned by load_and_preprocess_image
     )
     processed_image.set_shape([config.imheight, config.imwidth, 3])
 
-    processed_label = tf.cast(label, tf.int32)
 
-    return processed_image, processed_label
+
+    processed_label = tf.cast(label, tf.int32) #tf.uint8
+    processed_label = tf.one_hot(processed_label, depth=config.cat_num) 
+    # Add this line
+    # dict_catKey_indValue, dict_indKey_catValue = helper_fns_adhoc.cat_str_ind_dictmap()
+    # label_encoding = [dict_catKey_indValue[catname] for catname in label]
+    # label_one_hot = np.eye(config.cat_num)[label_encoding]
+    # label_fortfd = tf.convert_to_tensor(label_one_hot)
+
+
+    return processed_image, processed_label #processed_label
 
 # --- Create the tf.data.Dataset pipeline ---
 
 # Get the paths and labels
 
 def load_data(trackerinput, phaseinput, archinput, auginput):
-    images_list, labels_list = grab_img_paths_labels(tracker = trackerinput, phase= phaseinput)
-    numims_train = len(images_list)
 
 
     # read in dataframe and grab lists of paths and labels
 
-    all_evaluation_image_paths, all_evaluation_labels = grab_img_paths_labels(tracker = trackerinput, phase= "")
+    all_evaluation_image_paths, all_evaluation_labels, catcounts, imgnames = grab_img_paths_labels(tracker = trackerinput, phase= phaseinput)
     
+    numims = len(all_evaluation_image_paths)
+
     print(f"Found {len(all_evaluation_image_paths)} images with corresponding labels for evaluation.")
 
     # Create a dataset from image paths AND labels
@@ -181,13 +213,17 @@ def load_data(trackerinput, phaseinput, archinput, auginput):
 
     # 5. Batch the images and labels
     batched_dataset = mapped_dataset.batch(config.BATCH_SIZE)
+
+    # also shuffle the images if it's for the training dataset
     if phaseinput == "train":
-        batched_dataset = batched_dataset.shuffle(numims_train)
+        batched_dataset = batched_dataset.shuffle(numims)
 
     # 6. Prefetch data to overlap data loading/preprocessing with model execution
     final_dataset = batched_dataset.prefetch(tf.data.AUTOTUNE)
 
     print("got through data loading")
+
+    print(f"Dataset element spec: {final_dataset.element_spec}")
 
     # print("\nInspecting first batch:")
     # for i, (images_batch, labels_batch) in enumerate(final_dataset.take(1)): # Take only 1 batch
@@ -197,4 +233,6 @@ def load_data(trackerinput, phaseinput, archinput, auginput):
     #     print(f"    Images batch dtype: {images_batch.dtype}")
     #     print(f"    Labels batch dtype: {labels_batch.dtype}")
     #     print(f"    First 5 labels in batch: {labels_batch[:5].numpy()}")
-    return final_dataset
+
+    # returning labels, numims, and catcounts, because those are needed for calculating class weights off of training data. Convenient to return these metrics in this function (but besides calculating class weights in the call_model_train script, these aren't needed) 
+    return final_dataset, imgnames, all_evaluation_labels, numims, catcounts

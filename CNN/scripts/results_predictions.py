@@ -29,13 +29,16 @@ def evaluate(modeldir, dataset, imgnames, trackerinput, saveflag = False, saveto
 
 
 
-    for x, y in dataset.take(1):
-        print("X shape:", x.shape)
-        print("Y shape:", y.shape)
+    # for x, y in dataset.take(1):
+    #     print("X shape:", x.shape)
+    #     print("Y shape:", y.shape)
 
 
 
     # results = model.evaluate(dataset) # metrics of model skill, like loss and acc
+    print("inside results predictions")
+    print(type(dataset))
+    print(type(model))
     p2 = model.predict(dataset)
     c2 = np.argmax(p2, axis=1)
 
