@@ -6,6 +6,7 @@ import os
 # from src  import config as config
 import _config as config
 import helper_fns_adhoc
+import model_build
 
 # tensor flow for data load and mobilenet preprocessing
 import cv2
@@ -18,7 +19,7 @@ from tensorflow.keras.applications.mobilenet import preprocess_input
 
 
 
-def evaluate(modeldir, dataset, imgnames, trackerinput, saveflag = False, saveto = ""):
+def evaluate(modeldir, dataset, imgnames, trackerinput, saveflag = False, saveto = "", run_arch = config.arch_set,run_trle = config.transfer_learning, run_ast = config.ast, run_dr = config.dr_set, run_l2 = config.l2_set ):
     """For a given run, evaluate each of the 30 CNNs on the full dataset; which is the same for all 30 models. Each model differed in terms of the data (folds) that was used for training and validation, but evaluation should be run on the full dataset (all folds), which is the same. Thus, to save memory and data loading time, load the full dataset just once, and then evaluate that same dataset on each of the 30 models, rather than loading the same data 30 times.
 
     Args:
@@ -34,10 +35,45 @@ def evaluate(modeldir, dataset, imgnames, trackerinput, saveflag = False, saveto
         String: tracker name
     """
     
-    print(modeldir)
-    print(f"loading model {modeldir}")
-    model = tf.keras.models.load_model(modeldir, compile=False)
-    print("got through model load!!") # note: this is not set up right now for evid, which requires loading of the custom loss function to deserialize (and that requires class weights which are unique to each of the 30 datasets, come back to this..
+    # print(modeldir)
+
+    print(f"Recreate model architecture")
+
+    model = model_build.model_baseline(
+        # one_off = config.one_off,
+        # hyp_run = config.hyp_run,
+        evid = config.evid,
+        num_classes = config.cat_num,
+        input_shape = (config.imheight, config.imwidth, 3),
+        arch = run_arch,
+        transfer_learning = run_trle,
+        ast = run_ast,
+        dropout_rate = run_dr,
+        l2weight =run_l2,
+        activation_layer_def = config.activation_layer_def,
+        activation_output_def = config.activation_output_def
+        )
+
+    print(f"Load model weights {modeldir}")
+
+    # Find the path to the latest checkpoint file within that directory
+    # tf.train.latest_checkpoint() will return the base name of the checkpoint (e.g., "best_weights")
+    # prefixed with the directory path.
+    latest_checkpoint_path = tf.train.latest_checkpoint(modeldir)
+    
+    #  Load the weights into the recreated model
+    model.load_weights(latest_checkpoint_path)
+    print(f"Weights loaded successfully from: {latest_checkpoint_path}")
+
+    p2 = model.predict(dataset)
+    c2 = np.argmax(p2, axis=1)
+
+    # note: this is not set up right now for evid, which requires loading of the custom loss function to deserialize (and that requires class weights which are unique to each of the 30 datasets, come back to this..
+
+
+
+    # model = tf.keras.models.load_model(modeldir, compile=False)
+    # print("got through model load!!") 
 
     print("Starting evaluate() in results_predictions.py")
 
@@ -53,15 +89,16 @@ def evaluate(modeldir, dataset, imgnames, trackerinput, saveflag = False, saveto
     )
 
     df_results["model_pred"] = predicted_classname
-    df_results["img_orig"] = imgnames
+    df_results["img_name"] = imgnames
 
     print(df_results[0:10])
     print(df_results.columns)
-    print(df_results["img_orig"][0])
+    print(df_results["img_name"][0])
 
     # # connect to the unique tracker (unique for each of the 30 datasets)
     df_all = pd.read_csv(trackerinput)
-    df_final = df_all.merge(df_results, how = "inner", on = "img_orig")
+    print(df_all.columns)
+    df_final = df_all.merge(df_results, how = "inner", on = "img_name")
 
     print(len(df_final))
 

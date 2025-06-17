@@ -84,12 +84,18 @@ def train_model(run_tracker = config.trackers_list[0], tracker_rundetails = "", 
 
     print(model)
 
-    m = model_compile_fit.compile_model(model = model, train_size = numims_train, batchsize = config.BATCH_SIZE, lr_init = config.lr_init, lr_opt=config.lr_opt, lr_after_num_of_epoch =config.lr_after_num_of_epoch, lr_decayrate = config.lr_decayrate, momentum = config.momentum, evid = config.evid, evid_lr_init = config.evid_lr_init )
+    lr_init_set = config.lr_init_small if run_arch == "vgg16" else config.lr_init
+
+    print(f"using learning rate of {lr_init_set} for arch {run_arch}")
+
+    m = model_compile_fit.compile_model(model = model, train_size = numims_train, batchsize = config.BATCH_SIZE, lr_init = lr_init_set, lr_opt=config.lr_opt, lr_after_num_of_epoch =config.lr_after_num_of_epoch, lr_decayrate = config.lr_decayrate, momentum = config.momentum, evid = config.evid, evid_lr_init = config.evid_lr_init )
 
     print("through compiled model")
     print("model here")
     print(type(m))
-    callbacks_use = callbacks.create_callbacks_list(savebestweights = modeldir_set, earlystop_patience = config.earlystop_patience, evid = config.evid)
+    os.makedirs(modeldir_set, exist_ok=True)
+    modelsave_filenames = f"{modeldir_set}/best_weights" # without extension here, which seems to be the fastest for model saving, then there will be two files in modeldir_set directory, one with name best_weights.index, and the other with best_weights.data (and a bunch of characters). Then a file named checkpoint, unique to that model run, will also be in that dir.
+    callbacks_use = callbacks.create_callbacks_list(savebestweights = modelsave_filenames, earlystop_patience = config.earlystop_patience, evid = config.evid)
 
     print("ran through callbakcs")
     print(type(callbacks_use))

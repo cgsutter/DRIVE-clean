@@ -33,7 +33,7 @@ def evaluate_exp_models(trackerslist, tracker_rundetails, oneoff_flag, hyp_flag,
             print(t)
             tracker_details = helper_fns_adhoc.prep_filedetails(tracker_designated = t, rundetails = tracker_rundetails)
             
-            df_preds, t_name = results_predictions.evaluate(modeldir = f"{config.model_path}/{tracker_details}", dataset = dataset_all, imgnames = all_images, trackerinput = t, saveto = f"{config.preds_path}/{tracker_details}.csv", saveflag = True)
+            df_preds, t_name = results_predictions.evaluate(modeldir = f"{config.model_path}/{tracker_details}", dataset = dataset_all, imgnames = all_images, trackerinput = t, saveto = f"{config.preds_path}/{tracker_details}.csv", saveflag = True, run_arch = config.arch_set,run_trle = config.transfer_learning, run_ast = config.ast, run_dr = config.dr_set, run_l2 = config.l2_set )
             preddfs_30.append(df_preds)
             descs_30.append(t_name)
 
@@ -67,7 +67,8 @@ def evaluate_exp_models(trackerslist, tracker_rundetails, oneoff_flag, hyp_flag,
             for t in config.trackers_list:
                 print("inside loop for evaluation")
                 tracker_details = helper_fns_adhoc.prep_filedetails(tracker_designated = t, rundetails = tracker_rundetails)
-                df_preds, t_name = results_predictions.evaluate(modeldir = f"{config.model_path}/{tracker_details}", dataset = dataset_all, imgnames = all_images, trackerinput = t, saveto = f"{config.preds_path}/{tracker_details}.csv", saveflag = False)
+                
+                df_preds, t_name = results_predictions.evaluate(modeldir = f"{config.model_path}/{tracker_details}", dataset = dataset_all, imgnames = all_images, trackerinput = t, saveto = "", saveflag = False, run_arch = dfhyp["arch"][i], run_trle = dfhyp["trle"][i], run_ast = dfhyp["ast"][i], run_dr = dfhyp["dr"][i], run_l2 = dfhyp["l2"][i])
                 preddfs_30.append(df_preds)
                 descs_30.append(t_name)
             # only run for inner val, no need to run for all phases bc not saving those to csv, only need inner val to then run the final summary analysis to append to Main tracker for experiment results in total

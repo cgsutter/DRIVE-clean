@@ -150,6 +150,7 @@ def load_and_ready_image(image_path, arch_str, aug_bool):
 
     # images_pixel.append(image_array)
     # labels_imgs.append(listlabels[im_i])
+    # print()
     img_processed = preprocess_and_aug(image_np = image_array, arch_for_preprocess = arch_str_format, augflag = aug_bool_format) 
     
     return img_processed.numpy() # return numpy object so that when called on in tf.py_function, which automatically converts it to a tf tensor, it won't already be a tf object (which can cause problems)
@@ -201,6 +202,8 @@ def load_data(trackerinput, phaseinput, archinput, auginput):
     # These must be tf.Tensor constants
     arch_tensor_constant = tf.constant(archinput, dtype=tf.string) # Example architecture
     augflag_tensor_constant = tf.constant(auginput, dtype=tf.bool) # For evaluation, typically False
+    print("Augmentation set as: ")
+    print(augflag_tensor_constant)
 
     # 4. Map the preprocessing function
     # Use a lambda to pass the specific arch and augflag constants to your function.
@@ -211,15 +214,17 @@ def load_data(trackerinput, phaseinput, archinput, auginput):
         num_parallel_calls=tf.data.AUTOTUNE # Allows parallel data processing
     )
 
-    # 5. Batch the images and labels
-    batched_dataset = mapped_dataset.batch(config.BATCH_SIZE)
-
     # also shuffle the images if it's for the training dataset
     if phaseinput == "train":
         batched_dataset = batched_dataset.shuffle(numims)
+    
+    # 5. Batch the images and labels
+    batched_dataset = mapped_dataset.batch(config.BATCH_SIZE)
 
     # 6. Prefetch data to overlap data loading/preprocessing with model execution
     final_dataset = batched_dataset.prefetch(tf.data.AUTOTUNE)
+    # cpu_use = os.cpu_count()
+    # final_dataset = batched_dataset.prefetch(cpu_use)
 
     print("got through data loading")
 
