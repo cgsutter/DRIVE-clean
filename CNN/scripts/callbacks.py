@@ -2,8 +2,7 @@
 
 # Necessary imports
 import _config as config
-import custom_keras_callbacks
-from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
+from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau,EarlyStopping
 
 
 # from wandb.keras import WandbCallback, WandbMetricsLogger, WandbModelCheckpoint
@@ -30,6 +29,7 @@ def create_callbacks_list(savebestweights, earlystop_patience = config.earlystop
     """
 
     print("started model_fitting")
+    # savebestweights = f"{savebestweights}.h5"
     print(savebestweights)
 
     checkpoint = ModelCheckpoint(
@@ -38,11 +38,19 @@ def create_callbacks_list(savebestweights, earlystop_patience = config.earlystop
         verbose=0,
         save_best_only=True,
         mode="max",
+        save_weights_only=True # HERE!!
     )  # saves out best model locally
 
 
-    es = custom_keras_callbacks.EarlyStopping(
-        monitor="val_accuracy", mode="max", patience=earlystop_patience
+    es = EarlyStopping(
+        monitor='val_accuracy',
+        min_delta=config.min_delta,
+        patience=config.earlystop_patience,
+        verbose=0,
+        mode='max',
+        baseline=None,
+        restore_best_weights=False,
+        start_from_epoch=0
     )
 
     wb_metricslog = WandbCallback(log_freq="epoch",log_weights=False, save_model=False)
