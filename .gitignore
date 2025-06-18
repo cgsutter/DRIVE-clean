@@ -1,6 +1,8 @@
 CNN/data_results
 CNN/data_preds
 CNN/data_models
+CNN/data_models_DEPRECATED
+CNN/data_models_side_experiments
 CNN/data_trackers
 Downstream/data_results
 Downstream/data_trackers
