@@ -68,17 +68,9 @@ def evaluate(modeldir, dataset, imgnames, trackerinput, saveflag = False, saveto
     p2 = model.predict(dataset)
     c2 = np.argmax(p2, axis=1)
 
+    print("Complete with evaluate() in results_predictions.py")
+
     # note: this is not set up right now for evid, which requires loading of the custom loss function to deserialize (and that requires class weights which are unique to each of the 30 datasets, come back to this..
-
-
-
-    # model = tf.keras.models.load_model(modeldir, compile=False)
-    # print("got through model load!!") 
-
-    print("Starting evaluate() in results_predictions.py")
-
-    p2 = model.predict(dataset)
-    c2 = np.argmax(p2, axis=1)
 
     dict_catKey_indValue, dict_indKey_catValue= helper_fns_adhoc.cat_str_ind_dictmap()
 
