@@ -28,13 +28,15 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
             # This is for evaluation, where the same full dataset is used regardless of one-off vs hyp tune run, and this data should be prepared and read in outside of loops through trackers -- would be redundant to read in for each since it's the same full dataframe.Note that we only need one tracker to pull all examples, the *full* dataset is the same across the 30 trackers.
             dataset_all, imgnames, labels, numims, catcounts = load_dataset.load_data(trackerinput = config.trackers_list[0], phaseinput = "", archinput = config.arch_set, auginput = False) # aug always false for evaluation. The data loading is unique to the architecture due to data preprocessing.
 
-            call_model_results.evaluate_exp_models(trackerslist = config.trackers_list, tracker_rundetails = tracker_rundetails, oneoff_flag = config.one_off, hyp_flag = config.hyp_run, dfhyp = None, dataset_all = dataset_all, all_images = imgnames)
-
+            call_model_results.evaluate_exp_models(trackerslist = config.trackers_list, tracker_rundetails = tracker_rundetails, oneoff_flag = config.one_off, hyp_flag = config.hyp_run, dfhyp = None, dataset_all = dataset_all, all_images = imgnames, arch_eval = config.arch_set, trle_eval = config.transfer_learning, ast_eval=config.ast, dr_eval = config.dr_set, l2_eval = config.l2_set)
 
     elif hyp_run:
         dfhyp = pd.read_csv(config.hyp_path)
+        print("ENTER1: hyp_run")
         # print(dfhyp)
+        # loop through each hyp set
         for i in range(0,2): #len(dfhyp) # here!!
+            print(f"ENTER2: LOOP Hyp {i}")
             # unique to an experiment -- hyperparams and exp_desc
             h= dfhyp.iloc[i]
             print(f"HYPERPARAMS ARE: {h}")
@@ -53,8 +55,9 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
                 for t in config.trackers_list:
                     call_model_train.train_model(run_tracker = t, tracker_rundetails = tracker_rundetails, wandblog = wandblog, run_arch = dfhyp["arch"][i], run_trle = dfhyp["trle"][i], run_ast = dfhyp["ast"][i], run_l2 =  dfhyp["l2"][i], run_dr = dfhyp["dr"][i], run_aug = dfhyp["aug"][i])
             if eval_flag:
+                print(f"ENTER3: eval flag (should be ran ONCE per LOOP ^")
                 dataset_all, imgnames, labels, numims, catcounts = load_dataset.load_data(trackerinput = config.trackers_list[0], phaseinput = "", archinput = dfhyp["arch"][i], auginput = False) # aug always false for evaluation. The data loading is unique to the architecture due to data preprocessing.
 
-                call_model_results.evaluate_exp_models(trackerslist = config.trackers_list, tracker_rundetails = tracker_rundetails, oneoff_flag = config.one_off, hyp_flag = config.hyp_run, dfhyp = dfhyp, dataset_all = dataset_all, all_images = imgnames)
+                call_model_results.evaluate_exp_models(trackerslist = config.trackers_list, tracker_rundetails = tracker_rundetails, oneoff_flag = config.one_off, hyp_flag = config.hyp_run, dfhyp = dfhyp, dataset_all = dataset_all, all_images = imgnames, arch_eval = dfhyp["arch"][i], trle_eval =dfhyp["trle"][i], ast_eval = dfhyp["ast"][i], dr_eval =dfhyp["dr"][i], l2_eval =dfhyp["l2"][i])
 
 main()

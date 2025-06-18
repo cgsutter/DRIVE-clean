@@ -9,8 +9,8 @@ preds_path = "/home/csutter/DRIVE-clean/CNN/data_preds"
 results_path = "/home/csutter/DRIVE-clean/CNN/data_results"
 
 ### Flags and specifics for the type of model run
-train_flag = True # if running model training
-eval_flag = False # if running model evaluation (need to have already trained models)
+train_flag = False # if running model training
+eval_flag = True # if running model evaluation (need to have already trained models)
 wandb_flag = True # flag for whether to save experiments to w&b
 # one-off run where you give it one specific architecture and set of hyperparams to use
 wanb_projectname = "DRIVE-side_experiments" # HERE!! for pure BL or HT runs, "DRIVE-clean", o/w adjust here also for adhoc_desc "DRIVE-side_experiments"
