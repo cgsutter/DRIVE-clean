@@ -38,7 +38,7 @@ import helper_fns_adhoc  # must define cat_str_ind_dictmap()
 
 
 
-def compile_model(model, train_size, batchsize, lr_init = config.lr_init, lr_opt=config.lr_opt, lr_after_num_of_epoch =config.lr_after_num_of_epoch, lr_decayrate = config.lr_decayrate, momentum = config.momentum, evid = config.evid, evid_lr_init = config.evid_lr_init):
+def compile_model(model, train_size, batchsize, lr_init, lr_opt=config.lr_opt, lr_after_num_of_epoch =config.lr_after_num_of_epoch, lr_decayrate = config.lr_decayrate, momentum = config.momentum, evid = config.evid, evid_lr_init = config.evid_lr_init):
     """
 
     This function:

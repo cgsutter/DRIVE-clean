@@ -50,7 +50,7 @@ def create_callbacks_list(savebestweights, earlystop_patience = config.earlystop
         mode='max',
         baseline=None,
         restore_best_weights=False,
-        start_from_epoch=0
+        start_from_epoch=config.min_epochs_before_es
     )
 
     wb_metricslog = WandbCallback(log_freq="epoch",log_weights=False, save_model=False)

@@ -34,7 +34,7 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
     elif hyp_run:
         dfhyp = pd.read_csv(config.hyp_path)
         # print(dfhyp)
-        for i in range(30,36): #len(dfhyp) # here!!
+        for i in range(0,2): #len(dfhyp) # here!!
             # unique to an experiment -- hyperparams and exp_desc
             h= dfhyp.iloc[i]
             print(f"HYPERPARAMS ARE: {h}")
