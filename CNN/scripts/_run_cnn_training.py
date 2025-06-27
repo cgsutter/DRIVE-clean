@@ -4,7 +4,26 @@ import call_model_train
 import call_model_results
 import pandas as pd
 import load_dataset
+import tensorflow as tf
 
+# Get a list of all available physical GPUs
+gpus = tf.config.experimental.list_physical_devices('GPU')
+
+# if gpus:
+#     try:
+#         # Loop through each physical GPU and set memory growth
+#         for gpu in gpus:
+#             tf.config.experimental.set_memory_growth(gpu, True)
+        
+#         # Optional: Log which GPUs are being used and their memory growth status
+#         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+#         print(f"{len(gpus)} Physical GPUs, {len(logical_gpus)} Logical GPUs configured with memory growth.")
+#     except RuntimeError as e:
+#         # This error typically occurs if memory growth is set after GPUs have been initialized.
+#         # Ensure this code runs at the very start of your program.
+#         print(e)
+# else:
+#     print("No GPU devices found. Running on CPU.")
 
 def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off = config.one_off, hyp_run = config.hyp_run):
 
@@ -35,7 +54,7 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
         print("ENTER1: hyp_run")
         # print(dfhyp)
         # loop through each hyp set
-        for i in range(0,2): #len(dfhyp) # here!!
+        for i in range(0,4): #len(dfhyp) # here!! 6/26 skipped 1 for now, error in vim ai2es_error_20164.err. Two jobs running 2,10 and 10,18
             print(f"ENTER2: LOOP Hyp {i}")
             # unique to an experiment -- hyperparams and exp_desc
             h= dfhyp.iloc[i]
@@ -57,6 +76,12 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
             if eval_flag:
                 print(f"ENTER3: eval flag (should be ran ONCE per LOOP ^")
                 dataset_all, imgnames, labels, numims, catcounts = load_dataset.load_data(trackerinput = config.trackers_list[0], phaseinput = "", archinput = dfhyp["arch"][i], auginput = False) # aug always false for evaluation. The data loading is unique to the architecture due to data preprocessing.
+
+                print("INSPECTING")
+                for images, labels in dataset_all.take(1): # Take one batch
+                    print("Shape of images from dataset:", images.shape)
+                    print("Shape of labels from dataset:", labels.shape)
+                    break
 
                 call_model_results.evaluate_exp_models(trackerslist = config.trackers_list, tracker_rundetails = tracker_rundetails, oneoff_flag = config.one_off, hyp_flag = config.hyp_run, dfhyp = dfhyp, dataset_all = dataset_all, all_images = imgnames, arch_eval = dfhyp["arch"][i], trle_eval =dfhyp["trle"][i], ast_eval = dfhyp["ast"][i], dr_eval =dfhyp["dr"][i], l2_eval =dfhyp["l2"][i])
 

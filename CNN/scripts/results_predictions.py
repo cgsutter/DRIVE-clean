@@ -65,7 +65,9 @@ def evaluate(modeldir, dataset, imgnames, trackerinput, saveflag = False, saveto
     model.load_weights(latest_checkpoint_path)
     print(f"Weights loaded successfully from: {latest_checkpoint_path}")
 
+    print("PRINT before predict")
     p2 = model.predict(dataset)
+    print("PRINT after predict")
     c2 = np.argmax(p2, axis=1)
 
     print("Complete with evaluate() in results_predictions.py")

@@ -159,7 +159,7 @@ def train_fit(
         epochs=epoch_set,
         callbacks=callbacks_list,
         validation_data=valdata,
-        batch_size=BATCH_SIZE,  # HERE SHOULD BE UPDATED
+        batch_size=BATCH_SIZE,
         class_weight=class_weights_use,
     )
 

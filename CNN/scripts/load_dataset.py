@@ -111,7 +111,10 @@ def preprocess_and_aug(image_np, arch_for_preprocess, augflag):
     elif arch_for_preprocess == "mobilenet":
         image_array = mobilenet_preprocess(image_tensor)
     elif arch_for_preprocess == "resnet":
+        # Assuming image_tensor is a tf.Tensor here
+        # tf.print("Inside preprocess_and_aug, image_tensor shape before resnet_preprocess:", tf.shape(image_tensor))
         image_array = resnet_preprocess(image_tensor)
+        # tf.print("Inside preprocess_and_aug, image_array shape after resnet_preprocess:", tf.shape(image_array))
     elif arch_for_preprocess == "vgg16":
         image_array = vgg_preprocess(image_tensor)
     elif arch_for_preprocess == "xcep":
@@ -151,7 +154,13 @@ def load_and_ready_image(image_path, arch_str, aug_bool):
     # images_pixel.append(image_array)
     # labels_imgs.append(listlabels[im_i])
     # print()
+
+    # Assuming image_array is a tf.Tensor here
+    # tf.print("Inside load_and_ready_image, image_array shape before preprocess_and_aug:", tf.shape(image_array))
+
     img_processed = preprocess_and_aug(image_np = image_array, arch_for_preprocess = arch_str_format, augflag = aug_bool_format) 
+
+    # tf.print("Inside load_and_ready_image, img_processed shape after preprocess_and_aug:", tf.shape(img_processed))
     
     return img_processed.numpy() # return numpy object so that when called on in tf.py_function, which automatically converts it to a tf tensor, it won't already be a tf object (which can cause problems)
 
@@ -214,20 +223,28 @@ def load_data(trackerinput, phaseinput, archinput, auginput):
         num_parallel_calls=tf.data.AUTOTUNE # Allows parallel data processing
     )
 
-    # also shuffle the images if it's for the training dataset
-    if phaseinput == "train":
-        batched_dataset = batched_dataset.shuffle(numims)
-    
+
+    if phaseinput == "innerTrain":
+        print(f"Shuffling individual images for training...")
+        # numims is the total number of images. A shuffle buffer size larger than
+        # the number of examples ensures a perfect shuffle. For large datasets,
+        # a buffer size around 1000-10000 or a percentage of numims is common.
+        # Using numims is safe but consumes memory if numims is very large.
+        # If numims is > 20,000, consider a smaller, fixed buffer like 10000.
+        final_dataset = mapped_dataset.shuffle(buffer_size=numims)
+    else:
+        # For evaluation, we do NOT shuffle to maintain order for matching predictions
+        print(f"Not shuffling images for evaluation (phase: {phaseinput}).")
+        final_dataset = mapped_dataset # No shuffle applied
+
     # 5. Batch the images and labels
-    batched_dataset = mapped_dataset.batch(config.BATCH_SIZE)
+    # Apply batching *after* shuffling (for training) or no shuffling (for eval)
+    final_dataset = final_dataset.batch(config.BATCH_SIZE, drop_remainder=False)
 
     # 6. Prefetch data to overlap data loading/preprocessing with model execution
-    final_dataset = batched_dataset.prefetch(tf.data.AUTOTUNE)
-    # cpu_use = os.cpu_count()
-    # final_dataset = batched_dataset.prefetch(cpu_use)
+    final_dataset = final_dataset.prefetch(tf.data.AUTOTUNE)
 
     print("got through data loading")
-
     print(f"Dataset element spec: {final_dataset.element_spec}")
 
     # print("\nInspecting first batch:")
