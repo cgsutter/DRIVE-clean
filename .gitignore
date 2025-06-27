@@ -1,5 +1,6 @@
 CNN/data_results
 CNN/data_preds
+CNN/data_preds_DEPRECATED
 CNN/data_models
 CNN/data_models_DEPRECATED
 CNN/data_models_side_experiments
