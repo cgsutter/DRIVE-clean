@@ -9,9 +9,9 @@ preds_path = "/home/csutter/DRIVE-clean/CNN/data_preds"
 results_path = "/home/csutter/DRIVE-clean/CNN/data_results"
 
 ### Flags and specifics for the type of model run
-train_flag = True # if running model training
-eval_flag = False # if running model evaluation (need to have already trained models)
-wandb_flag = True # flag for whether to save experiments to w&b
+train_flag = False # if running model training
+eval_flag = True # if running model evaluation (need to have already trained models)
+wandb_flag = False # flag for whether to save experiments to w&b
 # one-off run where you give it one specific architecture and set of hyperparams to use
 wanb_projectname = "DRIVE-clean" # HERE!! for pure BL or HT runs, "DRIVE-clean", o/w adjust here also for adhoc_desc "DRIVE-side_experiments"
 exp_desc = "nestcv_5cat_twotrain" # identifier string that all 30 trackers (trackers_list below) have in common for a given experiment, e.g. nestcv_5cat_twotrain. This is used in results_summaries to aggregate across multiple models that come from the same base experiment
@@ -47,7 +47,7 @@ momentum = 0.25#0.25
 
 ### Static details: e.g. loss function, early stopping, min number of epochs, and learning rate, are the same for all runs
 TARGET_SIZE = (224, 224)  # Adjust based on model needs
-BATCH_SIZE = 128  # Adjust as needed
+BATCH_SIZE = 128  # 128 Adjust as needed
 imheight = 224
 imwidth = 224
 class_wts = "yes"
