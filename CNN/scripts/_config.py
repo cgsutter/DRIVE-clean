@@ -9,9 +9,9 @@ preds_path = "/home/csutter/DRIVE-clean/CNN/data_preds"
 results_path = "/home/csutter/DRIVE-clean/CNN/data_results"
 
 ### Flags and specifics for the type of model run
-train_flag = False # if running model training
-eval_flag = True # if running model evaluation (need to have already trained models)
-wandb_flag = False # flag for whether to save experiments to w&b
+train_flag = True # if running model training
+eval_flag = False # if running model evaluation (need to have already trained models)
+wandb_flag = True # flag for whether to save experiments to w&b
 # one-off run where you give it one specific architecture and set of hyperparams to use
 wanb_projectname = "DRIVE-clean" # HERE!! for pure BL or HT runs, "DRIVE-clean", o/w adjust here also for adhoc_desc "DRIVE-side_experiments"
 exp_desc = "nestcv_5cat_twotrain" # identifier string that all 30 trackers (trackers_list below) have in common for a given experiment, e.g. nestcv_5cat_twotrain. This is used in results_summaries to aggregate across multiple models that come from the same base experiment
@@ -26,7 +26,7 @@ l2_set = 0 # ignored if one_off is False, sel: 1e-05
 dr_set = 0 # ignored if one_off is False, sel: 0.4
 # hyperparameter tuning
 hyp_run = True
-hyp_path = "/home/csutter/DRIVE-clean/CNN/data_trackers/baseline_hyperparams.csv" #HERE!! path to CSV which has the list of hyperparameters
+hyp_path = "/home/csutter/DRIVE-clean/CNN/data_trackers/HT_hyperparams.csv"  #HERE!! path to CSV which has the list of hyperparameters
 # Baseline runs: "/home/csutter/DRIVE-clean/CNN/data_trackers/baseline_hyperparams.csv" 
 # Hyperparameter tuning runs: "/home/csutter/DRIVE-clean/CNN/data_trackers/HT_hyperparams.csv" 
 activation_layer_def = "relu"

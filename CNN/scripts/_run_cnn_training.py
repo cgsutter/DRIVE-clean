@@ -35,7 +35,7 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
         print("ENTER1: hyp_run")
         # print(dfhyp)
         # loop through each hyp set
-        for i in range(0,16): # 6/27/25 last one to run was (12,16), 6/29 running remaining.  Typicall could be len(dfhyp) # here!! 6/26 skipped 1 for now, error in vim ai2es_error_20164.err. Two jobs running 2,10 and 10,18
+        for i in range(30,40): # 7/1/25 hyptuning starting, running in chunks of 10, may take up to 5-6 days. Typicall could be len(dfhyp) # here!! 
 
             # 1. Clear Keras backend session
             # This destroys the current TF graph and frees resources associated with it. 
