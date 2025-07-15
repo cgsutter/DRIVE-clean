@@ -35,7 +35,7 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
         print("ENTER1: hyp_run")
         # print(dfhyp)
         # loop through each hyp set
-        for i in range(30,40): # 7/1/25 hyptuning starting, running in chunks of 10, may take up to 5-6 days. Typicall could be len(dfhyp) # here!! 
+        for i in range(24,26): # 7/1/25 hyptuning starting, running in chunks of 10, may take up to 5-6 days. Typicall could be len(dfhyp) # here!! 7/8 need to train [3,10), and then [13,20). 7/12: run (3,32) all at once, i think it may overload dgx to do multiple eval runs
 
             # 1. Clear Keras backend session
             # This destroys the current TF graph and frees resources associated with it. 
