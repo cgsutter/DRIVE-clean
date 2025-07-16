@@ -35,7 +35,7 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
         print("ENTER1: hyp_run")
         # print(dfhyp)
         # loop through each hyp set
-        for i in range(24,26): # 7/1/25 hyptuning starting, running in chunks of 10, may take up to 5-6 days. Typicall could be len(dfhyp) # here!! 7/8 need to train [3,10), and then [13,20). 7/12: run (3,32) all at once, i think it may overload dgx to do multiple eval runs
+        for i in range(0,len(dfhyp)): # 7/1/25 hyptuning starting, running in chunks of 10, may take up to 5-6 days. Typicall could be len(dfhyp) # here!! 7/8 need to train [3,10), and then [13,20). 7/12: run (3,32) all at once, i think it may overload dgx to do multiple eval runs
 
             # 1. Clear Keras backend session
             # This destroys the current TF graph and frees resources associated with it. 
@@ -69,18 +69,26 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
                 list_dfpreds = []
                 list_descs30 = []
                 for t in config.trackers_list:
-                    print(f"ENTER3: inside second loop - tracker {t}")
+                    if config.eval_pred_csvs:
+                        savepredsflag = True
+                        phaseuse_set = "" # run preds on all observations
+                    elif config.eval_highlevel:
+                        savepredsflag = False
+                        phaseuse_set = "innerVal" # for HT results, just need o aggregate by innerVal
+                    else:
+                        print("check setup in config, need to set eval flags")
                     list_descs30.append(os.path.basename(t)[:-4])
-                    print(f"ENTER3: inside second loop - tracker {t}")
                     # observation level
-                    preds = results_predictions_obslevel.make_preds(run_tracker = t, tracker_rundetails = tracker_rundetails, wandblog = wandblog, run_arch = dfhyp["arch"][i], run_trle = dfhyp["trle"][i], run_ast = dfhyp["ast"][i], run_l2 =  dfhyp["l2"][i], run_dr = dfhyp["dr"][i], run_aug = dfhyp["aug"][i], saveflag = False, saveto = "") # saveto not set up properly right now
+                    preds = results_predictions_obslevel.make_preds(run_tracker = t, tracker_rundetails = tracker_rundetails, wandblog = wandblog, run_arch = dfhyp["arch"][i], run_trle = dfhyp["trle"][i], run_ast = dfhyp["ast"][i], run_l2 =  dfhyp["l2"][i], run_dr = dfhyp["dr"][i], run_aug = dfhyp["aug"][i], saveflag = savepredsflag, phaseuse = phaseuse_set)
                     list_dfpreds.append(preds)
 
-                # tracker level (df with 30 rows for 30 trackers)
-                results_df_of30 = results_summaries.run_results_by_exp(preddfs_input = list_dfpreds, preddfs_desc = list_descs30,  exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails, subsetphase = "innerVal")
-                print(results_df_of30[0:3])
+                # if running high level eval, grabbing one summary statistic row for one experiment (aggregated across 30), as is done for BL runs or HT runs, append to one main csv file with all the stats, then this summarizing code also needs to be ran
+                if config.eval_highlevel:
+                    # tracker level (df with 30 rows for 30 trackers)
+                    results_df_of30 = results_summaries.run_results_by_exp(preddfs_input = list_dfpreds, preddfs_desc = list_descs30,  exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails, subsetphase = "innerVal")
+                    print(results_df_of30[0:3])
 
-                # exp level (one result based on the hyp) -- results added/appended to primary results csv that already exists
-                results_summaries.exp_total_innerVal(df_innerVal = results_df_of30, exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails)
+                    # exp level (one result based on the hyp) -- results added/appended to primary results csv that already exists
+                    results_summaries.exp_total_innerVal(df_innerVal = results_df_of30, exp_desc_input = config.exp_desc, exp_details_input = tracker_rundetails)
 
 main()

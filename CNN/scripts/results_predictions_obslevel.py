@@ -1,3 +1,5 @@
+# Portions of this code were writen with the assistance of AI tools (e.g., ChatGPT).
+
 import _config as config
 import helper_fns_adhoc
 import model_build
@@ -12,13 +14,33 @@ import os
 
 
 
-def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", wandblog = "", run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug, saveflag = False, saveto = ""):
+def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", wandblog = "", run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug, saveflag = False, phaseuse = ""):
+
+    """
+    Loads a trained model and validation dataset, generates predictions, and returns a 
+    merged DataFrame of results.
+
+    Parameters:
+        run_tracker (str): Path to the tracker CSV file defining the dataset.
+        tracker_rundetails (str): Suffix for identifying the specific model run.
+        wandblog (str): Placeholder for W&B logging (currently unused).
+        run_arch (str): Model architecture to use.
+        run_trle (bool): Whether transfer learning was used.
+        run_ast (bool): Whether to include architecture-specific top layers.
+        run_l2 (float): L2 regularization weight.
+        run_dr (float): Dropout rate.
+        run_aug (bool): Whether data augmentation was used (should be False for val data).
+        saveflag (bool): Whether to save the output predictions to CSV.
+
+    Returns:
+        pd.DataFrame: Merged DataFrame containing original tracker data, model predictions, predicted class labels, and associated image names.
+    """
 
     print(f"Running Evaluation {run_tracker} using architecture {run_arch}. Transfer learning {run_trle}, arch-specific top {run_ast}. Dropout is {run_dr} and l2 weight is {run_l2}.")
 
     #### load data
 
-    tf_ds_val, val_imgnames, labels_val, numims_val, valcatcounts = load_dataset.load_data(trackerinput = run_tracker, phaseinput = "innerVal", archinput = run_arch, auginput = False) # should always be false for val data
+    tf_ds_val, val_imgnames, labels_val, numims_val, valcatcounts = load_dataset.load_data(trackerinput = run_tracker, phaseinput = phaseuse, archinput = run_arch, auginput = False) # should always be false for val data
 
 
     print("validation data")
@@ -30,7 +52,7 @@ def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", w
 
     #### read model
 
-    # really should move this outside of this function! It's only unique to an experiment & hyperparams NOT tracker, so since this def train_model is ran for each of the 30, it's superfluous.  Can actually probably remove this and move it outside under the first one_off and hyp_flag
+    # This is only unique to an experiment & hyperparams NOT tracker, could move this outside the function
     tracker_filebase = helper_fns_adhoc.prep_basefile_str(tracker_designated = run_tracker)
 
     modeldir_set = f"{config.model_path}/{tracker_filebase}_{tracker_rundetails}"
@@ -105,11 +127,13 @@ def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", w
 
     df_final["tracker"] = tracker_ident
 
+
     if saveflag:
-        # predssaveto = f"{config.preds_path}/{t_name}_{rundetails}.csv"
-        df_final.to_csv(saveto) # saving the preds df to csv for one-off runs    
+        # same naming as with saved models: {tracker_filebase}_{tracker_rundetails}
+        predssaveto = f"{config.preds_path}/{tracker_filebase}_{tracker_rundetails}.csv"
+        df_final.to_csv(predssaveto) # saving the preds df to csv for one-off runs    
         print("saved to")
-        print(saveto)
+        print(predssaveto)
     else:
         print("not saving preds")
 
