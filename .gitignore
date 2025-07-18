@@ -11,3 +11,5 @@ Downstream/data_trackers
 CNN/scripts/__pycache__
 temp_env/
 wandb/
+calibration/calib_CNN_data
+calibration/calib_cnn_model
