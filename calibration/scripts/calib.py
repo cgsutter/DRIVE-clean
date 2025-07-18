@@ -121,7 +121,7 @@ def rowfn_normalize_remaining(row):
 
     predcat = str(row[f"o_pred"])
     predprob = row[
-        f"calib_prob"
+        f"o_prob_calib"
     ]  ## this is the predicted class' calibrated prob which was added from the other predOnly function
 
     # list the cols to grab that need to be normalized, which are the ones that aren't calibrated bc they werent the max
@@ -169,7 +169,7 @@ def calibrate_and_normalize_all_cats_PredOnly(
     X, y, X_eval = prep_data_for_calib_model(dftotrain, dftoeval)
 
 
-    calib_prob = build_eval_logistic_PredOnly(
+    o_prob_calib = build_eval_logistic_PredOnly(
         X,
         y,
         X_eval,
@@ -178,7 +178,8 @@ def calibrate_and_normalize_all_cats_PredOnly(
     )
 
     # add columns with calibrated probs
-    dftoeval["calib_prob"] = calib_prob
+    # 7/18 WAS calib_prob
+    dftoeval["o_prob_calib"] = o_prob_calib
 
     # since we only calibrated the highest class (predicted class) we need to use that new probability for the highest class, and then set the remaining class probabilities st they sum to 1. Normalize them based on the new max prob for the pred class.
     # this row function applied to all rows to return final relevant cols
@@ -210,6 +211,15 @@ def calibrate_and_normalize_all_cats_PredOnly(
         .idxmax(axis=1)
         .str.replace("calib_prob_", "", regex=False)
     )
+
+    # note that this has to be done after calib AND normalizing bc sometimes the highest prob can change
+    dftoeval["calib_prob"] = dftoeval[[
+                "calib_prob_dry",
+                "calib_prob_poor_viz",
+                "calib_prob_snow",
+                "calib_prob_snow_severe",
+                "calib_prob_wet",
+            ]].max(axis=1)
 
     return dftotrain, dftoeval
 

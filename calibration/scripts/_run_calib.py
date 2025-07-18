@@ -26,7 +26,7 @@ for f in datafiles:
         )
     t_all["classifier_01"] = t_all["classifier_TF"].astype(int)
 
-    t_val = t_all[t_all["innerPhase"] == "innerVal"]
+    t_val = t_all[t_all["innerPhase"] == "innerVal"] # 7/18
 
     # where to save out the model
     modeldir = f"/home/csutter/DRIVE-clean/calibration/calib_{config.classif_model}_model"
