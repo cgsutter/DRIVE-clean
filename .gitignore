@@ -13,3 +13,4 @@ temp_env/
 wandb/
 calibration/calib_CNN_data
 calibration/calib_CNN_model
+calibration/scripts/__pycache__
