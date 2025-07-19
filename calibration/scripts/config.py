@@ -4,14 +4,6 @@ dir_of_datacsvs = "/home/csutter/DRIVE-clean/CNN/data_preds"
 #####  SET variables and then the right chunk of code will run
 calib_model_type = "isotonic"  # "isotonic"
 
-# calibrate_cnn = True
-
-# calibrate_blending = False
-
-# calibrate_fcstOnly = False
-
-# calibrate_streamlined = False
-
 classif_model = "CNN" # or "streamline" or 'fcstOnly"
 
 # IF running calibrate_fcstOnly, MUST also set these below
