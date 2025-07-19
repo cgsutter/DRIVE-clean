@@ -15,3 +15,6 @@ calibration/calib_CNN_data
 calibration/calib_CNN_model
 calibration/scripts/__pycache__
 calibration/scripts/__pycache__
+downstream/scripts/__pycache__
+downstream/data_results
+downstream/data_preds
