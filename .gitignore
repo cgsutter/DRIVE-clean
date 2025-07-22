@@ -18,3 +18,5 @@ calibration/scripts/__pycache__
 downstream/scripts/__pycache__
 downstream/data_results
 downstream/data_preds
+downstream/data_models_scalar
+downstream/data_models_downstream
