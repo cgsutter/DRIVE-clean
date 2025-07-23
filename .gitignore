@@ -20,3 +20,7 @@ downstream/data_results
 downstream/data_preds
 downstream/data_models_scalar
 downstream/data_models_downstream
+calibration/calib_downstream_data
+calibration/calib_downstream_model
+ensembling/data_preds
+ensembling/data_results
