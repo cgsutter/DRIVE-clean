@@ -31,14 +31,9 @@ def rename_cols_for_calibration_consistency(dfinput, classification_model = "CNN
         origcols = ["prob_dry", "prob_poor_viz", "prob_snow", "prob_snow_severe", "prob_wet", "model_pred", "model_prob"]
         dict_for_rename = dict(zip(origcols, renamedcols))
         dfoutput = dfinput.rename(columns = dict_for_rename)
-    elif classification_model == "blending":
+    elif classification_model == "downstream":
         # NEED TO FILL IN
-        origcols = ["prob_dry", "prob_poor_viz", "prob_snow", "prob_snow_severe", "prob_wet", "model_pred", "model_prob"]
-        dict_for_rename = dict(zip(origcols, renamedcols))
-        dfoutput = dfinput.rename(columns = dict_for_rename)
-    elif classification_model == "streamline":
-        # NEED TO FILL IN
-        origcols = ["prob_dry", "prob_poor_viz", "prob_snow", "prob_snow_severe", "prob_wet", "model_pred", "model_prob"]
+        origcols = ["ds_prob_dry", "ds_prob_poor_viz", "ds_prob_snow", "ds_prob_snow_severe", "ds_prob_wet", "ds_pred", "ds_prob"]
         dict_for_rename = dict(zip(origcols, renamedcols))
         dfoutput = dfinput.rename(columns = dict_for_rename)
     else:
@@ -165,8 +160,12 @@ def calibrate_and_normalize_all_cats_PredOnly(
     dftotrain, dftoeval, calib_model_type_input, modelsavename
 ):
 
+    print("inside calibrate_and_normalize_all_cats_PredOnly")
+    print(len(dftoeval))
+
     # prep the data for training/eval
     X, y, X_eval = prep_data_for_calib_model(dftotrain, dftoeval)
+    print(len(X_eval))
 
 
     o_prob_calib = build_eval_logistic_PredOnly(
@@ -176,10 +175,17 @@ def calibrate_and_normalize_all_cats_PredOnly(
         modeltype=calib_model_type_input,
         model_savename=modelsavename
     )
+    print(len(o_prob_calib))
+    print(type(o_prob_calib))
+
 
     # add columns with calibrated probs
     # 7/18 WAS calib_prob
     dftoeval["o_prob_calib"] = o_prob_calib
+
+    print("dftoeval")
+    print(len(dftoeval))
+    print(dftoeval.columns)
 
     # since we only calibrated the highest class (predicted class) we need to use that new probability for the highest class, and then set the remaining class probabilities st they sum to 1. Normalize them based on the new max prob for the pred class.
     # this row function applied to all rows to return final relevant cols
@@ -194,6 +200,10 @@ def calibrate_and_normalize_all_cats_PredOnly(
             "calib_prob_wet",
         ]
     ] = dftoeval.apply(rowfn_normalize_remaining, axis=1, result_type="expand")
+
+    print("dftoeval -- TWO")
+    print(len(dftoeval))
+    print(dftoeval.columns)
 
     # Look at all the final probability columns to find the highest one now, and parse out the string cat name from the column which was highest. This *should* be the same as the original model's pred, but theoretically there could be some borderline cases where the predicted highest orig probability was calibrated downward so that one of the other classes surpassed it. Should be rare if at all, but need to account for this case.
 

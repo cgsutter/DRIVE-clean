@@ -12,10 +12,14 @@ datafiles = os.listdir(config.dir_of_datacsvs)
 
 for f in datafiles:
     # runname = f[:-4] # remove the .csv
+
+    print(f"reading in {f}")
     csv = f"{config.dir_of_datacsvs}/{f}"
 
     # read in data
     dfread = pd.read_csv(csv)
+
+    print(dfread.columns)
 
     # prep column names
     t_all = calib.rename_cols_for_calibration_consistency(dfinput = dfread, classification_model = config.classif_model)
@@ -48,5 +52,6 @@ for f in datafiles:
 
     print(len(v1))
     print(len(t1))
+    print(t1.columns)
     t1.to_csv(calib_tracker_savename)
 
