@@ -2,10 +2,15 @@
 HT_flag = False # to train HT models, saving out results rows to csv, file_collect_results, defined below.
 
 final_selected_train = True # after doing hyptuning (above) and selecting best model (see /home/csutter/DRIVE-clean/CNN/scripts/model_selection.ipynb), train the final selected model and save out the models and their predictions for all 30 folds. 
-# final is running a one-off model, so set model specifics below
+# final is running a one single model, so set model specifics below
 final_cnn = "A_resnet_TRLETrue_ASTTrue_L20_1_DR0_2_E75_AugTrue"
 final_downstream_alg = "rf" # ex: "logistic", "gnb", "svm", "DNN", "rf"
 final_downstream_hyp = {'max_depth': 10, 'max_samples': 0.5, 'n_estimators': 300, 'max_features': 3, 'min_samples_leaf': 5, 'bootstrap': True}
+
+# Testing the best mobilenet model to compare, one-off test, ended up deleting those results
+# final_cnn = "A_mobilenet_TRLETrue_ASTFalse_L21e-05_DR0_4_E75_AugFalse"
+# final_downstream_alg = "rf"
+# final_downstream_hyp = {'max_depth': 20, 'max_samples': 0.5, 'n_estimators': 100, 'max_features': 3, 'min_samples_leaf': 5, 'bootstrap': True}
 
 dir_of_datacsvs_CNNCalibPreds = "/home/csutter/DRIVE-clean/calibration/calib_CNN_data"
 

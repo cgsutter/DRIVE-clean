@@ -137,6 +137,8 @@ elif config.final_selected_train:
 
         df_results["ds_pred"] = allpreds
 
+        df_results["ds_prob"] = df_results[["ds_prob_dry", "ds_prob_poor_viz", "ds_prob_snow", "ds_prob_snow_severe", "ds_prob_wet"]].max(axis=1)
+ 
         df_final = pd.concat([cnn_and_weather_data, df_results], axis=1)
 
         print(len(df_final))
@@ -144,3 +146,5 @@ elif config.final_selected_train:
         # print results - quick check, if there is something wrong in the ordering of predictions such that merging it with the full dataframe doesn't match, the results will be poor, and can check that with quick accuracy check below. 
         correcty = sum(df_final["ds_pred"]==df_final["img_cat"])
         print(correcty/len(df_final))
+
+        df_final.to_csv(f"{config.predictions_directory}/{savetoname}.csv")
