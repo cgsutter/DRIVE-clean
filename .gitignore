@@ -36,3 +36,7 @@ data_preds_expOneTrain
 data_preds_expHalved
 data_preds_expShuffleAndHalved
 trackers_side_experiments
+/home/csutter/DRIVE-clean/downstream/data_preds_expHalved
+/home/csutter/DRIVE-clean/downstream/data_preds_expOneTrain
+/home/csutter/DRIVE-clean/downstream/data_preds_expShuffle
+/home/csutter/DRIVE-clean/downstream/data_preds_expShuffleAndHalved
