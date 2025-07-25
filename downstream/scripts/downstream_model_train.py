@@ -73,11 +73,15 @@ def merge_cnn_and_weather_data(cnndata_df, weatherdata_df,cols_to_keep_cnn):
 
 def prepare_data_fortraining(dfinput, features = config.features_for_training):
     ## prepare data
+    print("size of data inside prepare_data_fortraining function")
 
+    print(len(dfinput))
     # HERE!! Update if want to train on train or train on val (and if this is the case then also be sure to set val equal to test, accordingly)
-    train = dfinput[dfinput["innerPhase"] == "innerTest"]  # flip 5/8/25
+    train = dfinput[dfinput["innerPhase"] == "innerTest"]  # should say innerTest
     train_input_data = train[features]
     train_output_data = train["img_cat"]
+
+    print(len(train_input_data))
 
     val = dfinput[dfinput["innerPhase"] == "innerVal"]  # flip 5/8/25
     val_input_data = val[features]

@@ -1,11 +1,18 @@
-dir_of_datacsvs =  "/home/csutter/DRIVE-clean/downstream/data_preds"
-# "/home/csutter/DRIVE-clean/CNN/data_preds"
+dir_of_datacsvs = "/home/csutter/DRIVE-clean/CNN/data_preds_expShuffleAndHalved" #HERE!!
+# "/home/csutter/DRIVE-clean/CNN/data_preds" <-- main one for calibrating after CNN
+# "/home/csutter/DRIVE-clean/downstream/data_preds" <-- main one for calibrating after downstream model
+# For running side experiments:
+# /home/csutter/DRIVE-clean/CNN/data_preds_expHalved
+# /home/csutter/DRIVE-clean/CNN/data_preds_expOneTrain
+# /home/csutter/DRIVE-clean/CNN/data_preds_expShuffle
+# /home/csutter/DRIVE-clean/CNN/data_preds_expShuffleAndHalved
 # this is a directory containing all csvs, for which calibration will be done on each one. Each csv represents data that is used to train/eval the calibration. The csvs stem from previous classification model outputs, so they are the predictions from multiple splits and models. Each one require calibration (as a new calib model).
 
 #####  SET variables and then the right chunk of code will run
 calib_model_type = "isotonic"  # "isotonic"
 
-classif_model = "downstream" # "CNN" or "downstream" or 'fcstOnly". A dir will be made to save the data and models to according to this classif model
+classif_model = "CNNexpShuffleAndHalved" #HERE!! "CNN" or "downstream" or 'fcstOnly". A dir will be made to save the data and models to according to this classif model
+# for side experiments for paper: CNNexpHalved, CNNexpOneTrain, CNNexpShuffle, CNNexpShuffleAndHalved
 
 # IF running calibrate_fcstOnly, MUST also set these below
 # Note that the code is not set up for this yet.

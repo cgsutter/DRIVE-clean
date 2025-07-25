@@ -2,36 +2,45 @@
 # See bottom of file -- update the list of trackers
 
 ### Path where results should be saved
-model_path = "/home/csutter/DRIVE-clean/CNN/data_models" #HERE!!
+#HERE!! For experiment one-offs for paper
+model_path = "/home/csutter/DRIVE-clean/CNN/data_models_expShuffle"
 # "/home/csutter/DRIVE-clean/CNN/data_models"
 # "/home/csutter/DRIVE-clean/CNN/data_models_side_experiments"
-preds_path = "/home/csutter/DRIVE-clean/CNN/data_preds"
-results_path = "/home/csutter/DRIVE-clean/CNN/data_results"
+preds_path = "/home/csutter/DRIVE-clean/CNN/data_preds_expShuffle"
+results_path = "/home/csutter/DRIVE-clean/CNN/data_results_expShuffle"
+# side experiments to append to the above:
+# _expOneTrain, _expShuffle, _expShuffleAndHalved, _expHalved
 
 ### Flags and specifics for the type of model run
 train_flag = False # if running model training
 eval_flag = True # if running model evaluation (need to have already trained models). Need to then set one or the other for the two eval flags below
 eval_highlevel = False # For high level summaries where one experiment is summarized as one line of results in results_path (e.g. BL runs, HT runs)
-eval_pred_csvs = True # For after selecting best models, save the predictions out for each tracker as csvs. Set which models to run by setting hyp_path (defined below) to the set of 1 or more models for which saving out preds.
+eval_pred_csvs = True # For after selecting best models, save the predictions out for each tracker as csvs. Set which models to run by setting hyp_path (defined below) to the set of 1 or more models for which saving out preds. Note that evaluation/predictions aren't set up to do a one-off so have to rely on the HT csv to just be the one model that we want to use. 
 wandb_flag = False # flag for whether to save experiments to w&b
 # one-off run where you give it one specific architecture and set of hyperparams to use
-wanb_projectname = "DRIVE-clean" # HERE!! for pure BL or HT runs, "DRIVE-clean", o/w adjust here also for adhoc_desc "DRIVE-side_experiments"
-exp_desc = "nestcv_5cat_twotrain" # identifier string that all 30 trackers (trackers_list below) have in common for a given experiment, e.g. nestcv_5cat_twotrain. This is used in results_summaries to aggregate across multiple models that come from the same base experiment
+wanb_projectname = "DRIVE-side_experiments" # HERE!! for pure BL or HT runs, "DRIVE-clean", o/w adjust here also for adhoc_desc "DRIVE-side_experiments"
+exp_desc = "nestcv_5cat_expShuffle"  #HERE!!
+# "nestcv_5cat_twotrain" <--- this is the main one used from BL/HT
+# identifier string that all 30 trackers (trackers_list below) have in common for a given experiment, e.g. nestcv_5cat_twotrain. This is used in results_summaries to aggregate across multiple models that come from the same base experiment, and also for logging to w&b.
 # Should be used for all experime`≥ntsq, one_off and hyp_run
 adhoc_desc = "" # Default to empty string. Used as a desc "_TEST" "_SaveWeightsOnly" ad hoc to differentiate a test code run, added to file naming. 
-one_off = False
-arch_set = "densenet"# ignored if one_off is False
-transfer_learning = True 
-ast = False # used if transfer_learning is True. Set to ast True if using an architecture specific top, otherwise set to False and will use generic top of architecture
-aug = True
-l2_set = 0 # ignored if one_off is False, sel: 1e-05
-dr_set = 0 # ignored if one_off is False, sel: 0.4
-# hyperparameter tuning
+one_off_train = False # one-off runs only set up for training (not for eval/predictions, for that, have to refer to HT csv)
+arch_set = "resnet" # ignored if one_off is False
+transfer_learning = True # ignored if one_off is False
+ast = True # used if transfer_learning is True. Set to ast True if using an architecture specific top, otherwise set to False and will use generic top of architecture
+aug = True # ignored if one_off is False
+l2_set = 0.1 # ignored if one_off is False, sel: 1e-05
+dr_set = 0.2 # ignored if one_off is False, sel: 0.4
+# hyperparameter tuning -- must use this for evaluation/predictions
 hyp_run = True
-hyp_path = "/home/csutter/DRIVE-clean/CNN/data_trackers/HT_hyperparams_selected.csv"  #HERE!! path to CSV which has the list of hyperparameters
+hyp_path = "/home/csutter/DRIVE-clean/CNN/data_trackers/HT_BL_and_hyperparam_sideExperiments.csv" #HERE!! path to CSV which has the list of hyperparameters
 # Baseline runs: "/home/csutter/DRIVE-clean/CNN/data_trackers/baseline_hyperparams.csv" 
 # Hyperparameter tuning runs: "/home/csutter/DRIVE-clean/CNN/data_trackers/HT_hyperparams.csv" 
-# If need to run a one-off couple runs (e.g., backfill experiments that didn't run) "/home/csutter/DRIVE-clean/CNN/data_trackers/HT_hyperparams_oneoff.csv"
+# Selected HTs and models, i.e. the 4 final chosen from model selection:
+# "/home/csutter/DRIVE-clean/CNN/data_trackers/HT_hyperparams_selected.csv" 
+# For side experiments (for manuscript), only running the model and HTs that were the final selection from the full model flow, use this csv below:
+# "/home/csutter/DRIVE-clean/CNN/data_trackers/HT_BL_and_hyperparam_sideExperiments.csv"
+# If need to run a one-off couple runs (e.g., backfill experiments that didn't run) "/home/csutter/DRIVE-clean/CNN/data_trackers/HT_hyperparams_oneoff.csv". 
 activation_layer_def = "relu"
 activation_output_def = "softmax"
 
@@ -79,36 +88,167 @@ evid_annealing_coeff = 20  # 1.5 matches e.g. in https://github.com/ai2es/miles-
 evid_lr_init = 0.00001  # 0.0027750619126744817
 
 
-# HERE!! 
-trackers_list = [
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT5_m0_T0V1.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT4_m3_T5V0.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT5_m4_T4V0.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT3_m4_T2V4.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT5_m3_T3V4.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT4_m0_T0V1.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT2_m0_T0V1.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT5_m2_T2V3.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT0_m3_T4V5.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT0_m4_T5V1.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT1_m3_T5V0.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT0_m2_T3V4.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT4_m2_T2V3.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT3_m1_T1V2.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT1_m2_T4V5.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT2_m1_T3V4.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT0_m1_T2V3.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT4_m4_T3V5.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT2_m4_T1V3.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT2_m2_T4V5.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT1_m4_T0V2.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT3_m3_T5V0.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT3_m0_T0V1.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT5_m1_T1V2.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT1_m1_T3V4.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT2_m3_T5V0.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT4_m1_T1V2.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT1_m0_T2V3.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT3_m2_T4V5.csv",
-    "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT0_m0_T1V2.csv",
-]
+# HERE!!  for side experiments
+
+
+### shuffleHalved
+# trackers_list = ['/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT5_m0_T0V1.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT4_m3_T5V0.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT5_m4_T4V0.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT3_m4_T2V4.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT5_m3_T3V4.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT4_m0_T0V1.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT2_m0_T0V1.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT5_m2_T2V3.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT0_m3_T4V5.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT0_m4_T5V1.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT1_m3_T5V0.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT0_m2_T3V4.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT4_m2_T2V3.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT3_m1_T1V2.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT1_m2_T4V5.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT2_m1_T3V4.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT0_m1_T2V3.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT4_m4_T3V5.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT2_m4_T1V3.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT2_m2_T4V5.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT1_m4_T0V2.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT3_m3_T5V0.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT3_m0_T0V1.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT5_m1_T1V2.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT1_m1_T3V4.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT2_m3_T5V0.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT4_m1_T1V2.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT1_m0_T2V3.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT3_m2_T4V5.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle_halved/nestcv_5cat_twotrain_OT0_m0_T1V2.csv']
+
+# Shuffle
+trackers_list = ['/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT5_m0_T0V1.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT4_m3_T5V0.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT5_m4_T4V0.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT3_m4_T2V4.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT5_m3_T3V4.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT4_m0_T0V1.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT2_m0_T0V1.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT5_m2_T2V3.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT0_m3_T4V5.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT0_m4_T5V1.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT1_m3_T5V0.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT0_m2_T3V4.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT4_m2_T2V3.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT3_m1_T1V2.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT1_m2_T4V5.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT2_m1_T3V4.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT0_m1_T2V3.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT4_m4_T3V5.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT2_m4_T1V3.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT2_m2_T4V5.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT1_m4_T0V2.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT3_m3_T5V0.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT3_m0_T0V1.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT5_m1_T1V2.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT1_m1_T3V4.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT2_m3_T5V0.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT4_m1_T1V2.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT1_m0_T2V3.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT3_m2_T4V5.csv',
+'/home/csutter/DRIVE-clean/trackers_side_experiments/shuffle/nestcv_5cat_twotrain_OT0_m0_T1V2.csv']
+
+### Onetrain
+# trackers_list = ['/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT5_m1_T1V2.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT4_m1_T1V2.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT5_m0_T0V1.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT0_m1_T2V3.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT0_m4_T5V1.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT4_m2_T2V3.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT3_m0_T0V1.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT0_m2_T3V4.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT0_m0_T1V2.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT4_m0_T0V1.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT1_m2_T4V5.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT3_m2_T4V5.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT5_m2_T2V3.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT3_m4_T2V4.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT2_m3_T5V0.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT2_m4_T1V3.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT0_m3_T4V5.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT2_m1_T3V4.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT3_m1_T1V2.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT5_m4_T4V0.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT1_m3_T5V0.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT1_m1_T3V4.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT1_m4_T0V2.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT5_m3_T3V4.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT1_m0_T2V3.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT4_m3_T5V0.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT4_m4_T3V5.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT2_m2_T4V5.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT3_m3_T5V0.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/onetrain/nestcv_5cat_onetrain_OT2_m0_T0V1.csv']
+
+### Halved
+# trackers_list = ['/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT5_m0_T0V1.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT4_m3_T5V0.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT5_m4_T4V0.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT3_m4_T2V4.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT5_m3_T3V4.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT4_m0_T0V1.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT2_m0_T0V1.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT5_m2_T2V3.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT0_m3_T4V5.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT0_m4_T5V1.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT1_m3_T5V0.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT0_m2_T3V4.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT4_m2_T2V3.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT3_m1_T1V2.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT1_m2_T4V5.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT2_m1_T3V4.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT0_m1_T2V3.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT4_m4_T3V5.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT2_m4_T1V3.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT2_m2_T4V5.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT1_m4_T0V2.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT3_m3_T5V0.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT3_m0_T0V1.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT5_m1_T1V2.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT1_m1_T3V4.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT2_m3_T5V0.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT4_m1_T1V2.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT1_m0_T2V3.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT3_m2_T4V5.csv',
+# '/home/csutter/DRIVE-clean/trackers_side_experiments/halved/nestcv_5cat_twotrain_OT0_m0_T1V2.csv']
+
+# # Main trackers list
+# trackers_list = [
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT5_m0_T0V1.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT4_m3_T5V0.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT5_m4_T4V0.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT3_m4_T2V4.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT5_m3_T3V4.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT4_m0_T0V1.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT2_m0_T0V1.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT5_m2_T2V3.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT0_m3_T4V5.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT0_m4_T5V1.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT1_m3_T5V0.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT0_m2_T3V4.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT4_m2_T2V3.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT3_m1_T1V2.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT1_m2_T4V5.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT2_m1_T3V4.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT0_m1_T2V3.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT4_m4_T3V5.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT2_m4_T1V3.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT2_m2_T4V5.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT1_m4_T0V2.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT3_m3_T5V0.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT3_m0_T0V1.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT5_m1_T1V2.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT1_m1_T3V4.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT2_m3_T5V0.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT4_m1_T1V2.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT1_m0_T2V3.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT3_m2_T4V5.csv",
+#     "/home/csutter/DRIVE/dot/model_trackpaths/nestcv_5cat_twotrain_OT0_m0_T1V2.csv",
+# ]

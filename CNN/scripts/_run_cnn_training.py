@@ -10,7 +10,7 @@ import gc # Import garbage collection module
 import os
 
 
-def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off = config.one_off, hyp_run = config.hyp_run):
+def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off = config.one_off_train, hyp_run = config.hyp_run):
 
     if one_off:
         tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track(

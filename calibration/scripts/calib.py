@@ -22,7 +22,7 @@ def rename_cols_for_calibration_consistency(dfinput, classification_model = "CNN
     # use the same col names for all classif model steps
     renamedcols = ["o_prob_dry", "o_prob_poor_viz", "o_prob_snow", "o_prob_snow_severe", "o_prob_wet", "o_pred", "o_prob"]
 
-    if classification_model == "CNN":
+    if "CNN" in classification_model: # updated to accommodate for experiment models
         origcols = ["prob_dry", "prob_poor_viz", "prob_snow", "prob_snow_severe", "prob_wet", "model_pred", "model_prob"]
         dict_for_rename = dict(zip(origcols, renamedcols))
         dfoutput = dfinput.rename(columns = dict_for_rename)

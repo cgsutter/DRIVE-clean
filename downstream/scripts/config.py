@@ -12,7 +12,13 @@ final_downstream_hyp = {'max_depth': 10, 'max_samples': 0.5, 'n_estimators': 300
 # final_downstream_alg = "rf"
 # final_downstream_hyp = {'max_depth': 20, 'max_samples': 0.5, 'n_estimators': 100, 'max_features': 3, 'min_samples_leaf': 5, 'bootstrap': True}
 
-dir_of_datacsvs_CNNCalibPreds = "/home/csutter/DRIVE-clean/calibration/calib_CNN_data"
+dir_of_datacsvs_CNNCalibPreds = "/home/csutter/DRIVE-clean/calibration/calib_CNNexpShuffleAndHalved_data"
+# "/home/csutter/DRIVE-clean/calibration/calib_CNN_data" <-- main one
+# Side experiment dirs below:
+# "/home/csutter/DRIVE-clean/calibration/calib_CNNexpHalved_data"
+# "/home/csutter/DRIVE-clean/calibration/calib_CNNexpOneTrain_data"
+# "/home/csutter/DRIVE-clean/calibration/calib_CNNexpShuffle_data"
+# "/home/csutter/DRIVE-clean/calibration/calib_CNNexpShuffleAndHalved_data"
 
 # load in weather data
 hrrr_data_csv = "/home/csutter/DRIVE/weather_img_concatmodels/cnn_hrrr_fcsthr2/nestedcv_imgname_hrrrdata_fcsthr2.csv"
@@ -20,9 +26,16 @@ hrrr_data_csv = "/home/csutter/DRIVE/weather_img_concatmodels/cnn_hrrr_fcsthr2/n
 file_collect_results = "/home/csutter/DRIVE-clean/downstream/data_results/results_by_each_run_innerVal.csv"
 
 # to save prediction data
-predictions_directory = "/home/csutter/DRIVE-clean/downstream/data_preds" 
+predictions_directory = "/home/csutter/DRIVE-clean/downstream/data_preds_expShuffleAndHalved" # HERE!!
+# Main one should be set to: "/home/csutter/DRIVE-clean/downstream/data_preds"
+# HERE!! For side experiments, only update the predictions_directory, and then just comment out the dump commands (which save the models) in /home/csutter/DRIVE-clean/downstream/scripts/_run_downstream_model.py. 
+# /home/csutter/DRIVE-clean/downstream/data_preds_expHalved
+# /home/csutter/DRIVE-clean/downstream/data_preds_expOneTrain # IMPORTANT! for the oneTrain dataset, have to change this line to train in innerTrain, rather than innerTest which is usual, because the oneTrain dataset has only the one phase to train on. Be sure to adjust this line in downstream_model_train.py, then adjust it back when done: train = dfinput[dfinput["innerPhase"] == "innerTest"], should update to "innerTest"
+# /home/csutter/DRIVE-clean/downstream/data_preds_expShuffle
+# /home/csutter/DRIVE-clean/downstream/data_preds_expShuffleAndHalved
 model_directory = "/home/csutter/DRIVE-clean/downstream/data_models_downstream" 
 scalarmodel_directory = "/home/csutter/DRIVE-clean/downstream/data_models_scalar"
+
 
 # algs_and_hyps_dict = {"DNN":"/home/csutter/DRIVE/dot/models_concatdata/nowcast/features12a/sitesplit/hypgrid_dnn.csv", "logistic": logistic_HT, "svm": svm_HT,"gnb": gnb_HT, "rf": "/home/csutter/DRIVE/dot/models_streamline/HT/hypgrid_rf_11feat_grid288.csv"}
 

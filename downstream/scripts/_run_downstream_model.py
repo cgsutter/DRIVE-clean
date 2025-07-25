@@ -109,7 +109,7 @@ elif config.final_selected_train:
         # data prepped for model training
         train_i, train_o, val_i, val_o, all_i, all_o, all_imgname, scaler_model = downstream_model_train.prepare_data_fortraining(dfinput = cnn_and_weather_data, features = config.features_for_training)
 
-        dump(scaler_model, f"{config.scalarmodel_directory}/{savetoname}.pkl")
+        dump(scaler_model, f"{config.scalarmodel_directory}/{savetoname}.pkl") # comment out for side experiments where we just want the predictions
 
         print("saved scaler model")
 
@@ -119,7 +119,7 @@ elif config.final_selected_train:
 
         img_cat, model_pred, model, allprobs, allpreds, all_img_cat = downstream_model_train.run_training(alg = alginput, hypselected = hypinput, train_input_scaled = train_i, train_output_data = train_o, val_input_scaled = val_i, val_output_data = val_o, makepreds_flag = True, alldata_input_use = all_i, alldata_output_use = all_o)
 
-        dump(model, f"{config.model_directory}/{savetoname}.pkl")
+        dump(model, f"{config.model_directory}/{savetoname}.pkl") # comment out for side experiments where we just want the predictions
 
         print("saved downstream classification model")
 
