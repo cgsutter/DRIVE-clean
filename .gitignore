@@ -40,3 +40,11 @@ trackers_side_experiments
 /home/csutter/DRIVE-clean/downstream/data_preds_expOneTrain
 /home/csutter/DRIVE-clean/downstream/data_preds_expShuffle
 /home/csutter/DRIVE-clean/downstream/data_preds_expShuffleAndHalved
+/home/csutter/DRIVE-clean/calibration/calib_CNNexpHalved_data
+/home/csutter/DRIVE-clean/calibration/calib_CNNexpHalved_model
+/home/csutter/DRIVE-clean/calibration/calib_CNNexpOneTrain_data
+/home/csutter/DRIVE-clean/calibration/calib_CNNexpOneTrain_model
+/home/csutter/DRIVE-clean/calibration/calib_CNNexpShuffle_data
+/home/csutter/DRIVE-clean/calibration/calib_CNNexpShuffle_model
+/home/csutter/DRIVE-clean/calibration/calib_CNNexpShuffleAndHalved_data
+/home/csutter/DRIVE-clean/calibration/calib_CNNexpShuffleAndHalved_model
