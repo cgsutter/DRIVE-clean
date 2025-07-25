@@ -27,3 +27,11 @@ ensembling/data_results
 calibration/scripts/__pycache__
 calibration/scripts/__pycache__/calib.cpython-38.pyc
 calibration/scripts/__pycache__/config.cpython-38.pyc
+data_models_expOneTrain
+data_models_expShuffle
+data_models_expShuffleAndHalved
+data_models_expHalved
+data_preds_expShuffle
+data_preds_expOneTrain
+data_preds_expHalved
+data_preds_expShuffleAndHalved
