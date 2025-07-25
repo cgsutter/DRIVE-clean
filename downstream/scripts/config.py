@@ -3,7 +3,7 @@ HT_flag = False # to train HT models, saving out results rows to csv, file_colle
 
 final_selected_train = True # after doing hyptuning (above) and selecting best model (see /home/csutter/DRIVE-clean/CNN/scripts/model_selection.ipynb), train the final selected model and save out the models and their predictions for all 30 folds. 
 # final is running a one single model, so set model specifics below
-final_cnn = "A_resnet_TRLETrue_ASTTrue_L20_1_DR0_2_E75_AugTrue"
+final_cnn = "A_resnet_TRLETrue_ASTFalse_L20_1_DR0_4_E75_AugTrue"
 final_downstream_alg = "rf" # ex: "logistic", "gnb", "svm", "DNN", "rf"
 final_downstream_hyp = {'max_depth': 10, 'max_samples': 0.5, 'n_estimators': 300, 'max_features': 3, 'min_samples_leaf': 5, 'bootstrap': True}
 
@@ -12,8 +12,13 @@ final_downstream_hyp = {'max_depth': 10, 'max_samples': 0.5, 'n_estimators': 300
 # final_downstream_alg = "rf"
 # final_downstream_hyp = {'max_depth': 20, 'max_samples': 0.5, 'n_estimators': 100, 'max_features': 3, 'min_samples_leaf': 5, 'bootstrap': True}
 
-dir_of_datacsvs_CNNCalibPreds = "/home/csutter/DRIVE-clean/calibration/calib_CNNexpShuffleAndHalved_data"
+dir_of_datacsvs_CNNCalibPreds = "/home/csutter/DRIVE-clean/calibration/calib_CNN_data" #HERE!!
 # "/home/csutter/DRIVE-clean/calibration/calib_CNN_data" <-- main one
+# when want to try more experiments, adjust the dir as needed
+# If running downstream HTs on only one SINGLE CNN|HT when all CNNs exist in that dir (e.g. after updating selection criteria) -- all calib CNN are stored in same Dir, but only need to do downstream HTing on one of the models in that dir, so need to subset
+subset_files_torun = True # if running calib every file in the dir_of_datacsvs_CNNCalibPreds, set this to False. Otherwise, if running for one specific file (e.g. _A_resnet_TRLETrue_ASTFalse_L20_1_DR0_2_E75_AugFalse), subset to just those files to run downstream HTing for (and accordingly, if set to True, set the subset string below)
+subset_string = "A_resnet_TRLETrue_ASTFalse_L20_1_DR0_4_E75_AugTrue"
+
 # Side experiment dirs below:
 # "/home/csutter/DRIVE-clean/calibration/calib_CNNexpHalved_data"
 # "/home/csutter/DRIVE-clean/calibration/calib_CNNexpOneTrain_data"
@@ -26,7 +31,7 @@ hrrr_data_csv = "/home/csutter/DRIVE/weather_img_concatmodels/cnn_hrrr_fcsthr2/n
 file_collect_results = "/home/csutter/DRIVE-clean/downstream/data_results/results_by_each_run_innerVal.csv"
 
 # to save prediction data
-predictions_directory = "/home/csutter/DRIVE-clean/downstream/data_preds_expShuffleAndHalved" # HERE!!
+predictions_directory = "/home/csutter/DRIVE-clean/downstream/data_preds" # HERE!!
 # Main one should be set to: "/home/csutter/DRIVE-clean/downstream/data_preds"
 # HERE!! For side experiments, only update the predictions_directory, and then just comment out the dump commands (which save the models) in /home/csutter/DRIVE-clean/downstream/scripts/_run_downstream_model.py. 
 # /home/csutter/DRIVE-clean/downstream/data_preds_expHalved

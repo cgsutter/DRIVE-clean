@@ -9,7 +9,7 @@ if config.ensemble_flag:
     for modelstr in ["0", "1", "2", "3", "4", "5"]:
         ## run data prep
 
-        dd = nested_ensemble.outsideTest_onedf_all5models(modelstr, config.dir_with_models)
+        dd = nested_ensemble.outsideTest_onedf_all5models(modelstr, config.dir_with_models, subsetflag = config.subset_files_torun, subsetstring = config.subset_string)
 
         # print(len(dd))
         # print(len(dd[dd["innerPhase"]=="innerTest"]))

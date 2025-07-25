@@ -24,6 +24,11 @@ if config.HT_flag:
 
     datafiles = os.listdir(config.dir_of_datacsvs_CNNCalibPreds)
 
+    if config.subset_files_torun:
+        datafiles = [x for x in datafiles if config.subset_string in x]
+        print(f"subsetted datafiles on {config.subset_string}")
+        print(len(datafiles))
+
     for f in datafiles: 
         # runname = f[:-4] # remove the .csv
         csv = f"{config.dir_of_datacsvs_CNNCalibPreds}/{f}"
