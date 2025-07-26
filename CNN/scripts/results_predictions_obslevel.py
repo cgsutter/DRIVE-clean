@@ -14,7 +14,7 @@ import os
 
 
 
-def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", wandblog = "", run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug, saveflag = False, phaseuse = ""):
+def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", wandblog = "", run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug, saveflag = False, phaseuse = "", inference_otherdata = ""):
 
     """
     Loads a trained model and validation dataset, generates predictions, and returns a 
@@ -40,7 +40,11 @@ def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", w
 
     #### load data
 
-    tf_ds_val, val_imgnames, labels_val, numims_val, valcatcounts = load_dataset.load_data(trackerinput = run_tracker, phaseinput = phaseuse, archinput = run_arch, auginput = False) # should always be false for val data
+    if inference_otherdata != "":
+        print("Inferencing model on different dataset, not that tied to the trackers list of models")
+        tf_ds_val, val_imgnames, labels_val, numims_val, valcatcounts = load_dataset.load_data(trackerinput = inference_otherdata, phaseinput = phaseuse, archinput = run_arch, auginput = False) # should always be false for val data
+    else:
+        tf_ds_val, val_imgnames, labels_val, numims_val, valcatcounts = load_dataset.load_data(trackerinput = run_tracker, phaseinput = phaseuse, archinput = run_arch, auginput = False) # should always be false for val data
 
 
     print("validation data")
@@ -117,8 +121,15 @@ def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", w
     print(df_results["img_name"][0])
 
     # # connect to the unique tracker (unique for each of the 30 datasets)
-    df_all = pd.read_csv(run_tracker)
+    if inference_otherdata != "":
+        df_all = pd.read_csv(inference_otherdata)
+    else:
+        df_all = pd.read_csv(run_tracker)
     print(df_all.columns)
+    print("Inside important check!!")
+    print(len(df_all))
+    print(len(df_results))
+
     df_final = df_all.merge(df_results, how = "inner", on = "img_name")
 
     print(len(df_final))
@@ -135,7 +146,15 @@ def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", w
         # add col that includes model prob (max across the predicted classes)
         df_final["model_prob"] = df_final[cols_for_prob_cats].max(axis=1)
         # same naming as with saved models: {tracker_filebase}_{tracker_rundetails}
-        predssaveto = f"{config.preds_path}/{tracker_filebase}_{tracker_rundetails}.csv"
+        if inference_otherdata != "":
+            # running inference on other data so need to name predictions csvs accordingly
+            # grab filename from the inference data, will use this prepended to save out accordingly
+            beg = inference_otherdata.rfind("/")
+            infdata_name = inference_otherdata[beg+1:-4]
+            # remove csv
+            predssaveto = f"{config.preds_path}/{infdata_name}_{tracker_filebase}_{tracker_rundetails}.csv"
+        else:
+            predssaveto = f"{config.preds_path}/{tracker_filebase}_{tracker_rundetails}.csv"
         df_final.to_csv(predssaveto) # saving the preds df to csv for one-off runs    
         print("saved to")
         print(predssaveto)

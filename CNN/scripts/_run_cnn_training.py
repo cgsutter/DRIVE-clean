@@ -37,9 +37,14 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
                     phaseuse_set = "" # run preds on all observations
                 else:
                     print("Evaluation for one-off model is only set up to make for prediction level inference, saving csvs for entire dataset. No high level summary code is needed for one-offs, those are done in notebooks")
+                if config.inference_other:
+                    print("running inference on other data")
+                    inference_otherdata_use = config.inference_data_csv
+                else:
+                    inference_otherdata_use = "" # setting this null will just run the trackers for both the data and corresponding model, the typical way
                 list_descs30.append(os.path.basename(t)[:-4])
                 # observation level
-                preds = results_predictions_obslevel.make_preds(run_tracker = t, tracker_rundetails = tracker_rundetails, wandblog = wandblog, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 = config.l2_set, run_dr = config.dr_set, run_aug = config.aug, saveflag = savepredsflag, phaseuse = phaseuse_set)
+                preds = results_predictions_obslevel.make_preds(run_tracker = t, tracker_rundetails = tracker_rundetails, wandblog = wandblog, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 = config.l2_set, run_dr = config.dr_set, run_aug = config.aug, saveflag = savepredsflag, phaseuse = phaseuse_set, inference_otherdata = inference_otherdata_use)
                 list_dfpreds.append(preds)
 
 

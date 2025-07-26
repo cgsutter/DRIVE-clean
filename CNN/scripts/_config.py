@@ -25,7 +25,7 @@ exp_desc = "ODM"  #HERE!!
 # identifier string that all 30 trackers (trackers_list below) have in common for a given experiment, e.g. nestcv_5cat_twotrain. This is used in results_summaries to aggregate across multiple models that come from the same base experiment, and also for logging to w&b.
 # Should be used for all experime`≥ntsq, one_off and hyp_run
 adhoc_desc = "" # Default to empty string. Used as a desc "_TEST" "_SaveWeightsOnly" ad hoc to differentiate a test code run, added to file naming. 
-one_off = True # one-off runs only set up for training (not for eval/predictions, for that, have to refer to HT csv)
+one_off = True # one-off runs only set up for training (not for eval/predictions, for that, have to refer to HT csv). See below about running inference on a different dataset than the ones used for model dev trackers
 arch_set = "resnet" # ignored if one_off is False
 transfer_learning = True # ignored if one_off is False
 ast = True # used if transfer_learning is True. Set to ast True if using an architecture specific top, otherwise set to False and will use generic top of architecture
@@ -93,6 +93,10 @@ evid_annealing_coeff = 20  # 1.5 matches e.g. in https://github.com/ai2es/miles-
 # evid_optimizer = "adam"
 evid_lr_init = 0.00001  # 0.0027750619126744817
 
+# If evaluation/inference/predictions is being done on data that is different than the models. E.g. evaluate all ODM data (all observations across the different samples) on each of the 6 ODM models. 
+# This is only set up to work for one-off, eval_flag and eval_pred_csvs
+inference_other = True #HERE!!
+inference_data_csv = "/home/csutter/DRIVE-clean/trackers_ODM/ynobs_entire.csv"
 
 # HERE!! 
 trackers_list = ["/home/csutter/DRIVE-clean/trackers_ODM/ynobs_A_split0.csv",
