@@ -36,13 +36,16 @@ def grab_img_paths_labels(tracker, phase= ""):
     ### STEP 1: LOAD IN DATA (TF DATASETS) and PREP WEIGHTS
     df = pd.read_csv(f"{tracker}")
 
-    print(f"using {tracker}")
-        
+    print(f"Reading in the csv tracker {tracker}")
+    print(len(df))
+    print(f"inputting phase {phase}")
     # create variable and list that are sometimes used as an input in class weights function
 
     if phase != "":
         print("filtering by phase")
         df = df[df[f"innerPhase"] == phase]
+    
+    print(len(df))
     
     # grab catcount information 
     dfcatcount = (
@@ -52,11 +55,12 @@ def grab_img_paths_labels(tracker, phase= ""):
         .reset_index(name="counts")
         .sort_values(["img_cat"])
     )
+    print(dfcatcount)
     catcounts = dfcatcount[
         "counts"
     ]  # this is a list used to calc what weights should be given the amount that are in each cat
 
-    # print(catcounts)
+    print(catcounts)
 
     images_list = list(df["img_orig"])
     labels_list = list(df["img_cat"])
@@ -65,6 +69,8 @@ def grab_img_paths_labels(tracker, phase= ""):
     # encode the label
     dict_catKey_indValue, dict_indKey_catValue = helper_fns_adhoc.cat_str_ind_dictmap()
     label_encoding = [dict_catKey_indValue[catname] for catname in labels_list]
+
+    print("finishing grab_img_paths_labels function")
 
     return images_list, label_encoding, catcounts, images_names # labels_list
 
@@ -198,6 +204,9 @@ def load_data(trackerinput, phaseinput, archinput, auginput):
 
     # read in dataframe and grab lists of paths and labels
 
+    print("entered load_data function")
+    print(trackerinput)
+    print(phaseinput)
     all_evaluation_image_paths, all_evaluation_labels, catcounts, imgnames = grab_img_paths_labels(tracker = trackerinput, phase= phaseinput)
     
     numims = len(all_evaluation_image_paths)
@@ -226,6 +235,7 @@ def load_data(trackerinput, phaseinput, archinput, auginput):
 
     if phaseinput == "innerTrain":
         print(f"Shuffling individual images for training...")
+        print(numims)
         # numims is the total number of images. A shuffle buffer size larger than
         # the number of examples ensures a perfect shuffle. For large datasets,
         # a buffer size around 1000-10000 or a percentage of numims is common.

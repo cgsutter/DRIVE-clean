@@ -127,11 +127,13 @@ def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", w
 
     df_final["tracker"] = tracker_ident
 
+    cats = config.category_dirs
+    cats_alphabetical = sorted(cats)
+    cols_for_prob_cats = [f"prob_{c}" for c in cats_alphabetical]
+    print("preparing model_prob col in make_preds function" )
     if saveflag:
         # add col that includes model prob (max across the predicted classes)
-        df_final["model_prob"] = df_final[
-            ["prob_dry", "prob_poor_viz", "prob_snow", "prob_snow_severe", "prob_wet"]
-        ].max(axis=1)
+        df_final["model_prob"] = df_final[cols_for_prob_cats].max(axis=1)
         # same naming as with saved models: {tracker_filebase}_{tracker_rundetails}
         predssaveto = f"{config.preds_path}/{tracker_filebase}_{tracker_rundetails}.csv"
         df_final.to_csv(predssaveto) # saving the preds df to csv for one-off runs    

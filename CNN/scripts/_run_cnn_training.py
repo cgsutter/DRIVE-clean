@@ -10,7 +10,7 @@ import gc # Import garbage collection module
 import os
 
 
-def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off = config.one_off_train, hyp_run = config.hyp_run):
+def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off = config.one_off, hyp_run = config.hyp_run):
 
     if one_off:
         tracker_rundetails, wandblog = helper_fns_adhoc.prep_str_details_track(
@@ -29,6 +29,21 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
                 call_model_train.train_model(run_tracker = t, tracker_rundetails = tracker_rundetails, wandblog = wandblog, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug)
         if eval_flag: 
             print("IN PROGRESS: Eval working for hyptuning, but need to get working for one-off runs here, simpler version of hyptuning")
+            list_dfpreds = []
+            list_descs30 = []
+            for t in config.trackers_list:
+                if config.eval_pred_csvs:
+                    savepredsflag = True
+                    phaseuse_set = "" # run preds on all observations
+                else:
+                    print("Evaluation for one-off model is only set up to make for prediction level inference, saving csvs for entire dataset. No high level summary code is needed for one-offs, those are done in notebooks")
+                list_descs30.append(os.path.basename(t)[:-4])
+                # observation level
+                preds = results_predictions_obslevel.make_preds(run_tracker = t, tracker_rundetails = tracker_rundetails, wandblog = wandblog, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 = config.l2_set, run_dr = config.dr_set, run_aug = config.aug, saveflag = savepredsflag, phaseuse = phaseuse_set)
+                list_dfpreds.append(preds)
+
+
+
 
     elif hyp_run:
         dfhyp = pd.read_csv(config.hyp_path)
