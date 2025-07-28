@@ -36,7 +36,7 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
                     savepredsflag = True
                     phaseuse_set = "" # run preds on all observations
                 else:
-                    print("Evaluation for one-off model is only set up to make for prediction level inference, saving csvs for entire dataset. No high level summary code is needed for one-offs, those are done in notebooks")
+                    print("Evaluation for one-off model is only set up to make for prediction level inference, saving csvs for entire dataset. No high level summary code is needed for one-offs, those are done in notebooks. Thus, if this is printing, there in issue, should have entered other if statement.")
                 if config.inference_other:
                     print("running inference on other data")
                     inference_otherdata_use = config.inference_data_csv
