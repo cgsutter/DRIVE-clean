@@ -31,7 +31,7 @@ def rename_cols_for_calibration_consistency(dfinput, classification_model = "CNN
         origcols = ["prob_dry", "prob_poor_viz", "prob_snow", "prob_snow_severe", "prob_wet", "model_pred", "model_prob"]
         dict_for_rename = dict(zip(origcols, renamedcols))
         dfoutput = dfinput.rename(columns = dict_for_rename)
-    elif classification_model == "downstream":
+    elif "downstream" in classification_model:
         print("running downstream!")
         print(dfinput.columns)
         origcols = ["ds_prob_dry", "ds_prob_poor_viz", "ds_prob_snow", "ds_prob_snow_severe", "ds_prob_wet", "ds_pred", "ds_prob"]
