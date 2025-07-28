@@ -14,7 +14,13 @@ datafiles = os.listdir(config.dir_of_datacsvs)
 if config.subset_files_torun:
     datafiles.sort()
     print(datafiles[0:4])
+    print(len(datafiles))
     datafiles = [x for x in datafiles if config.subset_string in x]
+    if config.classif_model == "downstream":
+        # also may need to subset based on the downstream selected hyps if multiple downstream model variations have been ran for the same CNN model. This extra subsetting is only relevant for downstream. 
+        datafiles = [x for x in datafiles if config.subset_downstream in x]
+    print(len(datafiles))
+
     print(f"subsetted datafiles on {config.subset_string}")
     print(len(datafiles))
 
@@ -22,9 +28,9 @@ if config.subset_files_torun:
 for f in datafiles:
     # runname = f[:-4] # remove the .csv
 
-    print(f"reading in {f}")
+    
     csv = f"{config.dir_of_datacsvs}/{f}"
-
+    print(f"reading in {csv}")
     # read in data
     dfread = pd.read_csv(csv)
 
@@ -32,6 +38,8 @@ for f in datafiles:
 
     # prep column names
     t_all = calib.rename_cols_for_calibration_consistency(dfinput = dfread, classification_model = config.classif_model)
+
+    print(t_all.columns)
 
     # add classifier col of 0s and 1s if model predicted that cat
     t_all["classifier_TF"] = (
