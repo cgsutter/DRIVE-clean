@@ -3,34 +3,32 @@ HT_flag = False # to train HT models, saving out results rows to csv, file_colle
 
 final_selected_train = True # after doing hyptuning (above) and selecting best model (see /home/csutter/DRIVE-clean/CNN/scripts/model_selection.ipynb), train the final selected model and save out the models and their predictions for all 30 folds. 
 # final is running a one single model, so set model specifics below
-final_cnn = "A_mobilenet_TRLETrue_ASTFalse_L20_1_DR0_4_E75_AugFalse"
+final_cnn = "A_resnet_TRLETrue_ASTTrue_L20_1_DR0_2_E75_AugTrue"
 final_downstream_alg = "rf" # ex: "logistic", "gnb", "svm", "DNN", "rf"
-final_downstream_hyp = {'max_depth': 10, 'max_samples': 0.5, 'n_estimators': 300, 'max_features': 3, 'min_samples_leaf': 5, 'bootstrap': True}
+final_downstream_hyp = {'max_depth': 10, 'max_samples': 0.5, 'n_estimators': 300, 'max_features': 3, 'min_samples_leaf': 5, 'bootstrap': True} # dict
 
 # Where to look for csv files containing calibrated CNN probabilties
-dir_of_datacsvs_CNNCalibPreds = "/home/csutter/DRIVE-clean/calibration/calib_CNN_data" #HERE!! 
+dir_of_datacsvs_CNNCalibPreds = "/home/csutter/DRIVE-clean/calibration/calib_CNNFinal_data" #HERE!! 
 # "/home/csutter/DRIVE-clean/calibration/calib_CNN_data" <-- main one
 # Side experiment: e.g. /home/csutter/DRIVE-clean/side_experiments_data_and_models/calibration/calib_CNNexpOneTrain_data
 # Important note for side experiments, two other things to update: 1) in the _run script, since we don't need to save out the classif and scaler models, comment out the dump commands. 2) in the downstream_ script, if running oneTrain side experiment, need to train on training data (dfinput[dfinput["innerPhase"] ==]) (bc there is no second training dataset for downstream model
 
 # If running downstream HTs and only need to run on one specific CNN|HT model within that dir, set the subsetting flag and identifier string below. This is only relevant for hyptuning. 
 subset_files_torun = True 
-subset_string = "A_mobilenet_TRLETrue_ASTFalse_L20_1_DR0_4_E75_AugFalse"
+subset_string = "A_resnet_TRLETrue_ASTTrue_L20_1_DR0_2_E75_AugTrue"
 
 # load in weather data
 hrrr_data_csv = "/home/csutter/DRIVE/weather_img_concatmodels/cnn_hrrr_fcsthr2/nestedcv_imgname_hrrrdata_fcsthr2.csv"
 
+# only matters if hyptuning
 file_collect_results = "/home/csutter/DRIVE-clean/downstream/data_results/results_by_each_run_innerVal.csv"
 
 # to save prediction data
-predictions_directory = "/home/csutter/DRIVE-clean/downstream/data_preds" # HERE!!
+predictions_directory = "/home/csutter/DRIVE-clean/downstream/data_predsFinal" # HERE!!
 # "/home/csutter/DRIVE-clean/downstream/data_preds" <-- main one
 # Side experiment: e.g., /home/csutter/DRIVE-clean/side_experiments_data_and_models/downstream/data_preds_expOneTrain 
-model_directory = "/home/csutter/DRIVE-clean/downstream/data_models_downstream" 
-scalarmodel_directory = "/home/csutter/DRIVE-clean/downstream/data_models_scalar"
-
-
-# algs_and_hyps_dict = {"DNN":"/home/csutter/DRIVE/dot/models_concatdata/nowcast/features12a/sitesplit/hypgrid_dnn.csv", "logistic": logistic_HT, "svm": svm_HT,"gnb": gnb_HT, "rf": "/home/csutter/DRIVE/dot/models_streamline/HT/hypgrid_rf_11feat_grid288.csv"}
+model_directory = "/home/csutter/DRIVE-clean/downstream/data_modelsFinal_downstream" 
+scalarmodel_directory = "/home/csutter/DRIVE-clean/downstream/data_modelsFinal_scalar"
 
 cols_from_cnn = [
                 "innerPhase",
