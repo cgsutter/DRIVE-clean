@@ -59,3 +59,11 @@ ensembling/scripts/__pycache__/nested_ensemble.cpython-38.pyc
 ensembling/scripts/__pycache__/config.cpython-38.pyc
 side_experiments_data_and_models
 notebooks/model_selection_WORK.ipynb
+ensembling/alternative_runs_data
+calibration/calib_CNNFinal_data/
+calibration/calib_CNNFinal_model/
+calibration/calib_downstreamFinal_data/
+calibration/calib_downstreamFinal_model/
+downstream/data_modelsFinal_downstream/
+downstream/data_modelsFinal_scalar/
+downstream/data_predsFinal/
