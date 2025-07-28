@@ -10,7 +10,7 @@ import pandas as pd
 # rename the cols since the 5 models will have 5 duplicate col names
 
 
-def outsideTest_onedf_all5models(splitnum, parentdirofmodels, subsetflag, subsetstring):
+def outsideTest_onedf_all5models(splitnum, parentdirofmodels, subsetflag, subsetstring, subsetstring2):
 
     """
     splitnum: str, e.g. "2"
@@ -23,7 +23,8 @@ def outsideTest_onedf_all5models(splitnum, parentdirofmodels, subsetflag, subset
 
     if subsetflag:
         files = [x for x in files if subsetstring in x]
-        print(f"subsetted files on {subsetstring}")
+        files = [x for x in files if subsetstring2 in x]
+        print(f"subsetted files on {subsetstring} and {subsetstring2}")
         print(len(files))
 
     print(f"_OT{splitnum}_")
