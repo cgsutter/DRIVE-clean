@@ -109,7 +109,7 @@ if config.ensemble_flag:
 
         print(f"done with {modelstr}")
 
-# to  be run AFTER the above loop is run (evaluated ensembles for all outertest sets)
+# to be run sequentially after the above loop is run (evaluated ensembles for all outertest sets)
 
 if config.ensemble_summary:
     summarydf = nested_ensemble.runstatsfor(
@@ -117,10 +117,3 @@ if config.ensemble_summary:
     )
 
     summarydf.to_csv(f"{config.directory_summaries}/_summary_{config.desc_of_modelflow}.csv")
-
-# To do;
-# 0 - get it working looping through all modelnums
-# 1 - confidence values (like for UI)
-# 2 - use the avg of the pred cat for confidence? or # that align? or avg prob?
-# 3- need to do analyses about how much value each of the ensembling methods provides.  --95%-96% align!
-# 4 - need to rerun the blending method vs this new ensembling code

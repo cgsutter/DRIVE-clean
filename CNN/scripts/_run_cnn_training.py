@@ -28,7 +28,7 @@ def main(train_flag = config.train_flag, eval_flag = config.eval_flag, one_off =
             for t in config.trackers_list:
                 call_model_train.train_model(run_tracker = t, tracker_rundetails = tracker_rundetails, wandblog = wandblog, run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug)
         if eval_flag: 
-            print("IN PROGRESS: Eval working for hyptuning, but need to get working for one-off runs here, simpler version of hyptuning")
+            print("Running eval for one-off model")
             list_dfpreds = []
             list_descs30 = []
             for t in config.trackers_list:
