@@ -53,3 +53,5 @@ ODM/data_models
 ODM/data_preds
 ODM/ensemble_results
 ODM/scripts/__pycache__
+CNN/data_models_expOneTrainOrigdata
+CNN/data_models_expShuffleOrigdata
