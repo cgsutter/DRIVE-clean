@@ -51,6 +51,7 @@ calibration/calib_CNNexpShuffleAndHalved_model
 trackers_ODM
 ODM/data_models
 ODM/data_preds
+ODM/data_preds_eval5catdata
 ODM/ensemble_results
 ODM/scripts/__pycache__
 CNN/data_models_expOneTrainOrigdata
