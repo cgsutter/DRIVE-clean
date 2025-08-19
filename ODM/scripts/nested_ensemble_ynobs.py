@@ -69,14 +69,14 @@ def outsideTest_onedf_all5models(
         # print(r)
         print("inside!")
         print(len(r))
-        print("unique foldnum")
-        print(np.unique(r["foldnum"]))
-        # print(r.dtypes)
-        print("unique foldhalf")
-        print(np.unique(r["foldhalf"]))
+        # print("unique foldnum")
+        # print(np.unique(r["foldnum"]))
+        # # print(r.dtypes)
+        # print("unique foldhalf")
+        # print(np.unique(r["foldhalf"]))
 
-        print("unique foldnum_nested")
-        print(np.unique(r["foldnum_nested"]))
+        # print("unique foldnum_nested")
+        # print(np.unique(r["foldnum_nested"]))
         # print(r.columns)
 
         # subset to just outerTest observations. O/w any observation that is kept in from say innerTest from OT0_m1 will be used as training or val in OT0_m2, so we can't really do this ensembling with anything besides OT
