@@ -8,7 +8,7 @@ final_downstream_alg = "rf" # ex: "logistic", "gnb", "svm", "DNN", "rf"
 final_downstream_hyp = {'max_depth': 10, 'max_samples': 0.5, 'n_estimators': 300, 'max_features': 3, 'min_samples_leaf': 5, 'bootstrap': True} # dict
 
 # Where to look for csv files containing calibrated CNN probabilties
-dir_of_datacsvs_CNNCalibPreds = "/home/csutter/DRIVE-clean/side_experiments_data_and_models/calibration/calib_CNNexpOneTrain_data" #HERE!! 
+dir_of_datacsvs_CNNCalibPreds = "/home/csutter/DRIVE-clean/calibration/calib_CNN_data" #HERE!! 
 # "/home/csutter/DRIVE-clean/calibration/calib_CNN_data" <-- main one
 # Side experiment: e.g. /home/csutter/DRIVE-clean/side_experiments_data_and_models/calibration/calib_CNNexpOneTrain_data
 # Important note for side experiments, two other things to update: 1) in the _run script, since we don't need to save out the classif and scaler models, comment out the dump commands. 2) in the downstream_ script, if running oneTrain side experiment, need to train on training data (dfinput[dfinput["innerPhase"] ==]) (bc there is no second training dataset for downstream model
