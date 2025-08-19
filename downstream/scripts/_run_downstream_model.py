@@ -114,7 +114,7 @@ elif config.final_selected_train:
         # data prepped for model training
         train_i, train_o, val_i, val_o, all_i, all_o, all_imgname, scaler_model = downstream_model_train.prepare_data_fortraining(dfinput = cnn_and_weather_data, features = config.features_for_training)
 
-        dump(scaler_model, f"{config.scalarmodel_directory}/{savetoname}.pkl") # comment out for side experiments where we just want the predictions
+        # dump(scaler_model, f"{config.scalarmodel_directory}/{savetoname}.pkl") # comment out for side experiments where we just want the predictions
 
         print("saved scaler model")
 

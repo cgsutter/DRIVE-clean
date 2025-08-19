@@ -77,7 +77,7 @@ def prepare_data_fortraining(dfinput, features = config.features_for_training):
 
     print(len(dfinput))
     # HERE!! Update if want to train on train or train on val (and if this is the case then also be sure to set val equal to test, accordingly)
-    train = dfinput[dfinput["innerPhase"] == "innerTest"]  # should say innerTest
+    train = dfinput[dfinput["innerPhase"] == "innerTrain"]  # should say innerTest
     train_input_data = train[features]
     train_output_data = train["img_cat"]
 

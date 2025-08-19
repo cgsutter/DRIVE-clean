@@ -8,7 +8,7 @@ final_downstream_alg = "rf" # ex: "logistic", "gnb", "svm", "DNN", "rf"
 final_downstream_hyp = {'max_depth': 10, 'max_samples': 0.5, 'n_estimators': 300, 'max_features': 3, 'min_samples_leaf': 5, 'bootstrap': True} # dict
 
 # Where to look for csv files containing calibrated CNN probabilties
-dir_of_datacsvs_CNNCalibPreds = "/home/csutter/DRIVE-clean/calibration/calib_CNNFinal_data" #HERE!! 
+dir_of_datacsvs_CNNCalibPreds = "/home/csutter/DRIVE-clean/side_experiments_data_and_models/calibration/calib_CNNexpOneTrain_data" #HERE!! 
 # "/home/csutter/DRIVE-clean/calibration/calib_CNN_data" <-- main one
 # Side experiment: e.g. /home/csutter/DRIVE-clean/side_experiments_data_and_models/calibration/calib_CNNexpOneTrain_data
 # Important note for side experiments, two other things to update: 1) in the _run script, since we don't need to save out the classif and scaler models, comment out the dump commands. 2) in the downstream_ script, if running oneTrain side experiment, need to train on training data (dfinput[dfinput["innerPhase"] ==]) (bc there is no second training dataset for downstream model
@@ -24,10 +24,12 @@ hrrr_data_csv = "/home/csutter/DRIVE/weather_img_concatmodels/cnn_hrrr_fcsthr2/n
 file_collect_results = "/home/csutter/DRIVE-clean/downstream/data_results/results_by_each_run_innerVal.csv"
 
 # to save prediction data
-predictions_directory = "/home/csutter/DRIVE-clean/downstream/data_predsFinal" # HERE!!
+predictions_directory = "/home/csutter/DRIVE-clean/side_experiments_data_and_models/downstream/data_preds_expOneTrain"
+# "/home/csutter/DRIVE-clean/downstream/data_predsFinal" # HERE!!
 # "/home/csutter/DRIVE-clean/downstream/data_preds" <-- main one
 # Side experiment: e.g., /home/csutter/DRIVE-clean/side_experiments_data_and_models/downstream/data_preds_expOneTrain 
-model_directory = "/home/csutter/DRIVE-clean/downstream/data_modelsFinal_downstream" 
+model_directory = "/home/csutter/DRIVE-clean/side_experiments_data_and_models/downstream/data_models_expOneTrain"
+# "/home/csutter/DRIVE-clean/downstream/data_modelsFinal_downstream" 
 scalarmodel_directory = "/home/csutter/DRIVE-clean/downstream/data_modelsFinal_scalar"
 
 cols_from_cnn = [
