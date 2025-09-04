@@ -68,3 +68,7 @@ calibration/calib_downstreamFinal_model/
 downstream/data_modelsFinal_downstream/
 downstream/data_modelsFinal_scalar/
 downstream/data_predsFinal/
+ice/data_probSR
+operational_inference/data_1_images
+operational_inference/data_2_cnnpreds
+operational_inference/trainedModels_1_cnn
