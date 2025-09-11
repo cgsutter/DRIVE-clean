@@ -1,3 +1,5 @@
+# Portions of this code were writen with the assistance of AI tools (e.g., ChatGPT)
+
 import pandas as pd
 import numpy as np
 

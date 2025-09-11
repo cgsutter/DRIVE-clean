@@ -1,3 +1,5 @@
+# Portions of this code were writen with the assistance of AI tools (e.g., ChatGPT)
+
 import config as config
 import joblib
 import matplotlib.pyplot as plt
