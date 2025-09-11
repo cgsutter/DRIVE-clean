@@ -1,7 +1,7 @@
 # DRIVE
-Detection of Road Imagery in Variable Environments
+Detection of Road Imagery in Variable Environments (DRIVE)
 
-In collaboration with the Department of Transportation, classification modeling is performed to predict roads surface conditions using convolutional neural networks and random forests. The Surface Condition Model developed in this repo predicts five weather-related road surface classes include: 1) severe snow, 2) snow, 3) wet, 4) dry, 5) poor visibility. Another classification task, the Obstruction Detection Model, predicts obstructed or non-obstructed, which are camera/image related issues, using solely camera data. All details about the underlying dataset, including the hand-labeling process following quantitative content analysis, are included here: https://zenodo.org/records/15257486
+In collaboration with the Department of Transportation, classification modeling is performed to predict roads surface conditions using convolutional neural networks and random forests. The Surface Condition Model developed in this repo predicts five weather-related road surface classes include: 1) severe snow, 2) snow, 3) wet, 4) dry, 5) poor visibility. Another classification task, the Obstruction Detection Model, predicts obstructed or non-obstructed, which are camera/image related issues, using solely camera data. All details about the underlying dataset, including the hand-labeling process following quantitative content analysis, are included here: https://zenodo.org/records/15257486 and https://zenodo.org/records/17080580.
 
 This repository contains scripts for model training, hyperparameter tuning, ensembling, results summaries, and inference for the Surface Condition Model. The data used to train the models include image data (for the first model, a CNN) and weather data (for the downstream model). 
 

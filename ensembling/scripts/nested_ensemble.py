@@ -10,8 +10,9 @@ import pandas as pd
 # rename the cols since the 5 models will have 5 duplicate col names
 
 
-def outsideTest_onedf_all5models(splitnum, parentdirofmodels, subsetflag, subsetstring, subsetstring2):
-
+def outsideTest_onedf_all5models(
+    splitnum, parentdirofmodels, subsetflag, subsetstring, subsetstring2
+):
     """
     splitnum: str, e.g. "2"
     """
@@ -76,7 +77,7 @@ def outsideTest_onedf_all5models(splitnum, parentdirofmodels, subsetflag, subset
             "calib_prob_snow_severe",
             "calib_prob_wet",
             "calib_pred",
-            "calib_prob", #finalprob
+            "calib_prob",  # finalprob
         ]
 
         r = r.rename(columns={col: f"{innermodelnum}_{col}" for col in cols_to_rename})
@@ -238,7 +239,6 @@ def rowfn_grab_max_confidence(row):
 
 # Method 2: average probabilities
 def dffn_return_avg_cols(dfinput):
-
     """Function on a df, return the updated df"""
 
     dcols = [
@@ -510,4 +510,3 @@ def runstatsfor(ensemblefiles_base):
     resultsdf = pd.DataFrame(resultslist, columns=calcstats_colname_list)
 
     return resultsdf
-

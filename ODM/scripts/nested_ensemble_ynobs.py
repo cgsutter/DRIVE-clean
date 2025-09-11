@@ -11,10 +11,7 @@ import config
 # rename the cols since the 5 models will have 5 duplicate col names
 
 
-def outsideTest_onedf_all5models(
-    splitnum, parentdirofmodels
-):
-
+def outsideTest_onedf_all5models(splitnum, parentdirofmodels):
     """
     splitnum: str, e.g. "2"
     """
@@ -145,7 +142,9 @@ def outsideTest_onedf_all5models(
     for df_i in dfs_individ[1:]:  # add on by merging each df onto it, in a loop
         print("loop1")
         print(len(df_i))
-        merged_df = merged_df.merge(df_i, on="img_name", how = "inner") # for evaluating on ODM data, there are different nonobs examples that don't overlap between the A, B, and C. That's the whole point of having the three samples. Thus, need to outer join across the A,B, and C. All are evaluated on the model trained with fold0, 
+        merged_df = merged_df.merge(
+            df_i, on="img_name", how="inner"
+        )  # for evaluating on ODM data, there are different nonobs examples that don't overlap between the A, B, and C. That's the whole point of having the three samples. Thus, need to outer join across the A,B, and C. All are evaluated on the model trained with fold0,
         print("loop2")
         print(len(merged_df))
     print(len(merged_df))
@@ -261,7 +260,6 @@ def rowfn_grab_max_confidence(row):
 
 # Method 2: average probabilities
 def dffn_return_avg_cols(dfinput):
-
     """Function on a df, return the updated df"""
 
     obscols = [
@@ -571,4 +569,3 @@ def runstatsforYNObsSubsetOnly(ensemblefiles_base):
 
 
 #########################################################
-

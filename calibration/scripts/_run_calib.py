@@ -17,7 +17,7 @@ if config.subset_files_torun:
     print(len(datafiles))
     datafiles = [x for x in datafiles if config.subset_string in x]
     if config.classif_model == "downstream":
-        # also may need to subset based on the downstream selected hyps if multiple downstream model variations have been ran for the same CNN model. This extra subsetting is only relevant for downstream. 
+        # also may need to subset based on the downstream selected hyps if multiple downstream model variations have been ran for the same CNN model. This extra subsetting is only relevant for downstream.
         datafiles = [x for x in datafiles if config.subset_downstream in x]
     print(len(datafiles))
 
@@ -28,7 +28,6 @@ if config.subset_files_torun:
 for f in datafiles:
     # runname = f[:-4] # remove the .csv
 
-    
     csv = f"{config.dir_of_datacsvs}/{f}"
     print(f"reading in {csv}")
     # read in data
@@ -37,23 +36,25 @@ for f in datafiles:
     print(dfread.columns)
 
     # prep column names
-    t_all = calib.rename_cols_for_calibration_consistency(dfinput = dfread, classification_model = config.classif_model)
+    t_all = calib.rename_cols_for_calibration_consistency(
+        dfinput=dfread, classification_model=config.classif_model
+    )
 
     print(t_all.columns)
 
     # add classifier col of 0s and 1s if model predicted that cat
-    t_all["classifier_TF"] = (
-        t_all["img_cat"] == t_all["o_pred"]
-        )
+    t_all["classifier_TF"] = t_all["img_cat"] == t_all["o_pred"]
     t_all["classifier_01"] = t_all["classifier_TF"].astype(int)
 
     # training calib model on validation data
-    t_val = t_all[t_all["innerPhase"] == "innerVal"] 
+    t_val = t_all[t_all["innerPhase"] == "innerVal"]
 
     # where to save out the model
-    modeldir = f"/home/csutter/DRIVE-clean/calibration/calib_{config.classif_model}_model"
+    modeldir = (
+        f"/home/csutter/DRIVE-clean/calibration/calib_{config.classif_model}_model"
+    )
     os.makedirs(modeldir, exist_ok=True)
-    model_savename = f"{modeldir}/{f[:-4]}_trainedOnVal.pkl" 
+    model_savename = f"{modeldir}/{f[:-4]}_trainedOnVal.pkl"
 
     # where to save out calibrated data results
     datadir = f"/home/csutter/DRIVE-clean/calibration/calib_{config.classif_model}_data"
@@ -71,4 +72,3 @@ for f in datafiles:
     print(len(t1))
     print(t1.columns)
     t1.to_csv(calib_tracker_savename)
-

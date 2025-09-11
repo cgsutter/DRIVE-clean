@@ -13,37 +13,71 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 from sklearn.preprocessing import LabelBinarizer
+
 # Setting up first to work for calibrating CNN. After getting that working, will make adjustments to also get it working for streamlined (prior to ensembling), and then also ensembling (to get final calibrated probabilities for the end user). Code should be set up to be re-usable between each of the three calibration steps. Maybe just col names in pred dfs will be different.
 
 
 # Rather than needing to col on dynamic col names depending on the classification algo, which gets tedious for each of these steps require for calibration, instead, change col names temporarily for these calibration fns so that all of these fns work no matter what step of the modeling process it's being applied on. Only in the last step before saving csv do we then rename the column names st that are distinct for the saved out csv to keep all information from all modeling steps.
-def rename_cols_for_calibration_consistency(dfinput, classification_model = "CNN"):
+def rename_cols_for_calibration_consistency(dfinput, classification_model="CNN"):
 
     # use the same col names for all classif model steps
-    renamedcols = ["o_prob_dry", "o_prob_poor_viz", "o_prob_snow", "o_prob_snow_severe", "o_prob_wet", "o_pred", "o_prob"]
+    renamedcols = [
+        "o_prob_dry",
+        "o_prob_poor_viz",
+        "o_prob_snow",
+        "o_prob_snow_severe",
+        "o_prob_wet",
+        "o_pred",
+        "o_prob",
+    ]
 
-    if "CNN" in classification_model: # updated to accommodate for experiment models
-        origcols = ["prob_dry", "prob_poor_viz", "prob_snow", "prob_snow_severe", "prob_wet", "model_pred", "model_prob"]
+    if "CNN" in classification_model:  # updated to accommodate for experiment models
+        origcols = [
+            "prob_dry",
+            "prob_poor_viz",
+            "prob_snow",
+            "prob_snow_severe",
+            "prob_wet",
+            "model_pred",
+            "model_prob",
+        ]
         dict_for_rename = dict(zip(origcols, renamedcols))
-        dfoutput = dfinput.rename(columns = dict_for_rename)
+        dfoutput = dfinput.rename(columns=dict_for_rename)
     elif classification_model == "fcstOnly":
         # NEED TO FILL IN
-        origcols = ["prob_dry", "prob_poor_viz", "prob_snow", "prob_snow_severe", "prob_wet", "model_pred", "model_prob"]
+        origcols = [
+            "prob_dry",
+            "prob_poor_viz",
+            "prob_snow",
+            "prob_snow_severe",
+            "prob_wet",
+            "model_pred",
+            "model_prob",
+        ]
         dict_for_rename = dict(zip(origcols, renamedcols))
-        dfoutput = dfinput.rename(columns = dict_for_rename)
+        dfoutput = dfinput.rename(columns=dict_for_rename)
     elif "downstream" in classification_model:
         print("running downstream!")
         print(dfinput.columns)
-        origcols = ["ds_prob_dry", "ds_prob_poor_viz", "ds_prob_snow", "ds_prob_snow_severe", "ds_prob_wet", "ds_pred", "ds_prob"]
+        origcols = [
+            "ds_prob_dry",
+            "ds_prob_poor_viz",
+            "ds_prob_snow",
+            "ds_prob_snow_severe",
+            "ds_prob_wet",
+            "ds_pred",
+            "ds_prob",
+        ]
         dict_for_rename = dict(zip(origcols, renamedcols))
-        dfoutput = dfinput.rename(columns = dict_for_rename)
+        dfoutput = dfinput.rename(columns=dict_for_rename)
     else:
         print("issue with classification_model input")
-    
+
     return dfoutput
 
 
 # Function that trains and evaluates a calibration model on the predicted class only
+
 
 def prep_data_for_calib_model(dftrain, dfeval):
 
@@ -59,7 +93,6 @@ def prep_data_for_calib_model(dftrain, dfeval):
     X_eval = X_eval_unshaped.reshape(-1, 1)
 
     return X, y, X_eval
-
 
 
 def build_eval_logistic_PredOnly(
@@ -97,10 +130,16 @@ def build_eval_logistic_PredOnly(
         print(traindata_input[0:3])
         print(traindata_output[0:3])
 
-        iso_reg.fit(traindata_input, traindata_output)  # Fit isotonic regression on the probabilities
+        iso_reg.fit(
+            traindata_input, traindata_output
+        )  # Fit isotonic regression on the probabilities
         # Use the calibrated probabilities to make predictions
-        traindata_output_predProb = iso_reg.transform(traindata_input)  # Calibrate the probabilities
-        evaldata_output_predProb = iso_reg.transform(evaldata_input)  # Calibrate the probabilities
+        traindata_output_predProb = iso_reg.transform(
+            traindata_input
+        )  # Calibrate the probabilities
+        evaldata_output_predProb = iso_reg.transform(
+            evaldata_input
+        )  # Calibrate the probabilities
         joblib.dump(iso_reg, model_savename)
 
     else:
@@ -110,7 +149,9 @@ def build_eval_logistic_PredOnly(
 
     return evaldata_output_predProb
 
+
 # normalize the remaining 4 cats based on the new calibrated predicted cat so that they all still sum to 1. Column names differ depending on classification model used, so account for this
+
 
 def rowfn_normalize_remaining(row):
     allcats = ["dry", "poor_viz", "snow", "snow_severe", "wet"]
@@ -168,17 +209,11 @@ def calibrate_and_normalize_all_cats_PredOnly(
     X, y, X_eval = prep_data_for_calib_model(dftotrain, dftoeval)
     print(len(X_eval))
 
-
     o_prob_calib = build_eval_logistic_PredOnly(
-        X,
-        y,
-        X_eval,
-        modeltype=calib_model_type_input,
-        model_savename=modelsavename
+        X, y, X_eval, modeltype=calib_model_type_input, model_savename=modelsavename
     )
     print(len(o_prob_calib))
     print(type(o_prob_calib))
-
 
     # add columns with calibrated probs
     # 7/18 WAS calib_prob
@@ -190,7 +225,6 @@ def calibrate_and_normalize_all_cats_PredOnly(
 
     # since we only calibrated the highest class (predicted class) we need to use that new probability for the highest class, and then set the remaining class probabilities st they sum to 1. Normalize them based on the new max prob for the pred class.
     # this row function applied to all rows to return final relevant cols
-
 
     dftoeval[
         [
@@ -208,7 +242,6 @@ def calibrate_and_normalize_all_cats_PredOnly(
 
     # Look at all the final probability columns to find the highest one now, and parse out the string cat name from the column which was highest. This *should* be the same as the original model's pred, but theoretically there could be some borderline cases where the predicted highest orig probability was calibrated downward so that one of the other classes surpassed it. Should be rare if at all, but need to account for this case.
 
-
     dftoeval["calib_pred"] = (
         dftoeval[
             [
@@ -224,13 +257,15 @@ def calibrate_and_normalize_all_cats_PredOnly(
     )
 
     # note that this has to be done after calib AND normalizing bc sometimes the highest prob can change
-    dftoeval["calib_prob"] = dftoeval[[
-                "calib_prob_dry",
-                "calib_prob_poor_viz",
-                "calib_prob_snow",
-                "calib_prob_snow_severe",
-                "calib_prob_wet",
-            ]].max(axis=1)
+    dftoeval["calib_prob"] = dftoeval[
+        [
+            "calib_prob_dry",
+            "calib_prob_poor_viz",
+            "calib_prob_snow",
+            "calib_prob_snow_severe",
+            "calib_prob_wet",
+        ]
+    ].max(axis=1)
 
     return dftotrain, dftoeval
 
@@ -300,5 +335,3 @@ def calibrate_and_normalize_all_cats_PredOnly(
 
 # print(len(v1))
 # print(len(t1))
-
-

@@ -1,8 +1,7 @@
-
 import numpy as np
-import tensorflow as tf # using tf. functions where keras.ops previously was (bc using keras 2.11 not 3.x)
+import tensorflow as tf  # using tf. functions where keras.ops previously was (bc using keras 2.11 not 3.x)
 import keras
-from keras.utils import register_keras_serializable #CS
+from keras.utils import register_keras_serializable  # CS
 import tensorflow as tf
 from tensorflow.math import digamma, lgamma
 
@@ -69,19 +68,34 @@ from tensorflow.math import digamma, lgamma
 
 # @keras.saving.register_keras_serializable() #CS
 
+
 def evidential_cat_loss(evi_coef, epoch_callback, class_weights=None):
     def calc_kl(alpha):
         beta = tf.ones(shape=(1, tf.shape(alpha)[1]), dtype=tf.float32)
         S_alpha = tf.reduce_sum(alpha, axis=1, keepdims=True)
         S_beta = tf.reduce_sum(beta, axis=1, keepdims=True)
-        lnB = tf.math.lgamma(S_alpha) - tf.reduce_sum(tf.math.lgamma(alpha), axis=1, keepdims=True)
-        lnB_uni = tf.reduce_sum(tf.math.lgamma(beta), axis=1, keepdims=True) - tf.math.lgamma(S_beta)
+        lnB = tf.math.lgamma(S_alpha) - tf.reduce_sum(
+            tf.math.lgamma(alpha), axis=1, keepdims=True
+        )
+        lnB_uni = tf.reduce_sum(
+            tf.math.lgamma(beta), axis=1, keepdims=True
+        ) - tf.math.lgamma(S_beta)
         dg0 = tf.math.digamma(S_alpha)
         dg1 = tf.math.digamma(alpha)
         if class_weights is not None:
-            kl = tf.reduce_sum(class_weights * (alpha - beta) * (dg1 - dg0), axis=1, keepdims=True) + lnB + lnB_uni
+            kl = (
+                tf.reduce_sum(
+                    class_weights * (alpha - beta) * (dg1 - dg0), axis=1, keepdims=True
+                )
+                + lnB
+                + lnB_uni
+            )
         else:
-            kl = tf.reduce_sum((alpha - beta) * (dg1 - dg0), axis=1, keepdims=True) + lnB + lnB_uni
+            kl = (
+                tf.reduce_sum((alpha - beta) * (dg1 - dg0), axis=1, keepdims=True)
+                + lnB
+                + lnB_uni
+            )
         return kl
 
     @register_keras_serializable()
@@ -95,10 +109,16 @@ def evidential_cat_loss(evi_coef, epoch_callback, class_weights=None):
 
         if class_weights is not None:
             a = tf.reduce_sum(class_weights * tf.square(y - m), axis=1, keepdims=True)
-            b = tf.reduce_sum(class_weights * alpha * (S - alpha) / (S**2 * (S + 1)), axis=1, keepdims=True)
+            b = tf.reduce_sum(
+                class_weights * alpha * (S - alpha) / (S**2 * (S + 1)),
+                axis=1,
+                keepdims=True,
+            )
         else:
             a = tf.reduce_sum(tf.square(y - m), axis=1, keepdims=True)
-            b = tf.reduce_sum(alpha * (S - alpha) / (S**2 * (S + 1)), axis=1, keepdims=True)
+            b = tf.reduce_sum(
+                alpha * (S - alpha) / (S**2 * (S + 1)), axis=1, keepdims=True
+            )
 
         annealing_coef = tf.minimum(1.0, tf.cast(current_epoch, tf.float32) / evi_coef)
         alpha_hat = y + (1 - y) * alpha

@@ -2,14 +2,16 @@
 
 # Necessary imports
 import _config as config
-from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau,EarlyStopping
+from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
 
 
 # from wandb.keras import WandbCallback, WandbMetricsLogger, WandbModelCheckpoint
 from wandb.keras import WandbCallback
 
 
-def create_callbacks_list(savebestweights, earlystop_patience = config.earlystop_patience, evid = config.evid):
+def create_callbacks_list(
+    savebestweights, earlystop_patience=config.earlystop_patience, evid=config.evid
+):
     """
     Creates a list of Keras callbacks for model training.
 
@@ -38,22 +40,21 @@ def create_callbacks_list(savebestweights, earlystop_patience = config.earlystop
         verbose=0,
         save_best_only=True,
         mode="max",
-        save_weights_only=True # HERE!!
+        save_weights_only=True,  # HERE!!
     )  # saves out best model locally
 
-
     es = EarlyStopping(
-        monitor='val_accuracy',
+        monitor="val_accuracy",
         min_delta=config.min_delta,
         patience=config.earlystop_patience,
         verbose=0,
-        mode='max',
+        mode="max",
         baseline=None,
         restore_best_weights=False,
-        start_from_epoch=config.min_epochs_before_es
+        start_from_epoch=config.min_epochs_before_es,
     )
 
-    wb_metricslog = WandbCallback(log_freq="epoch",log_weights=False, save_model=False)
+    wb_metricslog = WandbCallback(log_freq="epoch", log_weights=False, save_model=False)
     # this plots loss and accuracy curves to w&b UI (under "epochs" dropdown). It also logs learning rate. These are plots in the UI dropdown where tables are, but also in the "Overview" part of that run. Can adjust log freq if want to do by batch rather than epoch
     # wb_checkpoint = WandbModelCheckpoint(filepath = savebestweights, monitor = "val_acc", save_best_only=True, Mode = "max") # this and "checkpoint" above essentially do the same thing but saving out best model also as an artifact on w&b too
 

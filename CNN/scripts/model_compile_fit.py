@@ -22,7 +22,14 @@ from tensorflow import keras
 from tensorflow.keras import optimizers
 from tensorflow.keras.applications.mobilenet import preprocess_input
 from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.layers import BatchNormalization, Conv2D, Dense, Dropout, Flatten, MaxPool2D
+from tensorflow.keras.layers import (
+    BatchNormalization,
+    Conv2D,
+    Dense,
+    Dropout,
+    Flatten,
+    MaxPool2D,
+)
 from tensorflow.keras.optimizers import SGD, Adam, schedules
 
 # scikit-learn
@@ -32,13 +39,23 @@ import sklearn.metrics as metrics
 # Configure PIL to avoid image errors
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-import _config as config # holds constants like BATCH_SIZE, cat_num, etc.
+import _config as config  # holds constants like BATCH_SIZE, cat_num, etc.
 import class_weights  # likely defines weight functions
 import helper_fns_adhoc  # must define cat_str_ind_dictmap()
 
 
-
-def compile_model(model, train_size, batchsize, lr_init, lr_opt=config.lr_opt, lr_after_num_of_epoch =config.lr_after_num_of_epoch, lr_decayrate = config.lr_decayrate, momentum = config.momentum, evid = config.evid, evid_lr_init = config.evid_lr_init):
+def compile_model(
+    model,
+    train_size,
+    batchsize,
+    lr_init,
+    lr_opt=config.lr_opt,
+    lr_after_num_of_epoch=config.lr_after_num_of_epoch,
+    lr_decayrate=config.lr_decayrate,
+    momentum=config.momentum,
+    evid=config.evid,
+    evid_lr_init=config.evid_lr_init,
+):
     """
 
     This function:
@@ -76,16 +93,16 @@ def compile_model(model, train_size, batchsize, lr_init, lr_opt=config.lr_opt, l
             loss=evidential_cat_loss(
                 evi_coef=evid_annealing_coeff,
                 epoch_callback=report_epoch_callback,
-                class_weights=classwts_normalized,# None or classwts_normalized, or [10, 10, 10, 10, 10, 10]  [1, 1, 1, 1, 1, 1], classwts_six_normalized, class_weight_set
-                ),
+                class_weights=classwts_normalized,  # None or classwts_normalized, or [10, 10, 10, 10, 10, 10]  [1, 1, 1, 1, 1, 1], classwts_six_normalized, class_weight_set
+            ),
             metrics=["accuracy"],
-            optimizer=optimizer_evid, 
-                )
+            optimizer=optimizer_evid,
+        )
         print("evidential model is set")
     else:
 
         if lr_opt == True:
-            num_of_batches = train_size / batchsize  
+            num_of_batches = train_size / batchsize
             lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
                 initial_learning_rate=lr_init,
                 decay_steps=num_of_batches
@@ -101,26 +118,30 @@ def compile_model(model, train_size, batchsize, lr_init, lr_opt=config.lr_opt, l
             print(f"using fixed learning rate of {lr_use}")
             lr_use = 0.01
 
-        optimizer_use = tf.keras.optimizers.SGD(learning_rate=lr_use, momentum = momentum)  # lr_schedule
-        
+        optimizer_use = tf.keras.optimizers.SGD(
+            learning_rate=lr_use, momentum=momentum
+        )  # lr_schedule
+
         # sgd_optimizer = tf.keras.optimizers.SGD(learning_rate=lr_init, momentum=momentum)
         model.compile(
-            optimizer=optimizer_use, loss=tf.keras.losses.CategoricalCrossentropy(), metrics=["accuracy"]
+            optimizer=optimizer_use,
+            loss=tf.keras.losses.CategoricalCrossentropy(),
+            metrics=["accuracy"],
         )
     print(f"final model summary: {model.summary()}")
 
     return model
 
-    
+
 def train_fit(
     modelinput,
     traindata,
     valdata,
     callbacks_list,
     class_weights_use,
-    evid = config.evid,
-    epoch_set = config.epoch_set,
-    BATCH_SIZE = config.BATCH_SIZE,
+    evid=config.evid,
+    epoch_set=config.epoch_set,
+    BATCH_SIZE=config.BATCH_SIZE,
     # wbtable # LATER also figre out how to append # of epochs ran
     # for reading in df
     # append_details, # for w&b
@@ -146,13 +167,14 @@ def train_fit(
         history (tf.keras.callbacks.History): Training history object containing loss and accuracy per epoch.
     """
 
-    if evid: # class weights already incorporated in the loss function for evidential, so set it to None
-        class_weights_use = None 
-    
+    if (
+        evid
+    ):  # class weights already incorporated in the loss function for evidential, so set it to None
+        class_weights_use = None
+
     for x, y in traindata.take(1):
         print("X shape:", x.shape)
         print("Y shape:", y.shape)
-
 
     history = modelinput.fit(
         traindata,
@@ -162,4 +184,3 @@ def train_fit(
         batch_size=BATCH_SIZE,
         class_weight=class_weights_use,
     )
-

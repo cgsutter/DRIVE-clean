@@ -22,6 +22,7 @@ from tensorflow.keras import regularizers
 import config
 import csv
 
+
 ####### Data-related functions
 # load and prep HRRR data
 def hrrr_data_load_prep(hrrr_data_path_csv):
@@ -48,8 +49,11 @@ def hrrr_data_load_prep(hrrr_data_path_csv):
 
     return hrrr
 
-def merge_cnn_and_weather_data(cnndata_df, weatherdata_df,cols_to_keep_cnn):
-    cnndata_df = cnndata_df[cols_to_keep_cnn]  # HERE!! if using calibrated probabilities cols will need to be different 'prob_dry', 'prob_poor_viz', 'prob_snow', 'prob_snow_severe', 'prob_wet','model_pred'  OR 'norm_calib_dry', 'norm_calib_poor_viz','norm_calib_snow', 'norm_calib_snow_severe', 'norm_calib_wet', 'norm_calib_cat'
+
+def merge_cnn_and_weather_data(cnndata_df, weatherdata_df, cols_to_keep_cnn):
+    cnndata_df = cnndata_df[
+        cols_to_keep_cnn
+    ]  # HERE!! if using calibrated probabilities cols will need to be different 'prob_dry', 'prob_poor_viz', 'prob_snow', 'prob_snow_severe', 'prob_wet','model_pred'  OR 'norm_calib_dry', 'norm_calib_poor_viz','norm_calib_snow', 'norm_calib_snow_severe', 'norm_calib_wet', 'norm_calib_cat'
     # print(len(c1))
 
     # merge the datasets dealing with multiple of the same cols, etc
@@ -71,13 +75,16 @@ def merge_cnn_and_weather_data(cnndata_df, weatherdata_df,cols_to_keep_cnn):
     print(len(hrrr_full))
     return hrrr_full
 
-def prepare_data_fortraining(dfinput, features = config.features_for_training):
+
+def prepare_data_fortraining(dfinput, features=config.features_for_training):
     ## prepare data
     print("size of data inside prepare_data_fortraining function")
 
     print(len(dfinput))
     # HERE!! Update if want to train on train or train on val (and if this is the case then also be sure to set val equal to test, accordingly)
-    train = dfinput[dfinput["innerPhase"] == "innerTest"]  # should say innerTest. But for side experiment it's alt innerTrain
+    train = dfinput[
+        dfinput["innerPhase"] == "innerTest"
+    ]  # should say innerTest. But for side experiment it's alt innerTrain
     train_input_data = train[features]
     train_output_data = train["img_cat"]
 
@@ -103,19 +110,36 @@ def prepare_data_fortraining(dfinput, features = config.features_for_training):
     scaler.fit(train_input_data)  # Learns mean and std from training data
 
     # Step 3: Transform each dataset using the same scaler
-    train_input_scaled = scaler.transform(
-        train_input_data
-    )  # Applies learned mean/std
+    train_input_scaled = scaler.transform(train_input_data)  # Applies learned mean/std
     val_input_scaled = scaler.transform(val_input_data)  # Applies learned mean/std
     # test_input_scaled = scaler.transform(test_input_data) # Uses same mean/std as training
 
-    all_input_scaled = scaler.transform(all_input_data) 
+    all_input_scaled = scaler.transform(all_input_data)
 
-    return train_input_scaled, train_output_data, val_input_scaled, val_output_data, all_input_scaled, all_output_data, all_imgname, scaler
+    return (
+        train_input_scaled,
+        train_output_data,
+        val_input_scaled,
+        val_output_data,
+        all_input_scaled,
+        all_output_data,
+        all_imgname,
+        scaler,
+    )
+
 
 # ML model-related functions
 # define fn for dnn training
-def dnn(hypsuse, traindata_input, traindata_output, valdata_input, valdata_output, makepreds = False, alldata_input = None, alldataoutput = None):
+def dnn(
+    hypsuse,
+    traindata_input,
+    traindata_output,
+    valdata_input,
+    valdata_output,
+    makepreds=False,
+    alldata_input=None,
+    alldataoutput=None,
+):
 
     weightsuse = class_weight.compute_class_weight(
         "balanced", classes=np.unique(traindata_output), y=traindata_output
@@ -200,7 +224,7 @@ def dnn(hypsuse, traindata_input, traindata_output, valdata_input, valdata_outpu
         y_predall_ind = np.argmax(y_proball, axis=1)
         y_predall = le.inverse_transform(y_predall_ind)
         ytrueall = le.inverse_transform(alldataoutput)
-    
+
     else:
         y_proball = None
         y_predall = None
@@ -208,8 +232,16 @@ def dnn(hypsuse, traindata_input, traindata_output, valdata_input, valdata_outpu
 
     return ytrue, y_pred, model, y_proball, y_predall, ytrueall
 
+
 def multinomial_logistic_reg(
-    hypsuse, traindata_input, traindata_output, valdata_input, valdata_output, makepreds = False, alldata_input = None, alldataoutput = None
+    hypsuse,
+    traindata_input,
+    traindata_output,
+    valdata_input,
+    valdata_output,
+    makepreds=False,
+    alldata_input=None,
+    alldataoutput=None,
 ):
 
     model = LogisticRegression(
@@ -241,7 +273,14 @@ def multinomial_logistic_reg(
 
 
 def svm_model(
-    hypsuse, traindata_input, traindata_output, valdata_input, valdata_output,makepreds = False, alldata_input = None, alldataoutput = None
+    hypsuse,
+    traindata_input,
+    traindata_output,
+    valdata_input,
+    valdata_output,
+    makepreds=False,
+    alldata_input=None,
+    alldataoutput=None,
 ):
     svm_classifier = svm.SVC(
         **hypsuse, class_weight="balanced", probability=True, verbose=1
@@ -255,17 +294,18 @@ def svm_model(
     # Evaluate the classifier on the validation data
     y_pred = svm_classifier.predict(valdata_input)
 
-
     # for model predictions for final run, run pred and probs on all examples
     if makepreds:
         y_predall = svm_classifier.predict(alldata_input)
 
         # full_prob = modelload.predict_proba(alli) # REMOVED! Don't use this method... Dont use predict_proba for SVM decision boundary model. It does something w platt scaling and essentially there will be some cases where the predicted class does not align with the maximum from predict proba. SOLUTION: Need to use  the raw scores decision boundary and manually calculate the softmax from that. The max from that will align with the .predict class.
         # manually calculate probabilities due predict_proba notes abovey_pred = svm_classifier.predict(valdata_input)
-        raw_scores = svm_classifier.decision_function(alldata_input)  # Get raw SVM decision scores
+        raw_scores = svm_classifier.decision_function(
+            alldata_input
+        )  # Get raw SVM decision scores
         y_proball = softmax(raw_scores)  # Convert to probabilities
         ytrueall = alldataoutput
-        
+
     else:
         y_proball = None
         y_predall = None
@@ -275,7 +315,14 @@ def svm_model(
 
 
 def gnb_model(
-    hypsuse, traindata_input, traindata_output, valdata_input, valdata_output, makepreds = False, alldata_input = None, alldataoutput = None
+    hypsuse,
+    traindata_input,
+    traindata_output,
+    valdata_input,
+    valdata_output,
+    makepreds=False,
+    alldata_input=None,
+    alldataoutput=None,
 ):
 
     # from dnn, but for gnb need a weight by class not a dictionary, so use just weightsuse
@@ -303,7 +350,7 @@ def gnb_model(
         y_proball = nb.predict_proba(alldata_input)
         y_predall = nb.predict(alldata_input)
         ytrueall = alldataoutput
-    
+
     else:
         y_proball = None
         y_predall = None
@@ -312,7 +359,16 @@ def gnb_model(
     return valdata_output, y_pred, nb, y_proball, y_predall, ytrueall
 
 
-def rf_model(hypsuse, traindata_input, traindata_output, valdata_input, valdata_output, makepreds = False, alldata_input = None, alldataoutput = None):
+def rf_model(
+    hypsuse,
+    traindata_input,
+    traindata_output,
+    valdata_input,
+    valdata_output,
+    makepreds=False,
+    alldata_input=None,
+    alldataoutput=None,
+):
 
     model = RandomForestClassifier(**hypsuse, class_weight="balanced")
 
@@ -343,22 +399,33 @@ def grab_alg_hyps(alg):
 
     elif alg == "svm":
         hyperparams = config.svm_HT
-            
+
     elif alg == "gnb":
-        
+
         hyperparams = config.gnb_HT
-           
+
     elif alg == "rf":
-        
+
         hyperparams = config.rf_HT
-        
+
     else:
         print("issue with algorithm input")
 
     return hyperparams
 
+
 ####### Evaluate model training functions
-def run_training(alg, hypselected,train_input_scaled, train_output_data,val_input_scaled, val_output_data, makepreds_flag = False, alldata_input_use = None, alldata_output_use = None):
+def run_training(
+    alg,
+    hypselected,
+    train_input_scaled,
+    train_output_data,
+    val_input_scaled,
+    val_output_data,
+    makepreds_flag=False,
+    alldata_input_use=None,
+    alldata_output_use=None,
+):
 
     if alg == "DNN":
         ytrue, y_pred, model, y_proball, y_predall, ytrueall = dnn(
@@ -367,9 +434,9 @@ def run_training(alg, hypselected,train_input_scaled, train_output_data,val_inpu
             traindata_output=train_output_data,
             valdata_input=val_input_scaled,
             valdata_output=val_output_data,
-            makepreds = makepreds_flag,
-            alldata_input = alldata_input_use,
-            alldataoutput = alldata_output_use
+            makepreds=makepreds_flag,
+            alldata_input=alldata_input_use,
+            alldataoutput=alldata_output_use,
         )
 
     elif alg == "logistic":
@@ -379,55 +446,57 @@ def run_training(alg, hypselected,train_input_scaled, train_output_data,val_inpu
             traindata_output=train_output_data,
             valdata_input=val_input_scaled,
             valdata_output=val_output_data,
-            makepreds = makepreds_flag,
-            alldata_input = alldata_input_use,
-            alldataoutput = alldata_output_use
+            makepreds=makepreds_flag,
+            alldata_input=alldata_input_use,
+            alldataoutput=alldata_output_use,
         )
 
-    elif alg == "svm":  # from here /home/csutter/DRIVE/weather_img_concatmodels/cnn_hrrr_fcsthr2/train_blended.py
-        
+    elif (
+        alg == "svm"
+    ):  # from here /home/csutter/DRIVE/weather_img_concatmodels/cnn_hrrr_fcsthr2/train_blended.py
+
         ytrue, y_pred, model, y_proball, y_predall, ytrueall = svm_model(
             hypsuse=hypselected,
             traindata_input=train_input_scaled,
             traindata_output=train_output_data,
             valdata_input=val_input_scaled,
             valdata_output=val_output_data,
-            makepreds = makepreds_flag,
-            alldata_input = alldata_input_use,
-            alldataoutput = alldata_output_use
+            makepreds=makepreds_flag,
+            alldata_input=alldata_input_use,
+            alldataoutput=alldata_output_use,
         )
-            
+
     elif alg == "gnb":
-        
+
         ytrue, y_pred, model, y_proball, y_predall, ytrueall = gnb_model(
             hypsuse=hypselected,
             traindata_input=train_input_scaled,
             traindata_output=train_output_data,
             valdata_input=val_input_scaled,
             valdata_output=val_output_data,
-            makepreds = makepreds_flag,
-            alldata_input = alldata_input_use,
-            alldataoutput = alldata_output_use
+            makepreds=makepreds_flag,
+            alldata_input=alldata_input_use,
+            alldataoutput=alldata_output_use,
         )
-           
+
     elif alg == "rf":
-        
+
         ytrue, y_pred, model, y_proball, y_predall, ytrueall = rf_model(
             hypsuse=hypselected,
             traindata_input=train_input_scaled,
             traindata_output=train_output_data,
             valdata_input=val_input_scaled,
             valdata_output=val_output_data,
-            makepreds = makepreds_flag,
-            alldata_input = alldata_input_use,
-            alldataoutput = alldata_output_use
+            makepreds=makepreds_flag,
+            alldata_input=alldata_input_use,
+            alldataoutput=alldata_output_use,
         )
-        
+
     else:
         print("issue with algorithm input")
         ytrue = "issue"
         ypred = "issue"
-    
+
     return ytrue, y_pred, model, y_proball, y_predall, ytrueall
 
 
@@ -461,13 +530,14 @@ def calcstats_onefold(ytrueinput, ypredinput):
     print(splitspecific_list)
     return splitspecific_list
 
-def track_results_main_file(dict_results, mainresultsfile = config.file_collect_results):
+
+def track_results_main_file(dict_results, mainresultsfile=config.file_collect_results):
     # save out to a main file that will collect all model results, even hyptuning
 
     file_exists = os.path.isfile(mainresultsfile)
 
-    with open(mainresultsfile, 'a', newline='') as f:
+    with open(mainresultsfile, "a", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=dict_results.keys())
         if not file_exists:
-            writer.writeheader() # write header only once
-        writer.writerow(dict_results) # always write the data row
+            writer.writeheader()  # write header only once
+        writer.writerow(dict_results)  # always write the data row

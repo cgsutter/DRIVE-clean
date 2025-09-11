@@ -3,15 +3,20 @@
 import sys
 import keras
 from keras.utils import register_keras_serializable
+
 # import keras.ops as ops
 import tensorflow as tf
 import keras.layers as layers
 import keras.optimizers as optimizers
 import numpy as np
+
 # from keras.layers import Dense, GaussianNoise, Dropout
 from evid_milesguess_layers import DenseNormalGamma, DenseNormal
-from evid_milesguess_losses import evidential_cat_loss #, evidential_reg_loss, gaussian_nll
+from evid_milesguess_losses import (
+    evidential_cat_loss,
+)  # , evidential_reg_loss, gaussian_nll
 from evid_milesguess_callbacks import ReportEpoch
+
 # from keras.optimizers import Adam, SGD
 
 # Replace keras.ops to tf. oprations b/c using keras 2.11 (keras.ops is in keras 3.X)
@@ -19,7 +24,6 @@ from evid_milesguess_callbacks import ReportEpoch
 
 # @keras.saving.register_keras_serializable() #CS
 @register_keras_serializable()
-
 class CategoricalDNN(keras.models.Model):
     """A Categorical Dense Neural Network Model that can support arbitrary numbers of hidden layers
     and the ability to provide evidential uncertainty estimation.
@@ -87,12 +91,39 @@ class CategoricalDNN(keras.models.Model):
 
     """
 
-    def __init__(self, hidden_layers=2, hidden_neurons=64, evidential=False, activation="relu",
-                 output_activation="softmax", optimizer="adam", loss="categorical_crossentropy", loss_weights=None,
-                 annealing_coeff=1.0, use_noise=False, noise_sd=0.0, lr=0.001, use_dropout=False, dropout_alpha=0.2,
-                 batch_size=128, epochs=2, kernel_reg=None, l1_weight=0.0, l2_weight=0.0, sgd_momentum=0.9,
-                 adam_beta_1=0.9, adam_beta_2=0.999, epsilon=1e-7, decay=0, verbose=0, random_state=1000, n_classes=2,
-                 n_inputs=42, callbacks=None, **kwargs):
+    def __init__(
+        self,
+        hidden_layers=2,
+        hidden_neurons=64,
+        evidential=False,
+        activation="relu",
+        output_activation="softmax",
+        optimizer="adam",
+        loss="categorical_crossentropy",
+        loss_weights=None,
+        annealing_coeff=1.0,
+        use_noise=False,
+        noise_sd=0.0,
+        lr=0.001,
+        use_dropout=False,
+        dropout_alpha=0.2,
+        batch_size=128,
+        epochs=2,
+        kernel_reg=None,
+        l1_weight=0.0,
+        l2_weight=0.0,
+        sgd_momentum=0.9,
+        adam_beta_1=0.9,
+        adam_beta_2=0.999,
+        epsilon=1e-7,
+        decay=0,
+        verbose=0,
+        random_state=1000,
+        n_classes=2,
+        n_inputs=42,
+        callbacks=None,
+        **kwargs,
+    ):
         """
         Create Keras neural network model and compile it.
 
@@ -135,12 +166,37 @@ class CategoricalDNN(keras.models.Model):
         else:
             self.callbacks = callbacks
 
-        self.hyperparameters = ["hidden_layers", "hidden_neurons", "evidential", "activation", "output_activation",
-                                "optimizer", "sgd_momentum", "adam_beta_1", "adam_beta_2", "epsilon", "loss",
-                                "loss_weights", "annealing_coeff", "lr", "kernel_reg", "l1_weight", "l2_weight",
-                                "batch_size", "use_noise", "noise_sd", "use_dropout", "dropout_alpha", "epochs",
-                                "callbacks", "decay", "verbose", "random_state", "n_classes", "n_inputs"]
-
+        self.hyperparameters = [
+            "hidden_layers",
+            "hidden_neurons",
+            "evidential",
+            "activation",
+            "output_activation",
+            "optimizer",
+            "sgd_momentum",
+            "adam_beta_1",
+            "adam_beta_2",
+            "epsilon",
+            "loss",
+            "loss_weights",
+            "annealing_coeff",
+            "lr",
+            "kernel_reg",
+            "l1_weight",
+            "l2_weight",
+            "batch_size",
+            "use_noise",
+            "noise_sd",
+            "use_dropout",
+            "dropout_alpha",
+            "epochs",
+            "callbacks",
+            "decay",
+            "verbose",
+            "random_state",
+            "n_classes",
+            "n_inputs",
+        ]
 
         if self.kernel_reg == "l1":
             self.kernel_reg = keras.regularizers.L1(self.l1_weight)
@@ -152,35 +208,53 @@ class CategoricalDNN(keras.models.Model):
             self.kernel_reg = None
 
         if self.optimizer == "adam":
-            self.optimizer_obj = optimizers.Adam(learning_rate=self.lr,
-                                      beta_1=self.adam_beta_1,
-                                      beta_2=self.adam_beta_2,
-                                      epsilon=self.epsilon)
+            self.optimizer_obj = optimizers.Adam(
+                learning_rate=self.lr,
+                beta_1=self.adam_beta_1,
+                beta_2=self.adam_beta_2,
+                epsilon=self.epsilon,
+            )
         elif self.optimizer == "sgd":
-            self.optimizer_obj = optimizers.SGD(learning_rate=self.lr, momentum=self.sgd_momentum)
+            self.optimizer_obj = optimizers.SGD(
+                learning_rate=self.lr, momentum=self.sgd_momentum
+            )
 
         if self.evidential:
             # print("USING EVIDENTIAL") #CSCheck
             self.output_activation = "linear"
 
         self.model_layers = []
-        self.model_layers.append(layers.Dense(self.n_inputs,
-                                       activation=self.activation,
-                                       kernel_regularizer=self.kernel_reg,
-                                       name="input_dense"))
+        self.model_layers.append(
+            layers.Dense(
+                self.n_inputs,
+                activation=self.activation,
+                kernel_regularizer=self.kernel_reg,
+                name="input_dense",
+            )
+        )
         for h in range(self.hidden_layers):
-            self.model_layers.append(layers.Dense(self.hidden_neurons,
-                                           activation=self.activation,
-                                           kernel_regularizer=self.kernel_reg,
-                                           name=f"dense_{h:02d}"))
+            self.model_layers.append(
+                layers.Dense(
+                    self.hidden_neurons,
+                    activation=self.activation,
+                    kernel_regularizer=self.kernel_reg,
+                    name=f"dense_{h:02d}",
+                )
+            )
             if self.use_dropout:
-                self.model_layers.append(layers.Dropout(self.dropout_alpha, name=f"dropout_{h:02d}"))
+                self.model_layers.append(
+                    layers.Dropout(self.dropout_alpha, name=f"dropout_{h:02d}")
+                )
             if self.use_noise:
-                self.model_layers.append(layers.GaussianNoise(self.noise_sd, name=f"noise_{h:02d}"))
+                self.model_layers.append(
+                    layers.GaussianNoise(self.noise_sd, name=f"noise_{h:02d}")
+                )
 
-        self.model_layers.append(layers.Dense(self.n_classes,
-                                       activation=self.output_activation,
-                                       name="dense_output"))
+        self.model_layers.append(
+            layers.Dense(
+                self.n_classes, activation=self.output_activation, name="dense_output"
+            )
+        )
 
     def call(self, inputs):
 
@@ -193,21 +267,30 @@ class CategoricalDNN(keras.models.Model):
     def fit(self, x=None, y=None, **kwargs):
 
         if self.evidential:
-            e = tf.Variable(1) #CS update with tf
+            e = tf.Variable(1)  # CS update with tf
             report_epoch_callback = ReportEpoch(e)
-            self.loss = evidential_cat_loss(evi_coef=self.annealing_coeff,
-                                            epoch_callback=report_epoch_callback)
+            self.loss = evidential_cat_loss(
+                evi_coef=self.annealing_coeff, epoch_callback=report_epoch_callback
+            )
             self.callbacks.append(report_epoch_callback)
-            print("USING EVIDENTIAL") #CSCheck
+            print("USING EVIDENTIAL")  # CSCheck
             print(self.loss)
 
-        super().compile(loss=self.loss,
-                        optimizer=self.optimizer_obj,
-                        metrics=['accuracy'],
-                        run_eagerly=False)
+        super().compile(
+            loss=self.loss,
+            optimizer=self.optimizer_obj,
+            metrics=["accuracy"],
+            run_eagerly=False,
+        )
 
-        hist = super().fit(x, y, epochs=self.epochs, batch_size=self.batch_size,
-                           callbacks=self.callbacks, **kwargs)
+        hist = super().fit(
+            x,
+            y,
+            epochs=self.epochs,
+            batch_size=self.batch_size,
+            callbacks=self.callbacks,
+            **kwargs,
+        )
 
         return hist
 
@@ -226,8 +309,10 @@ class CategoricalDNN(keras.models.Model):
             Else If return_uncertainties is False: probs
         """
         if (not self.evidential) and return_uncertainties:
-            raise NotImplementedError("You can only return uncertainty estimates when 'evidential' is True. Otherwise "
-                                      "you can set 'return_uncertainties' to False to return probabilities.")
+            raise NotImplementedError(
+                "You can only return uncertainty estimates when 'evidential' is True. Otherwise "
+                "you can set 'return_uncertainties' to False to return probabilities."
+            )
         output = super().predict(x, **kwargs)
         if return_uncertainties:
             return self.calc_uncertainty(output)
@@ -237,13 +322,13 @@ class CategoricalDNN(keras.models.Model):
     @staticmethod
     def calc_uncertainty(y_pred):
         num_classes = y_pred.shape[-1]
-        evidence = tf.nn.relu(y_pred)#CS replace w tf command
+        evidence = tf.nn.relu(y_pred)  # CS replace w tf command
         alpha = evidence + 1
-        S = tf.reduce_sum(alpha, axis=1, keepdims=True)#CS replace w tf command
+        S = tf.reduce_sum(alpha, axis=1, keepdims=True)  # CS replace w tf command
         u = num_classes / S
         prob = alpha / S
         epistemic = prob * (1 - prob) / (S + 1)
-        aleatoric = prob - prob ** 2 - epistemic
+        aleatoric = prob - prob**2 - epistemic
         return prob, u, aleatoric, epistemic
 
     def predict_dropout(self, x, mc_forward_passes=10, batch_size=None):
@@ -252,7 +337,7 @@ class CategoricalDNN(keras.models.Model):
             [
                 np.vstack(
                     [
-                        self(tf.expand_dims(lx, axis=-1)) #CS replace w tf command
+                        self(tf.expand_dims(lx, axis=-1))  # CS replace w tf command
                         for lx in np.array_split(x, x.shape[0] // _batch_size)
                     ]
                 )
@@ -270,14 +355,15 @@ class CategoricalDNN(keras.models.Model):
         )  # shape (n_samples,)
         # Calculating mutual information across multiple MCD forward passes
         mutual_info = entropy - np.mean(
-            np.sum(-np.array(y_prob) * np.log(np.maximum(y_prob, epsilon)), axis=-1), axis=0
+            np.sum(-np.array(y_prob) * np.log(np.maximum(y_prob, epsilon)), axis=-1),
+            axis=0,
         )  # shape (n_samples,)
         return pred_probs, aleatoric, epistemic, entropy, mutual_info
 
     def get_config(self):
         base_config = super().get_config()
         parameter_config = {hp: getattr(self, hp) for hp in self.hyperparameters}
-        parameter_config['callbacks'] = []
+        parameter_config["callbacks"] = []
         return {**base_config, **parameter_config}
 
 

@@ -12,9 +12,9 @@ partA_ensemble = True
 partB_summary = True
 
 # set strings for saving and loading data
-desc_of_modelflow = "ynobs_ensemble_eval5catdata"  # 
+desc_of_modelflow = "ynobs_ensemble_eval5catdata"  #
 dir_with_models = "/home/csutter/DRIVE-clean/ODM/data_preds_eval5catdata"
-files_subset = "ynobs" # doesnt matter for data_preds_eval5catdata bc only ran the one set of full dataset, just use some string that exists in the files
+files_subset = "ynobs"  # doesnt matter for data_preds_eval5catdata bc only ran the one set of full dataset, just use some string that exists in the files
 # "ynobs_entire" # file_subset to designate to run on ynobs_entire which includes all data samples (which is needed for ensembling), and runs for each of the 6 models (rather than running everything in that dir which also includes the splits which are all different)
 
 dir_save_ensemble = f"/home/csutter/DRIVE-clean/ODM/ensemble_results"  # generally don't need to change since will be saved as a fn of the desc_of_modelflow

@@ -1,8 +1,8 @@
 # SOURCE: Evidential deep learning code comes from NCAR MILES Group: https://miles.ucar.edu/software/milesguess/
-# Also from example in docstring of CategoricalDNN from: https://github.com/ai2es/miles-guess/blob/main/mlguess/keras/models.py 
+# Also from example in docstring of CategoricalDNN from: https://github.com/ai2es/miles-guess/blob/main/mlguess/keras/models.py
 
 # Following from running evid NN from example: https://github.com/ai2es/miles-guess/blob/main/notebooks/classifier_example.ipynb
-# Scripts: https://github.com/ai2es/miles-guess/tree/main/mlguess/keras 
+# Scripts: https://github.com/ai2es/miles-guess/tree/main/mlguess/keras
 
 import yaml
 import numpy as np
@@ -18,37 +18,38 @@ import evid_milesguess_callbacks
 
 # YAML-like model config converted into a Python dictionary
 # Mimicing off of miles-guess example: https://github.com/ai2es/miles-guess/blob/main/config/ptype/evidential.yml
-config = {"model": {
-    "activation": "leaky_relu",
-    "annealing_coeff": 34,
-    "batch_size": 1130,
-    "dropout_alpha": 0.11676011477923032,
-    "epochs": 5, # update here
-    "evidential": True,
-    "n_inputs": 84,
-    "hidden_layers": 4,
-    "hidden_neurons": 212,
-    "l2_weight": 0.000881889591229087,
-    "loss": "evidential",
-    "lr": 0.004800502096767794,
-    "n_classes": 4,
-    "optimizer": "adam",
-    "output_activation": "linear",
-    "use_dropout": 1,  # You might want to convert this to True (bool)
-    "verbose": 1
+config = {
+    "model": {
+        "activation": "leaky_relu",
+        "annealing_coeff": 34,
+        "batch_size": 1130,
+        "dropout_alpha": 0.11676011477923032,
+        "epochs": 5,  # update here
+        "evidential": True,
+        "n_inputs": 84,
+        "hidden_layers": 4,
+        "hidden_neurons": 212,
+        "l2_weight": 0.000881889591229087,
+        "loss": "evidential",
+        "lr": 0.004800502096767794,
+        "n_classes": 4,
+        "optimizer": "adam",
+        "output_activation": "linear",
+        "use_dropout": 1,  # You might want to convert this to True (bool)
+        "verbose": 1,
     },
-    "callbacks":{
+    "callbacks": {
         "CSVLogger": {
             "append": 0,
             "filename": "/home/csutter/DRIVE-clean/Evid/training_log.csv",
-            "separator": ","
+            "separator": ",",
         },
         "EarlyStopping": {
             "mode": "max",
             "monitor": "val_ave_acc",
             "patience": 9,
             "restore_best_weights": 1,
-            "verbose": 0
+            "verbose": 0,
         },
         "ReduceLROnPlateau": {
             "factor": 0.1,
@@ -56,9 +57,9 @@ config = {"model": {
             "mode": "max",
             "monitor": "val_ave_acc",
             "patience": 3,
-            "verbose": 0
-        }
-    }
+            "verbose": 0,
+        },
+    },
 }
 
 print(config["model"])
@@ -114,7 +115,7 @@ y_val = np.random.randint(low=0, high=n_classes, size=n_samples)
 callbacks = evid_milesguess_callbacks.get_callbacks(config["callbacks"])
 
 ### Evidential
-model = CategoricalDNN(**config["model"], callbacks = callbacks)
+model = CategoricalDNN(**config["model"], callbacks=callbacks)
 hist = model.fit(x_train, y_train, validation_data=(x_val, y_val))
 p_with_uncertainty = model.predict(x_train, return_uncertainties=True, batch_size=5000)
 

@@ -1,12 +1,11 @@
-import tensorflow as tf # using tf. functions where keras.ops previously was (bc using keras 2.11 not 3.x)
+import tensorflow as tf  # using tf. functions where keras.ops previously was (bc using keras 2.11 not 3.x)
 import keras
 import keras.layers as layers
-from keras.utils import register_keras_serializable #CS
+from keras.utils import register_keras_serializable  # CS
 
 
 # @keras.saving.register_keras_serializable() #CS
 @register_keras_serializable()
-
 class DenseNormalGamma(layers.Layer):
     """Implements dense output layer for a deep evidential regression model.
     Reference: https://www.mit.edu/~amini/pubs/pdf/deep-evidential-regression.pdf
@@ -15,16 +14,25 @@ class DenseNormalGamma(layers.Layer):
 
     NUM_OUTPUT_PARAMS = 4
 
-    def __init__(self, units: int,
-                 spectral_normalization: bool = False,
-                 eps: float = 1e-12, **kwargs):
+    def __init__(
+        self,
+        units: int,
+        spectral_normalization: bool = False,
+        eps: float = 1e-12,
+        **kwargs
+    ):
         super().__init__(**kwargs)
         self.units = int(units)
         if spectral_normalization:
             self.dense = layers.SpectralNormalization(
-                layers.Dense(DenseNormalGamma.NUM_OUTPUT_PARAMS * self.units, activation=None))
+                layers.Dense(
+                    DenseNormalGamma.NUM_OUTPUT_PARAMS * self.units, activation=None
+                )
+            )
         else:
-            self.dense = layers.Dense(DenseNormalGamma.NUM_OUTPUT_PARAMS * self.units, activation=None)
+            self.dense = layers.Dense(
+                DenseNormalGamma.NUM_OUTPUT_PARAMS * self.units, activation=None
+            )
         self.eps = eps
 
     def evidence(self, x):
@@ -43,31 +51,40 @@ class DenseNormalGamma(layers.Layer):
 
     def get_config(self):
         base_config = super(DenseNormalGamma, self).get_config()
-        base_config['units'] = self.units
+        base_config["units"] = self.units
         return base_config
 
 
 # @keras.saving.register_keras_serializable() #CS
 @register_keras_serializable()
-
 class DenseNormal(layers.Layer):
     """Dense output layer for a Gaussian distribution regression neural network."""
 
     NUM_OUTPUT_PARAMS = 2
 
-    def __init__(self, units: int,
-                 spectral_normalization: bool = False,
-                 eps: float = 1e-12, output_activation="sigmoid", **kwargs):
+    def __init__(
+        self,
+        units: int,
+        spectral_normalization: bool = False,
+        eps: float = 1e-12,
+        output_activation="sigmoid",
+        **kwargs
+    ):
         super().__init__(**kwargs)
         self.units = int(units)
         self.output_activation = output_activation
         if spectral_normalization:
             self.dense = layers.SpectralNormalization(
-                layers.Dense(DenseNormal.NUM_OUTPUT_PARAMS * self.units,
-                             activation=self.output_activation))
+                layers.Dense(
+                    DenseNormal.NUM_OUTPUT_PARAMS * self.units,
+                    activation=self.output_activation,
+                )
+            )
         else:
-            self.dense = layers.Dense(DenseNormal.NUM_OUTPUT_PARAMS * self.units,
-                                      activation=self.output_activation)
+            self.dense = layers.Dense(
+                DenseNormal.NUM_OUTPUT_PARAMS * self.units,
+                activation=self.output_activation,
+            )
         self.eps = eps
 
     def call(self, x):
@@ -81,7 +98,7 @@ class DenseNormal(layers.Layer):
 
     def get_config(self):
         base_config = super(DenseNormal, self).get_config()
-        base_config['units'] = self.units
-        base_config['eps'] = self.eps
+        base_config["units"] = self.units
+        base_config["eps"] = self.eps
         base_config["output_activation"] = self.output_activation
         return base_config

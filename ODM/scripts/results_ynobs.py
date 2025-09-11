@@ -1,4 +1,4 @@
-#### DEPRECATED -- dont need this file. Preds are run in CNN code. 
+#### DEPRECATED -- dont need this file. Preds are run in CNN code.
 
 # # pandas
 # # config

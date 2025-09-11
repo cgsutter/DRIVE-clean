@@ -2,15 +2,17 @@ import config as config
 import nested_ensemble_ynobs
 
 # Currently this code works to evaluate the ODM model
-# Not set up to work to evalute SCM data, although I think the code in /home/csutter/DRIVE-clean/ODM/scripts/nested_ensemble_ynobs.py has markings of that working, but need to come back to finish that. Not sure needed for manuscript, more of an inference/operational thing, so come back to this. 
+# Not set up to work to evalute SCM data, although I think the code in /home/csutter/DRIVE-clean/ODM/scripts/nested_ensemble_ynobs.py has markings of that working, but need to come back to finish that. Not sure needed for manuscript, more of an inference/operational thing, so come back to this.
 
 # Note that the CNNs are trained and run predictions in the /CNN directory
-# This script just aggregates results for ODM which are done differently than SCM bc there are only two folds, only 3 models to assess per fold, etc. 
+# This script just aggregates results for ODM which are done differently than SCM bc there are only two folds, only 3 models to assess per fold, etc.
 
-# This runs first to create an ensemble csv per split (0 or 1) -- see manuscript for the data flow and organization here. 
+# This runs first to create an ensemble csv per split (0 or 1) -- see manuscript for the data flow and organization here.
 for modelstr in ["0", "1"]:
     ## run data prep
-    dd = nested_ensemble_ynobs.outsideTest_onedf_all5models(modelstr, config.dir_with_models)
+    dd = nested_ensemble_ynobs.outsideTest_onedf_all5models(
+        modelstr, config.dir_with_models
+    )
     print("run here1")
     print(len(dd))
     print(dd.columns)
@@ -56,7 +58,9 @@ for modelstr in ["0", "1"]:
             "dict_catAsKeys_probsAsValues",
             "dict_mostConfident_singleModel",
         ]
-    ] = dd.apply(nested_ensemble_ynobs.rowfn_dict_calcs_from_5preds, axis=1, result_type="expand")
+    ] = dd.apply(
+        nested_ensemble_ynobs.rowfn_dict_calcs_from_5preds, axis=1, result_type="expand"
+    )
 
     # print("finished!!")
     print(dd[0:5])
@@ -72,7 +76,9 @@ for modelstr in ["0", "1"]:
     dd2["ensembleMode_pred"] = dd2.apply(nested_ensemble_ynobs.rowfn_grab_mode, axis=1)
     print("through mode")
 
-    dd2["ensembleMaxConf_pred"] = dd2.apply(nested_ensemble_ynobs.rowfn_grab_max_confidence, axis=1)
+    dd2["ensembleMaxConf_pred"] = dd2.apply(
+        nested_ensemble_ynobs.rowfn_grab_max_confidence, axis=1
+    )
     print("through max confidence")
 
     # print(dd2[0:6])
@@ -82,12 +88,8 @@ for modelstr in ["0", "1"]:
     #     print(c)
 
     dd2["methodalign_1_2"] = dd2["ensembleAvg_pred"] == dd2["ensembleMode_pred"]
-    dd2["methodalign_1_3"] = (
-        dd2["ensembleAvg_pred"] == dd2["ensembleMaxConf_pred"]
-    )
-    dd2["methodalign_2_3"] = (
-        dd2["ensembleMode_pred"] == dd2["ensembleMaxConf_pred"]
-    )
+    dd2["methodalign_1_3"] = dd2["ensembleAvg_pred"] == dd2["ensembleMaxConf_pred"]
+    dd2["methodalign_2_3"] = dd2["ensembleMode_pred"] == dd2["ensembleMaxConf_pred"]
 
     print(sum(dd2["methodalign_1_2"]) / len(dd2))
     print(sum(dd2["methodalign_1_3"]) / len(dd2))
@@ -108,7 +110,9 @@ for modelstr in ["0", "1"]:
     # add columns to of correct and oks based on select pred
     dd3 = nested_ensemble_ynobs.dffn_addcols_correct_oks(dd2)
 
-    dd3.to_csv(f"{config.dir_save_ensemble}/{config.desc_of_modelflow}_OT{modelstr}.csv")
+    dd3.to_csv(
+        f"{config.dir_save_ensemble}/{config.desc_of_modelflow}_OT{modelstr}.csv"
+    )
 
     print(f"done with {modelstr}")
 

@@ -9,7 +9,13 @@ if config.ensemble_flag:
     for modelstr in ["0", "1", "2", "3", "4", "5"]:
         ## run data prep
 
-        dd = nested_ensemble.outsideTest_onedf_all5models(modelstr, config.dir_with_models, subsetflag = config.subset_files_torun, subsetstring = config.subset_string, subsetstring2 = config.subset_downstream)
+        dd = nested_ensemble.outsideTest_onedf_all5models(
+            modelstr,
+            config.dir_with_models,
+            subsetflag=config.subset_files_torun,
+            subsetstring=config.subset_string,
+            subsetstring2=config.subset_downstream,
+        )
 
         # print(len(dd))
         # print(len(dd[dd["innerPhase"]=="innerTest"]))
@@ -51,7 +57,9 @@ if config.ensemble_flag:
                 "dict_catAsKeys_probsAsValues",
                 "dict_mostConfident_singleModel",
             ]
-        ] = dd.apply(nested_ensemble.rowfn_dict_calcs_from_5preds, axis=1, result_type="expand")
+        ] = dd.apply(
+            nested_ensemble.rowfn_dict_calcs_from_5preds, axis=1, result_type="expand"
+        )
 
         # print("finished!!")
         print(dd[0:5])
@@ -67,7 +75,9 @@ if config.ensemble_flag:
         dd2["ensembleMode_pred"] = dd2.apply(nested_ensemble.rowfn_grab_mode, axis=1)
         print("through mode")
 
-        dd2["ensembleMaxConf_pred"] = dd2.apply(nested_ensemble.rowfn_grab_max_confidence, axis=1)
+        dd2["ensembleMaxConf_pred"] = dd2.apply(
+            nested_ensemble.rowfn_grab_max_confidence, axis=1
+        )
         print("through max confidence")
 
         # print(dd2[0:6])
@@ -105,7 +115,9 @@ if config.ensemble_flag:
         # add columns to of correct and oks based on select pred
         dd3 = nested_ensemble.dffn_addcols_correct_oks(dd2)
 
-        dd3.to_csv(f"{config.directory_preds}/{config.desc_of_modelflow}_OT{modelstr}.csv")
+        dd3.to_csv(
+            f"{config.directory_preds}/{config.desc_of_modelflow}_OT{modelstr}.csv"
+        )
 
         print(f"done with {modelstr}")
 
@@ -116,4 +128,6 @@ if config.ensemble_summary:
         ensemblefiles_base=f"{config.directory_preds}/{config.desc_of_modelflow}"
     )
 
-    summarydf.to_csv(f"{config.directory_summaries}/_summary_{config.desc_of_modelflow}.csv")
+    summarydf.to_csv(
+        f"{config.directory_summaries}/_summary_{config.desc_of_modelflow}.csv"
+    )

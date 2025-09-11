@@ -19,6 +19,7 @@ import _config as config
 
 # This whole script is one function
 
+
 def model_baseline(
     # one_off,
     # hyp_run,
@@ -41,7 +42,6 @@ def model_baseline(
     """
 
     print("entering model build function")
-
 
     if evid:
         print(
@@ -88,7 +88,11 @@ def model_baseline(
                     Dense(
                         256,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 model.add(Dropout(dropout_rate))
@@ -103,7 +107,11 @@ def model_baseline(
                     Dense(
                         1024,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 # if hyp_run == True:
@@ -112,7 +120,11 @@ def model_baseline(
                     Dense(
                         512,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 # if hyp_run == True:
@@ -144,7 +156,9 @@ def model_baseline(
                 Dense(
                     256,
                     activation=activation_layer_def,
-                    kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                    kernel_regularizer=(
+                        None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight)
+                    ),
                 )
             )
             model.add(Dropout(dropout_rate))
@@ -179,7 +193,11 @@ def model_baseline(
                     Dense(
                         units=4096,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 model.add(Dropout(dropout_rate))
@@ -187,7 +205,11 @@ def model_baseline(
                     Dense(
                         units=4096,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 model.add(Dropout(dropout_rate))
@@ -202,7 +224,11 @@ def model_baseline(
                     Dense(
                         1024,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 # if hyp_run == True:
@@ -211,7 +237,11 @@ def model_baseline(
                     Dense(
                         512,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 # if hyp_run == True:
@@ -240,7 +270,9 @@ def model_baseline(
                 Dense(
                     units=4096,
                     activation=activation_layer_def,
-                    kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                    kernel_regularizer=(
+                        None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight)
+                    ),
                 )
             )
             model.add(Dropout(dropout_rate))
@@ -248,7 +280,9 @@ def model_baseline(
                 Dense(
                     units=4096,
                     activation=activation_layer_def,
-                    kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                    kernel_regularizer=(
+                        None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight)
+                    ),
                 )
             )
             model.add(Dropout(dropout_rate))
@@ -287,7 +321,11 @@ def model_baseline(
                     Dense(
                         256,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 model.add(Dropout(dropout_rate))
@@ -302,7 +340,11 @@ def model_baseline(
                     Dense(
                         1024,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 # if hyp_run == True:
@@ -311,7 +353,11 @@ def model_baseline(
                     Dense(
                         512,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 # if hyp_run == True:
@@ -343,7 +389,9 @@ def model_baseline(
                 Dense(
                     256,
                     activation=activation_layer_def,
-                    kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                    kernel_regularizer=(
+                        None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight)
+                    ),
                 )
             )
             model.add(Dropout(dropout_rate))
@@ -382,7 +430,11 @@ def model_baseline(
                     Dense(
                         256,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 model.add(Dropout(dropout_rate))
@@ -397,7 +449,11 @@ def model_baseline(
                     Dense(
                         1024,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 # if hyp_run == True:
@@ -406,7 +462,11 @@ def model_baseline(
                     Dense(
                         512,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 # if hyp_run == True:
@@ -438,7 +498,9 @@ def model_baseline(
                 Dense(
                     256,
                     activation=activation_layer_def,
-                    kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                    kernel_regularizer=(
+                        None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight)
+                    ),
                 )
             )
             model.add(Dropout(dropout_rate))
@@ -477,7 +539,11 @@ def model_baseline(
                     Dense(
                         256,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 model.add(Dropout(dropout_rate))
@@ -499,7 +565,11 @@ def model_baseline(
                     Dense(
                         1024,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 # if hyp_run == True:
@@ -508,7 +578,11 @@ def model_baseline(
                     Dense(
                         512,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 # if hyp_run == True:
@@ -541,7 +615,9 @@ def model_baseline(
                 Dense(
                     256,
                     activation=activation_layer_def,
-                    kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                    kernel_regularizer=(
+                        None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight)
+                    ),
                 )
             )
             model.add(Dropout(dropout_rate))
@@ -582,7 +658,11 @@ def model_baseline(
                     Dense(
                         256,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 model.add(Dropout(dropout_rate))
@@ -597,7 +677,11 @@ def model_baseline(
                     Dense(
                         1024,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 # if hyp_run == True:
@@ -606,7 +690,11 @@ def model_baseline(
                     Dense(
                         512,
                         activation=activation_layer_def,
-                        kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                        kernel_regularizer=(
+                            None
+                            if l2weight == 0
+                            else tf.keras.regularizers.l2(l=l2weight)
+                        ),
                     )
                 )
                 # if hyp_run == True:
@@ -638,7 +726,9 @@ def model_baseline(
                 Dense(
                     256,
                     activation=activation_layer_def,
-                    kernel_regularizer = None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight),
+                    kernel_regularizer=(
+                        None if l2weight == 0 else tf.keras.regularizers.l2(l=l2weight)
+                    ),
                 )
             )
             model.add(Dropout(dropout_rate))

@@ -15,7 +15,7 @@ def classweights(
     train_cat_cts=[],
 ):
     """
-    This function creates a dictionary of class weights needed for input for the CNN, where the class index is the key, and the value is the class weight for that class. 
+    This function creates a dictionary of class weights needed for input for the CNN, where the class index is the key, and the value is the class weight for that class.
 
     wts_use (str): if set to "yes", then class weights will be set and returned based on whether set balance var to True or set setweights
     trainlabels: list of labels which will be used to calculate the weights. Used in any scenario where class weights are required
@@ -36,7 +36,6 @@ def classweights(
 
     # print(trainlabels)
     # print(labels_dict)
-
 
     # labels_ind = [labels_dict[catname] for catname in trainlabels]
     labels_ind = trainlabels

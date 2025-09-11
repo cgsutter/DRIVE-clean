@@ -15,6 +15,7 @@ import math
 import os
 import keras
 import numpy as np
+
 # from hagelslag.evaluation.ProbabilityMetrics import DistributedROC
 from sklearn.metrics import precision_recall_fscore_support, roc_auc_score
 from keras.utils import register_keras_serializable
@@ -79,15 +80,15 @@ def get_callbacks(config: Dict[str, str], path_extend=False) -> List[Callback]:
 #         logs = logs or {}
 #         logs["lr"] = K.get_value(self.model.optimizer.lr)
 
+
 # @keras.saving.register_keras_serializable() #CS
 @register_keras_serializable()
-
 class ReportEpoch(keras.callbacks.Callback):
     def __init__(self, epoch_var):
         self.epoch_var = epoch_var
 
     def on_epoch_end(self, epoch, logs={}):
-        self.epoch_var.assign_add(1) #CS 
+        self.epoch_var.assign_add(1)  # CS
 
     def get_config(self):
         return {}

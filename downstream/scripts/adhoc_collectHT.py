@@ -3,7 +3,7 @@ import numpy as np
 
 # Not needed for model training..
 
-# This code is just reference code to print the hyperparams in a list, a format for the config file, rather than a csv to read in and preprocess. Just keep all HT combinations in list format in config for readibility. 
+# This code is just reference code to print the hyperparams in a list, a format for the config file, rather than a csv to read in and preprocess. Just keep all HT combinations in list format in config for readibility.
 
 ###### For RF
 # hyps_path = "/home/csutter/DRIVE/dot/models_streamline/HT/hypgrid_rf_11feat_grid288.csv"

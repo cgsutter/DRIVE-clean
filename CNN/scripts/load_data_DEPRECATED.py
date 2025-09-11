@@ -14,13 +14,22 @@ from PIL import ImageFile
 
 # TensorFlow / Keras
 import tensorflow as tf
+
 # from tensorflow.keras.applications.mobilenet import preprocess_input
-from tensorflow.keras.applications.densenet import preprocess_input as densenet_preprocess
-from tensorflow.keras.applications.inception_v3 import preprocess_input as inception_preprocess
-from tensorflow.keras.applications.mobilenet import preprocess_input as mobilenet_preprocess
+from tensorflow.keras.applications.densenet import (
+    preprocess_input as densenet_preprocess,
+)
+from tensorflow.keras.applications.inception_v3 import (
+    preprocess_input as inception_preprocess,
+)
+from tensorflow.keras.applications.mobilenet import (
+    preprocess_input as mobilenet_preprocess,
+)
 from tensorflow.keras.applications.resnet50 import preprocess_input as resnet_preprocess
 from tensorflow.keras.applications.vgg16 import preprocess_input as vgg_preprocess
-from tensorflow.keras.applications.xception import preprocess_input as xception_preprocess
+from tensorflow.keras.applications.xception import (
+    preprocess_input as xception_preprocess,
+)
 
 
 # Configure PIL to avoid image errors
@@ -30,12 +39,13 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 import _config as config
 import helper_fns_adhoc
 
-def read_imgs_as_np_array(listims, listlabels): # remove arch input
+
+def read_imgs_as_np_array(listims, listlabels):  # remove arch input
     """
-    
+
     This function reads a list of image file paths and corresponding labels, crops & resizes, checks for broken images, and returns a list of the read-in image arrays along with their labels.
 
-    Note: using OpenCV (cv2 functions below) because tensorflow's reading in of images is very strict -- e.g. skips images entirely if there is any corrupted pixels, while cv2 can still use them. 
+    Note: using OpenCV (cv2 functions below) because tensorflow's reading in of images is very strict -- e.g. skips images entirely if there is any corrupted pixels, while cv2 can still use them.
 
     Images are:
     - Read using OpenCV
@@ -57,7 +67,7 @@ def read_imgs_as_np_array(listims, listlabels): # remove arch input
     images_pixel = []
     labels_imgs = []
     for im_i in range(0, len(listims)):  # len(listims) range(8800, 8900)
-        if im_i % 1000 == 0: # to show progress as data loads
+        if im_i % 1000 == 0:  # to show progress as data loads
             print(im_i)
 
         try:
@@ -83,15 +93,16 @@ def read_imgs_as_np_array(listims, listlabels): # remove arch input
 
     return images_pixel, labels_imgs
 
+
 def preprocess_and_aug(image_np, arch_for_preprocess, augflag):
-    """This function takes one image (np array), adjusts it with random augmentation IF aug flag is True, and then regardless of augmentation or not, preprocesses it according to the architecture used. 
-    
+    """This function takes one image (np array), adjusts it with random augmentation IF aug flag is True, and then regardless of augmentation or not, preprocesses it according to the architecture used.
+
     Note that augmentations functions require as inputs images to be a TF tensor that ranges 0 and 1 (divide by 255). Then and after augmentation, which may return values slightly below 0 or above 1, the values need to be converted back to range 0 to 255 for architecture specific preprocessing, so they are again adjusted to be first clipped to 0 and 1 and then multiplied by 255.
 
     Args:
         image_np (np array): An image
         arch_for_preprocess (str): arhcitecture name
-        augflag (bool): 
+        augflag (bool):
 
     Returns:
        Image np array that is preprocessed
@@ -109,7 +120,7 @@ def preprocess_and_aug(image_np, arch_for_preprocess, augflag):
         image_tensor = tf.image.random_brightness(image_tensor, max_delta=0.1)
         image_tensor = tf.image.random_contrast(image_tensor, lower=0.8, upper=1.2)
 
-        # After augmentation - need to convert back to 0 to 255, so first clip to be between 0 and 1 then multipy by 255 
+        # After augmentation - need to convert back to 0 to 255, so first clip to be between 0 and 1 then multipy by 255
         image_tensor = tf.clip_by_value(image_tensor, 0.0, 1.0)
         # Scale back up to 0-255 for preprocessing
         image_tensor = image_tensor * 255.0
@@ -128,10 +139,11 @@ def preprocess_and_aug(image_np, arch_for_preprocess, augflag):
         image_array = vgg_preprocess(image_tensor)
     elif arch_for_preprocess == "xcep":
         image_array = xception_preprocess(image_tensor)
-    
+
     # print("finsihed preprocessing for arch")
 
     return image_array
+
 
 def prepare_tf_dataset(imginput, labelsinput, arch, aug):
 
@@ -145,18 +157,21 @@ def prepare_tf_dataset(imginput, labelsinput, arch, aug):
     imgs_np = np.array(imginput, dtype=np.float32)
     images_prepped = []
     for im_np in imgs_np:
-        im_prepped = preprocess_and_aug(image_np = im_np, arch_for_preprocess = arch, augflag = aug)
+        im_prepped = preprocess_and_aug(
+            image_np=im_np, arch_for_preprocess=arch, augflag=aug
+        )
         images_prepped.append(im_prepped)
 
     return images_prepped, labels_fortfd
 
 
-
-def create_tf_datasets(tracker,
-    arch_set = config.arch_set, 
-    cat_num = config.cat_num, # remove
-    BATCH_SIZE = config.BATCH_SIZE,
-    augflag_use = config.aug):
+def create_tf_datasets(
+    tracker,
+    arch_set=config.arch_set,
+    cat_num=config.cat_num,  # remove
+    BATCH_SIZE=config.BATCH_SIZE,
+    augflag_use=config.aug,
+):
     """
 
     This function:
@@ -188,7 +203,7 @@ def create_tf_datasets(tracker,
     print(f"using {tracker}")
     df_train = df[df[f"innerPhase"] == "innerTrain"]
     df_val = df[df[f"innerPhase"] == "innerVal"]
-        
+
     # create variable and list that are sometimes used as an input in class weights function
 
     print(f"NUMBER OF TRAIN:: {len(df_train)}")
@@ -198,10 +213,8 @@ def create_tf_datasets(tracker,
     train_images = list(df_train["img_orig"])
     train_labels = list(df_train["img_cat"])
 
-
-    val_images = list(df_val["img_orig"]) 
+    val_images = list(df_val["img_orig"])
     val_labels = list(df_val["img_cat"])
-
 
     dftraincatcount = (
         df_train[["img_cat", "img_name"]]
@@ -218,35 +231,43 @@ def create_tf_datasets(tracker,
 
     # dict_catKey_indValue, dict_indKey_catValue = helper_fns_adhoc.cat_str_ind_dictmap() # REMOVE
 
-    imgs_train, cats_train = read_imgs_as_np_array(train_images, train_labels)#, arch_for_preprocess = arch_set)
+    imgs_train, cats_train = read_imgs_as_np_array(
+        train_images, train_labels
+    )  # , arch_for_preprocess = arch_set)
 
-    imgs_val, cats_val = read_imgs_as_np_array(val_images, val_labels)#, arch_for_preprocess = arch_set)
+    imgs_val, cats_val = read_imgs_as_np_array(
+        val_images, val_labels
+    )  # , arch_for_preprocess = arch_set)
 
     # print("inspect images and their values")
     # print(imgs_train[0])
     # print(imgs_train[0][0])
     # print(imgs_train[0][0][0])
 
-    ims_prepped_train, labels_prepped_train = prepare_tf_dataset(imgs_train, cats_train, arch = arch_set, aug = augflag_use)
+    ims_prepped_train, labels_prepped_train = prepare_tf_dataset(
+        imgs_train, cats_train, arch=arch_set, aug=augflag_use
+    )
 
-    ims_prepped_val, labels_prepped_val = prepare_tf_dataset(imgs_val, cats_val, arch = arch_set, aug = False)
+    ims_prepped_val, labels_prepped_val = prepare_tf_dataset(
+        imgs_val, cats_val, arch=arch_set, aug=False
+    )
 
     train_tensor = tf.convert_to_tensor(ims_prepped_train, dtype=tf.float32)
     val_tensor = tf.convert_to_tensor(ims_prepped_val, dtype=tf.float32)
-    
-    dataset_train = tf.data.Dataset.from_tensor_slices((train_tensor, labels_prepped_train))
+
+    dataset_train = tf.data.Dataset.from_tensor_slices(
+        (train_tensor, labels_prepped_train)
+    )
 
     dataset_val = tf.data.Dataset.from_tensor_slices((val_tensor, labels_prepped_val))
 
     print("through main tf dataset creation")
 
-    
-
     # Count the number of elements (images) in the dataset
     num_images = sum(1 for _ in dataset_val)
     print(f"Number of images in the dataset: {num_images}")
 
-    # Shuffling with buffer size, take buffer size number of images in order, randomly select one from it, and then shift the buffer down one to maintain buffer size, select another, etc. True random shuffling will be complete if buffer >= total number of samples. (see: https://www.tensorflow.org/api_docs/python/tf/data/Dataset#shuffle) 
+    # Shuffling with buffer size, take buffer size number of images in order, randomly select one from it, and then shift the buffer down one to maintain buffer size, select another, etc. True random shuffling will be complete if buffer >= total number of samples. (see: https://www.tensorflow.org/api_docs/python/tf/data/Dataset#shuffle)
     dataset_train = dataset_train.shuffle(numims_train)  # Shuffle data
     dataset_train = dataset_train.batch(BATCH_SIZE)  # Batch the data
     dataset_train = dataset_train.prefetch(tf.data.AUTOTUNE)  # Optimize pipeline
@@ -254,19 +275,28 @@ def create_tf_datasets(tracker,
     dataset_val = dataset_val.batch(BATCH_SIZE)  # Batch the data
     dataset_val = dataset_val.prefetch(tf.data.AUTOTUNE)  # Optimize pipeline
 
-    return dataset_train, dataset_val, train_labels, val_labels, numims_train, traincatcounts
+    return (
+        dataset_train,
+        dataset_val,
+        train_labels,
+        val_labels,
+        numims_train,
+        traincatcounts,
+    )
 
 
 # information about this second tf datasets function:
 # For a given run, evaluate each of the 30 CNNs on the full dataset; which is the same for all 30 models. Each model differed in terms of the data (folds) that was used for training and validation, but evaluation should be run on the full dataset (all folds), which is the same. Thus, to save memory and data loading time, load the full dataset just once, and then evaluate that same dataset on each of the 30 models, rather than loading the same data 30 times.
 # Note: We don't need to load the full dataset during each model run, only need train and val for that (i.e. the above loading function), so don't waste resources by loading the full dataset for each run, just do it once when running evaluation, as done in the function below
 
-def create_tf_datasets_for_evaluation(tracker,
-    arch_set = config.arch_set,
-    cat_num = config.cat_num,
-    BATCH_SIZE = config.BATCH_SIZE,
-    augflag_use = False):
 
+def create_tf_datasets_for_evaluation(
+    tracker,
+    arch_set=config.arch_set,
+    cat_num=config.cat_num,
+    BATCH_SIZE=config.BATCH_SIZE,
+    augflag_use=False,
+):
     """
 
     Loads and preprocesses a FULL dataset for evaluation, returning a TensorFlow dataset along with original labels and image paths.
@@ -302,16 +332,18 @@ def create_tf_datasets_for_evaluation(tracker,
     # FOR TESTING! CHANGE THIS!!
     # df = df[0:2000]
 
-
-    all_images = list(df["img_orig"])#[0:100]
-    all_labels = list(df["img_cat"])#[0:100]
-
+    all_images = list(df["img_orig"])  # [0:100]
+    all_labels = list(df["img_cat"])  # [0:100]
 
     dict_catKey_indValue, dict_indKey_catValue = helper_fns_adhoc.cat_str_ind_dictmap()
 
-    imgs_all, cats_all = read_imgs_as_np_array(all_images, all_labels) #arch_for_preprocess = arch_set
+    imgs_all, cats_all = read_imgs_as_np_array(
+        all_images, all_labels
+    )  # arch_for_preprocess = arch_set
 
-    ims_prepped_all, labels_prepped_all = prepare_tf_dataset(imgs_all, cats_all, arch = arch_set, aug = False)
+    ims_prepped_all, labels_prepped_all = prepare_tf_dataset(
+        imgs_all, cats_all, arch=arch_set, aug=False
+    )
     print("here works")
 
     # given the size of the full dataset, have to load it in with generator instead of all at once (which works for training and val which are much smaller dasets)
@@ -325,14 +357,13 @@ def create_tf_datasets_for_evaluation(tracker,
         output_signature=(
             tf.TensorSpec(shape=(config.imheight, config.imwidth, 3), dtype=tf.float32),
             tf.TensorSpec(shape=(config.cat_num,), dtype=tf.float32),
-        )
+        ),
     )
     print("here works 2")
 
     # Count the number of elements (images) in the dataset
     num_images = sum(1 for _ in dataset_all)
     print(f"Number of images in the dataset for evaluation: {num_images}")
-
 
     dataset_all = dataset_all.batch(BATCH_SIZE)  # Batch the data
     dataset_all = dataset_all.prefetch(tf.data.AUTOTUNE)  # Optimize pipeline
@@ -345,7 +376,6 @@ def create_tf_datasets_for_evaluation(tracker,
     # print(all_labels[0:4])
     # print(all_images[0:4])
     print("through data loading of full dataset for evaluation")
-
 
     # this code also returns the image names, which are needed for pairing with the corresponding preds, and merging into the specific tracker for when saving out evaluation csvs
     return dataset_all, all_labels, all_images

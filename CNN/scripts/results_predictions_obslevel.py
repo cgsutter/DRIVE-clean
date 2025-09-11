@@ -9,15 +9,26 @@ import pandas as pd
 import cv2
 import numpy as np
 import pandas as pd
-import tensorflow as tf # need?
+import tensorflow as tf  # need?
 import os
 
 
-
-def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", wandblog = "", run_arch = config.arch_set, run_trle = config.transfer_learning, run_ast = config.ast, run_l2 =  config.l2_set, run_dr = config.dr_set, run_aug = config.aug, saveflag = False, phaseuse = "", inference_otherdata = ""):
-
+def make_preds(
+    run_tracker=config.trackers_list[0],
+    tracker_rundetails="",
+    wandblog="",
+    run_arch=config.arch_set,
+    run_trle=config.transfer_learning,
+    run_ast=config.ast,
+    run_l2=config.l2_set,
+    run_dr=config.dr_set,
+    run_aug=config.aug,
+    saveflag=False,
+    phaseuse="",
+    inference_otherdata="",
+):
     """
-    Loads a trained model and validation dataset, generates predictions, and returns a 
+    Loads a trained model and validation dataset, generates predictions, and returns a
     merged DataFrame of results.
 
     Parameters:
@@ -36,16 +47,33 @@ def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", w
         pd.DataFrame: Merged DataFrame containing original tracker data, model predictions, predicted class labels, and associated image names.
     """
 
-    print(f"Running Evaluation {run_tracker} using architecture {run_arch}. Transfer learning {run_trle}, arch-specific top {run_ast}. Dropout is {run_dr} and l2 weight is {run_l2}.")
+    print(
+        f"Running Evaluation {run_tracker} using architecture {run_arch}. Transfer learning {run_trle}, arch-specific top {run_ast}. Dropout is {run_dr} and l2 weight is {run_l2}."
+    )
 
     #### load data
 
     if inference_otherdata != "":
-        print("Inferencing model on different dataset, not that tied to the trackers list of models")
-        tf_ds_val, val_imgnames, labels_val, numims_val, valcatcounts = load_dataset.load_data(trackerinput = inference_otherdata, phaseinput = phaseuse, archinput = run_arch, auginput = False) # should always be false for val data
+        print(
+            "Inferencing model on different dataset, not that tied to the trackers list of models"
+        )
+        tf_ds_val, val_imgnames, labels_val, numims_val, valcatcounts = (
+            load_dataset.load_data(
+                trackerinput=inference_otherdata,
+                phaseinput=phaseuse,
+                archinput=run_arch,
+                auginput=False,
+            )
+        )  # should always be false for val data
     else:
-        tf_ds_val, val_imgnames, labels_val, numims_val, valcatcounts = load_dataset.load_data(trackerinput = run_tracker, phaseinput = phaseuse, archinput = run_arch, auginput = False) # should always be false for val data
-
+        tf_ds_val, val_imgnames, labels_val, numims_val, valcatcounts = (
+            load_dataset.load_data(
+                trackerinput=run_tracker,
+                phaseinput=phaseuse,
+                archinput=run_arch,
+                auginput=False,
+            )
+        )  # should always be false for val data
 
     print("validation data")
     print(type(tf_ds_val))
@@ -53,11 +81,12 @@ def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", w
     print(valcatcounts)
     print(val_imgnames[0:4])
 
-
     #### read model
 
     # This is only unique to an experiment & hyperparams NOT tracker, could move this outside the function
-    tracker_filebase = helper_fns_adhoc.prep_basefile_str(tracker_designated = run_tracker)
+    tracker_filebase = helper_fns_adhoc.prep_basefile_str(
+        tracker_designated=run_tracker
+    )
 
     modeldir_set = f"{config.model_path}/{tracker_filebase}_{tracker_rundetails}"
 
@@ -69,22 +98,22 @@ def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", w
     print(f"Recreate model architecture")
 
     model = model_build.model_baseline(
-        evid = config.evid,
-        num_classes = config.cat_num,
-        input_shape = (config.imheight, config.imwidth, 3),
-        arch = run_arch,
-        transfer_learning = run_trle,
-        ast = run_ast,
-        dropout_rate = run_dr,
-        l2weight =run_l2,
-        activation_layer_def = config.activation_layer_def,
-        activation_output_def = config.activation_output_def
-        )
+        evid=config.evid,
+        num_classes=config.cat_num,
+        input_shape=(config.imheight, config.imwidth, 3),
+        arch=run_arch,
+        transfer_learning=run_trle,
+        ast=run_ast,
+        dropout_rate=run_dr,
+        l2weight=run_l2,
+        activation_layer_def=config.activation_layer_def,
+        activation_output_def=config.activation_output_def,
+    )
 
     print(f"Load model weights {modeldir_set}")
 
     latest_checkpoint_path = tf.train.latest_checkpoint(modeldir_set)
-    
+
     #  Load the weights into the recreated model
     model.load_weights(latest_checkpoint_path)
     print(f"Weights loaded successfully from: {latest_checkpoint_path}")
@@ -97,7 +126,7 @@ def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", w
     print(dataset_for_prediction.element_spec)
 
     p2 = model.predict(dataset_for_prediction)
-    
+
     print("PRINT after predict")
     c2 = np.argmax(p2, axis=1)
 
@@ -105,12 +134,15 @@ def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", w
 
     # note: this is not set up right now for evid, which requires loading of the custom loss function to deserialize (and that requires class weights which are unique to each of the 30 datasets, come back to this..
 
-    dict_catKey_indValue, dict_indKey_catValue= helper_fns_adhoc.cat_str_ind_dictmap()
+    dict_catKey_indValue, dict_indKey_catValue = helper_fns_adhoc.cat_str_ind_dictmap()
 
     predicted_classname = [dict_indKey_catValue[i] for i in c2]
 
     df_results = pd.DataFrame(
-        p2, columns=[f"prob_{dict_indKey_catValue[i]}" for i in range(len(dict_indKey_catValue))]
+        p2,
+        columns=[
+            f"prob_{dict_indKey_catValue[i]}" for i in range(len(dict_indKey_catValue))
+        ],
     )
 
     df_results["model_pred"] = predicted_classname
@@ -130,18 +162,18 @@ def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", w
     print(len(df_all))
     print(len(df_results))
 
-    df_final = df_all.merge(df_results, how = "inner", on = "img_name")
+    df_final = df_all.merge(df_results, how="inner", on="img_name")
 
     print(len(df_final))
 
-    tracker_ident = helper_fns_adhoc.tracker_differentiator(trackerpath = run_tracker)
+    tracker_ident = helper_fns_adhoc.tracker_differentiator(trackerpath=run_tracker)
 
     df_final["tracker"] = tracker_ident
 
     cats = config.category_dirs
     cats_alphabetical = sorted(cats)
     cols_for_prob_cats = [f"prob_{c}" for c in cats_alphabetical]
-    print("preparing model_prob col in make_preds function" )
+    print("preparing model_prob col in make_preds function")
     if saveflag:
         # add col that includes model prob (max across the predicted classes)
         df_final["model_prob"] = df_final[cols_for_prob_cats].max(axis=1)
@@ -150,12 +182,14 @@ def make_preds(run_tracker = config.trackers_list[0], tracker_rundetails = "", w
             # running inference on other data so need to name predictions csvs accordingly
             # grab filename from the inference data, will use this prepended to save out accordingly
             beg = inference_otherdata.rfind("/")
-            infdata_name = inference_otherdata[beg+1:-4]
+            infdata_name = inference_otherdata[beg + 1 : -4]
             # remove csv
             predssaveto = f"{config.preds_path}/{infdata_name}_{tracker_filebase}_{tracker_rundetails}.csv"
         else:
-            predssaveto = f"{config.preds_path}/{tracker_filebase}_{tracker_rundetails}.csv"
-        df_final.to_csv(predssaveto) # saving the preds df to csv for one-off runs    
+            predssaveto = (
+                f"{config.preds_path}/{tracker_filebase}_{tracker_rundetails}.csv"
+            )
+        df_final.to_csv(predssaveto)  # saving the preds df to csv for one-off runs
         print("saved to")
         print(predssaveto)
     else:

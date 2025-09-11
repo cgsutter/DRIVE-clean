@@ -38,7 +38,7 @@ filepath_parquet = f"/home/csutter/DRIVE-clean/ice/data_probSR/{filename}.parque
 #     with open(filepath, "wb") as f:
 #         for chunk in response.iter_content(chunk_size=8192):
 #             f.write(chunk)
-    
+
 #     print(f"File '{filepath}' downloaded successfully.")
 
 # except requests.exceptions.RequestException as e:
