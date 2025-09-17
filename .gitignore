@@ -72,3 +72,5 @@ ice/data_probSR
 operational_inference/data_1_images
 operational_inference/data_2_cnnpreds
 operational_inference/trainedModels_1_cnn
+operational_inference/trainedModels_2_calib
+operational_inference/data_3_cnncalib
