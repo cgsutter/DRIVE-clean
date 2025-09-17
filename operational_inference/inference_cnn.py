@@ -30,12 +30,12 @@ inference_run_tracker = (
 )
 
 dir_of_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_1_cnn"
-model_files = os.listdir(dir_of_models)
-model_paths = [f"{dir_of_models}/{i}" for i in model_files]
+model_nums = ["m0","m1","m2"] #,"m3","m4"
+model_paths = [f"{dir_of_models}/cnn_{i}" for i in model_nums]
 
 print("HERE:A")
 print(inference_run_tracker)
-print(model_files)
+print(model_nums)
 print(model_paths)
 
 dir_tosave_preds = "/home/csutter/DRIVE-clean/operational_inference/data_2_cnnpreds"
