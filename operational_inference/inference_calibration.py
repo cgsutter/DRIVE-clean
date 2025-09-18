@@ -12,25 +12,37 @@ import joblib
 import numpy as np
 
 
-model_nums = ["m0","m1","m2"] #,"m3","m4"
+model_nums = ["m0","m1","m2","m3","m4"] #
 
-dir_of_cnn_preds = "/home/csutter/DRIVE-clean/operational_inference/data_2_cnnpreds"
-datafiles = [f"{dir_of_cnn_preds}/cnn_{i}.csv" for i in model_nums]
-print(datafiles)
+classif_model = "downstream"  #"CNN" or "downstream" or "fcstOnly" # HERE!!
 
-dir_of_calib_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_2_calib"
-modelfiles = [f"{dir_of_calib_models}/calib_{i}.pkl" for i in model_nums]
-print(modelfiles)
+if classif_model == "CNN":
+    dir_of_uncalib_preds = "/home/csutter/DRIVE-clean/operational_inference/data_2_cnnpreds"
+    datafiles = [f"{dir_of_uncalib_preds}/cnn_{i}.csv" for i in model_nums]
+    print(datafiles)
 
-classif_model = "CNN"  #"downstreamFinal" or "fcstOnly"
+    dir_of_calib_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_2_calib_cnn"
+    modelfiles = [f"{dir_of_calib_models}/calib_{i}.pkl" for i in model_nums]
+    print(modelfiles)
 
+    saveto_noext = f"/home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib/cnncalib_"
+
+elif classif_model == "downstream":
+    dir_of_uncalib_preds = "/home/csutter/DRIVE-clean/operational_inference/data_4_downstream"
+    datafiles = [f"{dir_of_uncalib_preds}/downstream_{i}.csv" for i in model_nums]
+    print(datafiles)
+
+    dir_of_calib_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_4_calib_downstream"
+    modelfiles = [f"{dir_of_calib_models}/calib_{i}.pkl" for i in model_nums]
+    print(modelfiles)
+
+    saveto_noext = f"/home/csutter/DRIVE-clean/operational_inference/data_5_downstreamcalib/downstreamcalib_"
 
 for i in range(0,len(model_nums)):
     # runname = f[:-4] # remove the .csv
 
-    # csv = f"{dir_of_cnn_preds}/{f}"
     csv = datafiles[i]
-    print(f"reading in cnn predictions {csv}")
+    print(f"reading in uncalibrated predictions from {csv}")
     # read in data
     dfread = pd.read_csv(csv)
 
@@ -102,6 +114,6 @@ for i in range(0,len(model_nums)):
     # print(t_all.columns)
     # print(t_all[0:3])
 
-    t_all.to_csv(f"/home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib/cnncalib_m{i}.csv")
-
-    print(f"saved calibrated cnn probs to /home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib/cnncalib_m{i}.csv")
+    saveto = f"{saveto_noext}m{i}.csv"
+    t_all.to_csv(saveto)
+    print(saveto)

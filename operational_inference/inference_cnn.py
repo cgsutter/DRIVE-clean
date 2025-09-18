@@ -30,7 +30,7 @@ inference_run_tracker = (
 )
 
 dir_of_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_1_cnn"
-model_nums = ["m0","m1","m2"] #,"m3","m4"
+model_nums = ["m0","m1","m2","m3","m4"] #
 model_paths = [f"{dir_of_models}/cnn_{i}" for i in model_nums]
 
 print("HERE:A")

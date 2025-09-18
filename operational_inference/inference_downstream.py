@@ -13,7 +13,7 @@ import helper_fns_adhoc
 import downstream_model_train
 
 
-model_nums = ["m0","m1","m2"] #,"m3","m4"
+model_nums = ["m0","m1","m2","m3","m4"]
 
 dir_of_cnncalib_preds = "/home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib"
 datafiles = [f"{dir_of_cnncalib_preds}/cnncalib_{i}.csv" for i in model_nums]
