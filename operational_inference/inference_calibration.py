@@ -1,7 +1,8 @@
+# Portions of this code were writen with the assistance of AI tools (e.g., ChatGPT)
+
 import sys
 
-sys.path.append("/home/csutter/DRIVE-clean/calibration/scripts")  # Replace with the actual path
-
+sys.path.append("/home/csutter/DRIVE-clean/calibration/scripts")  
 
 import calib
 # import config

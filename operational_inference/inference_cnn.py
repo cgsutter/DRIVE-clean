@@ -4,7 +4,7 @@
 
 import sys
 
-sys.path.append("/home/csutter/DRIVE-clean/CNN/scripts")  # Replace with the actual path
+sys.path.append("/home/csutter/DRIVE-clean/CNN/scripts")
 
 import model_build
 import load_dataset
