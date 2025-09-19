@@ -3,35 +3,35 @@
 
 ### Path where results should be saved
 # HERE!!
-model_path = "/home/csutter/DRIVE-clean/ODM/data_models"  # for saving (when training) and also for loading (when evaluating)
+model_path = "/home/csutter/DRIVE-clean/operational_models/CNN/models"  # for saving (when training) and also for loading (when evaluating)
 # "/home/csutter/DRIVE-clean/ODM/data_models"
 # "/home/csutter/DRIVE-clean/CNN/data_models"
 # "/home/csutter/DRIVE-clean/CNN/data_models_expOneTrain"
-preds_path = "/home/csutter/DRIVE-clean/ODM/data_preds_eval5catdata"
-results_path = "/home/csutter/DRIVE-clean/CNN/data_results_expOneTrain"
+preds_path = "/home/csutter/DRIVE-clean/operational_models/CNN/preds"
+results_path = "/home/csutter/DRIVE-clean/operational_models/CNN/results"
 # side experiments to append to the above:
 # _expOneTrain, _expShuffle, _expShuffleAndHalved, _expHalved
 # e.g. "/home/csutter/DRIVE-clean/CNN/data_models_expShuffle"
 # e.g. "/home/csutter/DRIVE-clean/ODM/data_preds"
 
 ### Flags and specifics for the type of model run
-train_flag = False  # if running model training
-eval_flag = True  # if running model evaluation (need to have already trained models). Need to then set one or the other for the two eval flags below
+train_flag = True  # if running model training
+eval_flag = False  # if running model evaluation (need to have already trained models). Need to then set one or the other for the two eval flags below
 eval_highlevel = False  # For high level summaries where one experiment is summarized as one line of results in results_path (e.g. BL runs, HT runs)
-eval_pred_csvs = True  # For after selecting best models, save the predictions out for each tracker as csvs. Set which models to run by setting hyp_path (defined below) to the set of 1 or more models for which saving out preds. Note that evaluation/predictions aren't set up to do a one-off so have to rely on the HT csv to just be the one model that we want to use.
+eval_pred_csvs = False  # For after selecting best models, save the predictions out for each tracker as csvs. Set which models to run by setting hyp_path (defined below) to the set of 1 or more models for which saving out preds. Note that evaluation/predictions aren't set up to do a one-off so have to rely on the HT csv to just be the one model that we want to use.
 # If evaluation/inference/predictions is being done on data that is different than the models. E.g. evaluate all ODM data (all observations across the different samples) on each of the 6 ODM models.
 # This is only set up to work for one-off, eval_flag and eval_pred_csvs
-inference_other = True  # HERE!!
+inference_other = False  # HERE!!
 inference_data_csv = (
     "/home/csutter/DRIVE-clean/trackers_ODM/nestcv_5cat_converted_ynobs_twotrain.csv"
 )
 # "/home/csutter/DRIVE-clean/trackers_ODM/ynobs_entire.csv"
 
-wandb_flag = False  # flag for whether to save experiments to w&b
+wandb_flag = True  # flag for whether to save experiments to w&b
 # one-off run where you give it one specific architecture and set of hyperparams to use
-wanb_projectname = "DRIVE-side_experiments"  # HERE!! for pure BL or HT runs, "DRIVE-clean", o/w adjust here also for adhoc_desc "DRIVE-side_experiments"
-exp_desc = "ODM_model_eval"  # HERE!!
-# "ODM"
+wanb_projectname = "DRIVE-clean"  # HERE!! for pure BL or HT runs, "DRIVE-clean", o/w adjust here also for adhoc_desc "DRIVE-side_experiments"
+exp_desc = "operations"  # HERE!!
+# "ODM", "ODM_model_eval"
 # "nestcv_5cat_twotrain" <--- this is the main one used from BL/HT
 # identifier string that all 30 trackers (trackers_list below) have in common for a given experiment, e.g. nestcv_5cat_twotrain. This is used in results_summaries to aggregate across multiple models that come from the same base experiment, and also for logging to w&b.
 # Should be used for all experime`≥ntsq, one_off and hyp_run
@@ -111,15 +111,26 @@ evid_lr_init = 0.00001  # 0.0027750619126744817
 
 # HERE!!
 
-# ODM
+# # Operational
+
 trackers_list = [
-    "/home/csutter/DRIVE-clean/trackers_ODM/ynobs_A_split0.csv",
-    "/home/csutter/DRIVE-clean/trackers_ODM/ynobs_A_split1.csv",
-    "/home/csutter/DRIVE-clean/trackers_ODM/ynobs_B_split0.csv",
-    "/home/csutter/DRIVE-clean/trackers_ODM/ynobs_B_split1.csv",
-    "/home/csutter/DRIVE-clean/trackers_ODM/ynobs_C_split0.csv",
-    "/home/csutter/DRIVE-clean/trackers_ODM/ynobs_C_split1.csv",
+    "/home/csutter/DRIVE-clean/operational_models/trackers/tracker_m0.csv",
+    "/home/csutter/DRIVE-clean/operational_models/trackers/tracker_m1.csv",
+    "/home/csutter/DRIVE-clean/operational_models/trackers/tracker_m2.csv",
+    "/home/csutter/DRIVE-clean/operational_models/trackers/tracker_m3.csv",
+    "/home/csutter/DRIVE-clean/operational_models/trackers/tracker_m4.csv",
 ]
+
+# #
+# # ODM
+# trackers_list = [
+#     "/home/csutter/DRIVE-clean/trackers_ODM/ynobs_A_split0.csv",
+#     "/home/csutter/DRIVE-clean/trackers_ODM/ynobs_A_split1.csv",
+#     "/home/csutter/DRIVE-clean/trackers_ODM/ynobs_B_split0.csv",
+#     "/home/csutter/DRIVE-clean/trackers_ODM/ynobs_B_split1.csv",
+#     "/home/csutter/DRIVE-clean/trackers_ODM/ynobs_C_split0.csv",
+#     "/home/csutter/DRIVE-clean/trackers_ODM/ynobs_C_split1.csv",
+# ]
 
 # # Main trackers list
 # trackers_list = [
