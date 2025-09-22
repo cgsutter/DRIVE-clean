@@ -12,97 +12,78 @@ import joblib
 import numpy as np
 
 
-model_nums = ["m0","m1","m2","m3","m4"] #
+def calib_run(model_nums, yyyymmdd, classif_model):
+    if classif_model == "CNN":
+        dir_of_uncalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_2_cnnpreds/{yyyymmdd}"
+        datafiles = [f"{dir_of_uncalib_preds}/cnn_{i}.csv" for i in model_nums]
+        # print(datafiles)
 
-yyyymmdd = "20250919"
+        dir_of_calib_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_2_calib_cnn"
+        modelfiles = [f"{dir_of_calib_models}/calib_{i}.pkl" for i in model_nums]
+        # print(modelfiles)
 
-classif_model = "downstream"  # "CNN" or "downstream" or "fcstOnly" # HERE!!
+        saveto_dir = f"/home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib/{yyyymmdd}"
 
-if classif_model == "CNN":
-    dir_of_uncalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_2_cnnpreds/{yyyymmdd}"
-    datafiles = [f"{dir_of_uncalib_preds}/cnn_{i}.csv" for i in model_nums]
-    # print(datafiles)
+        os.makedirs(saveto_dir, exist_ok= True)
 
-    dir_of_calib_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_2_calib_cnn"
-    modelfiles = [f"{dir_of_calib_models}/calib_{i}.pkl" for i in model_nums]
-    # print(modelfiles)
+        print(f"dir will be {saveto_dir}")
 
-    saveto_dir = f"/home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib/{yyyymmdd}"
+        saveto_noext = f"{saveto_dir}/cnncalib_"
 
-    os.makedirs(saveto_dir, exist_ok= True)
+    elif classif_model == "downstream":
 
-    print(f"dir will be {saveto_dir}")
+        dir_of_uncalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_4_downstream/{yyyymmdd}"
 
-    saveto_noext = f"{saveto_dir}/cnncalib_"
+        datafiles = [f"{dir_of_uncalib_preds}/downstream_{i}.csv" for i in model_nums]
+        # print(datafiles)
 
-elif classif_model == "downstream":
+        dir_of_calib_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_4_calib_downstream"
+        modelfiles = [f"{dir_of_calib_models}/calib_{i}.pkl" for i in model_nums]
+        # print(modelfiles)
 
-    dir_of_uncalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_4_downstream/{yyyymmdd}"
+        saveto_dir = f"/home/csutter/DRIVE-clean/operational_inference/data_5_downstreamcalib/{yyyymmdd}"
 
-    datafiles = [f"{dir_of_uncalib_preds}/downstream_{i}.csv" for i in model_nums]
-    # print(datafiles)
+        os.makedirs(saveto_dir, exist_ok= True)
 
-    dir_of_calib_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_4_calib_downstream"
-    modelfiles = [f"{dir_of_calib_models}/calib_{i}.pkl" for i in model_nums]
-    # print(modelfiles)
+        print(f"dir will be {saveto_dir}")
 
-    saveto_dir = f"/home/csutter/DRIVE-clean/operational_inference/data_5_downstreamcalib/{yyyymmdd}"
+        saveto_noext = f"{saveto_dir}/downstreamcalib_"
 
-    os.makedirs(saveto_dir, exist_ok= True)
+    for i in range(0,len(model_nums)):
+        # runname = f[:-4] # remove the .csv
 
-    print(f"dir will be {saveto_dir}")
+        csv = datafiles[i]
+        print(f"reading in uncalibrated predictions from {csv}")
+        # read in data
+        dfread = pd.read_csv(csv)
 
-    saveto_noext = f"{saveto_dir}/downstreamcalib_"
+        # prep column names
+        t_all = calib.rename_cols_for_calibration_consistency(
+            dfinput=dfread, classification_model=classif_model
+        )
 
-for i in range(0,len(model_nums)):
-    # runname = f[:-4] # remove the .csv
+        # print(t_all.columns)
 
-    csv = datafiles[i]
-    print(f"reading in uncalibrated predictions from {csv}")
-    # read in data
-    dfread = pd.read_csv(csv)
+        # add classifier col of 0s and 1s if model predicted that cat
+        t_all["classifier_TF"] = t_all["img_cat"] == t_all["o_pred"]
+        t_all["classifier_01"] = t_all["classifier_TF"].astype(int)
 
-    # prep column names
-    t_all = calib.rename_cols_for_calibration_consistency(
-        dfinput=dfread, classification_model=classif_model
-    )
+        # prep the data for training/eval
+        X_eval_unshaped = np.array(t_all["o_prob"])
+        X_eval = X_eval_unshaped.reshape(-1, 1)
 
-    # print(t_all.columns)
+        # load in calibration model
+        m = modelfiles[i]
+        print(f"loading model {m}")
+        model = joblib.load(m)
 
-    # add classifier col of 0s and 1s if model predicted that cat
-    t_all["classifier_TF"] = t_all["img_cat"] == t_all["o_pred"]
-    t_all["classifier_01"] = t_all["classifier_TF"].astype(int)
+        # transform call evaluates the isotonic model on X_eval data to get the calibrated probabilities
+        evaldata_output_predProb = model.transform(X_eval) # Calibrate the probabilities
+        # print(X_eval[0:3])
 
-    # prep the data for training/eval
-    X_eval_unshaped = np.array(t_all["o_prob"])
-    X_eval = X_eval_unshaped.reshape(-1, 1)
+        # add columns with calibrated probs
+        t_all["o_prob_calib"] = evaldata_output_predProb
 
-    # load in calibration model
-    m = modelfiles[i]
-    print(f"loading model {m}")
-    model = joblib.load(m)
-
-    # transform call evaluates the isotonic model on X_eval data to get the calibrated probabilities
-    evaldata_output_predProb = model.transform(X_eval) # Calibrate the probabilities
-    # print(X_eval[0:3])
-
-    # add columns with calibrated probs
-    t_all["o_prob_calib"] = evaldata_output_predProb
-
-    t_all[
-        [
-            "calib_prob_dry",
-            "calib_prob_poor_viz",
-            "calib_prob_snow",
-            "calib_prob_snow_severe",
-            "calib_prob_wet",
-        ]
-    ] = t_all.apply(calib.rowfn_normalize_remaining, axis=1, result_type="expand")
-
-
-    # Look at all the final probability columns to find the highest one now, and parse out the string cat name from the column which was highest. This *should* be the same as the original model's pred, but theoretically there could be some borderline cases where the predicted highest orig probability was calibrated downward so that one of the other classes surpassed it. Should be rare if at all, but need to account for this case.
-
-    t_all["calib_pred"] = (
         t_all[
             [
                 "calib_prob_dry",
@@ -111,25 +92,39 @@ for i in range(0,len(model_nums)):
                 "calib_prob_snow_severe",
                 "calib_prob_wet",
             ]
-        ]
-        .idxmax(axis=1)
-        .str.replace("calib_prob_", "", regex=False)
-    )
+        ] = t_all.apply(calib.rowfn_normalize_remaining, axis=1, result_type="expand")
 
-    # note that this has to be done after calib AND normalizing bc sometimes the highest prob can change
-    t_all["calib_prob"] = t_all[
-        [
-            "calib_prob_dry",
-            "calib_prob_poor_viz",
-            "calib_prob_snow",
-            "calib_prob_snow_severe",
-            "calib_prob_wet",
-        ]
-    ].max(axis=1)
 
-    # print(t_all.columns)
-    # print(t_all[0:3])
+        # Look at all the final probability columns to find the highest one now, and parse out the string cat name from the column which was highest. This *should* be the same as the original model's pred, but theoretically there could be some borderline cases where the predicted highest orig probability was calibrated downward so that one of the other classes surpassed it. Should be rare if at all, but need to account for this case.
 
-    saveto = f"{saveto_noext}m{i}.csv"
-    t_all.to_csv(saveto)
-    print(f"saved predictions to {saveto}")
+        t_all["calib_pred"] = (
+            t_all[
+                [
+                    "calib_prob_dry",
+                    "calib_prob_poor_viz",
+                    "calib_prob_snow",
+                    "calib_prob_snow_severe",
+                    "calib_prob_wet",
+                ]
+            ]
+            .idxmax(axis=1)
+            .str.replace("calib_prob_", "", regex=False)
+        )
+
+        # note that this has to be done after calib AND normalizing bc sometimes the highest prob can change
+        t_all["calib_prob"] = t_all[
+            [
+                "calib_prob_dry",
+                "calib_prob_poor_viz",
+                "calib_prob_snow",
+                "calib_prob_snow_severe",
+                "calib_prob_wet",
+            ]
+        ].max(axis=1)
+
+        # print(t_all.columns)
+        # print(t_all[0:3])
+
+        saveto = f"{saveto_noext}m{i}.csv"
+        t_all.to_csv(saveto)
+        print(f"saved predictions to {saveto}")

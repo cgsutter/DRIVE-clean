@@ -10,5 +10,12 @@ inference_run_tracker = (
 model_nums = ["m0","m1","m2","m3","m4"] #
 yyyymmdd = "20250919"
 
-inference_cnn.cnn_run(inference_run_tracker = inference_run_tracker, model_nums = model_nums, yyyymmdd = yyyymmdd)
+# inference_cnn.cnn_run(inference_run_tracker = inference_run_tracker, model_nums = model_nums, yyyymmdd = yyyymmdd)
 
+# model_nums = ["m0","m1","m2","m3","m4"] #
+# yyyymmdd = "20250919"
+# classif_model = "downstream"  # "CNN" or "downstream" or "fcstOnly" # HERE!!
+
+# classif_model = "downstream"  # "CNN" or "downstream" or "fcstOnly" # HERE!!
+
+inference_calibration.calib_run(model_nums = model_nums, yyyymmdd = yyyymmdd, classif_model = "CNN")
