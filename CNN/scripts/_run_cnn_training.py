@@ -54,7 +54,7 @@ def main(
                     phaseuse_set = ""  # run preds on all observations
                 else:
                     print(
-                        "Evaluation for one-off model is only set up to make for prediction level inference, saving csvs for entire dataset. No high level summary code is needed for one-offs, those are done in notebooks. Thus, if this is printing, there in issue, should have entered other if statement."
+                        "Evaluation for one-off model is only set up to make for prediction level inference (the above if which saves csvs for entire dataset). No high level summary code is needed for one-offs, those are done in notebooks. Thus, if this is printing, there in issue, should have entered other if statement."
                     )
                 if config.inference_other:
                     print("running inference on other data")

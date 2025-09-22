@@ -15,10 +15,10 @@ results_path = "/home/csutter/DRIVE-clean/operational_models/CNN/results"
 # e.g. "/home/csutter/DRIVE-clean/ODM/data_preds"
 
 ### Flags and specifics for the type of model run
-train_flag = True  # if running model training
-eval_flag = False  # if running model evaluation (need to have already trained models). Need to then set one or the other for the two eval flags below
+train_flag = False  # if running model training
+eval_flag = True  # if running model evaluation (need to have already trained models). Need to then set one or the other for the two eval flags below
 eval_highlevel = False  # For high level summaries where one experiment is summarized as one line of results in results_path (e.g. BL runs, HT runs)
-eval_pred_csvs = False  # For after selecting best models, save the predictions out for each tracker as csvs. Set which models to run by setting hyp_path (defined below) to the set of 1 or more models for which saving out preds. Note that evaluation/predictions aren't set up to do a one-off so have to rely on the HT csv to just be the one model that we want to use.
+eval_pred_csvs = True  # For after selecting best models, save the predictions out for each tracker as csvs. Set which models to run by setting hyp_path (defined below) to the set of 1 or more models for which saving out preds. Note that evaluation/predictions aren't set up to do a one-off so have to rely on the HT csv to just be the one model that we want to use.
 # If evaluation/inference/predictions is being done on data that is different than the models. E.g. evaluate all ODM data (all observations across the different samples) on each of the 6 ODM models.
 # This is only set up to work for one-off, eval_flag and eval_pred_csvs
 inference_other = False  # HERE!!
@@ -34,7 +34,7 @@ exp_desc = "operations"  # HERE!!
 # "ODM", "ODM_model_eval"
 # "nestcv_5cat_twotrain" <--- this is the main one used from BL/HT
 # identifier string that all 30 trackers (trackers_list below) have in common for a given experiment, e.g. nestcv_5cat_twotrain. This is used in results_summaries to aggregate across multiple models that come from the same base experiment, and also for logging to w&b.
-# Should be used for all experime`≥ntsq, one_off and hyp_run
+# Should be used for all experiments, one_off and hyp_run
 adhoc_desc = ""  # Default to empty string. Used as a desc "_TEST" "_SaveWeightsOnly" ad hoc to differentiate a test code run, added to file naming.
 one_off = True  #
 arch_set = "resnet"  # ignored if one_off is False
