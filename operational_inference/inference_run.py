@@ -20,4 +20,10 @@ yyyymmdd = "20250919"
 # inference_calibration.calib_run(model_nums = model_nums, yyyymmdd = yyyymmdd, classif_model = "CNN")
 
 # Step C
-inference_downstream.downstream_run(model_nums = model_nums, yyyymmdd = yyyymmdd, hrrrdatapath = hrrr_data_csv)
+# inference_downstream.downstream_run(model_nums = model_nums, yyyymmdd = yyyymmdd, hrrrdatapath = hrrr_data_csv)
+
+# Step D
+# inference_calibration.calib_run(model_nums = model_nums, yyyymmdd = yyyymmdd, classif_model = "downstream")
+
+# Step E
+inference_ensemble.ensemble_run(model_nums = model_nums, yyyymmdd = yyyymmdd)
