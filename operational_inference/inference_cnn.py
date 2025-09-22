@@ -25,64 +25,31 @@ import numpy as np
 # Later, make this simpler by just calling m0 through m30. Have work to do anyway to adjust this to be like 5 models rather than 30, and probably remove the ensembling step in general.
 # can always keep ensembling (w 5-fold rather than the 6 folds, dont need test anymore, just need val) and prove the value of ensembling with another dataset. It doesnt even need to be labeled, can just evaluate on new cases and do the statistics from cam work meeting to prove the validity of ensembling (which didnt rely on label/performance)
 
-inference_run_tracker = (
-    "/home/csutter/DRIVE-clean/operational_inference/data_1_images/example_small.csv"
-)
-
-dir_of_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_1_cnn"
-model_nums = ["m0","m1","m2","m3","m4"] #
-model_paths = [f"{dir_of_models}/cnn_{i}" for i in model_nums]
-
-print("HERE:A")
-print(inference_run_tracker)
-print(model_nums)
-print(model_paths)
-
-dir_tosave_preds = "/home/csutter/DRIVE-clean/operational_inference/data_2_cnnpreds"
-
-print("HERE:B")
-print(dir_tosave_preds)
-
-inference_arch = "resnet"  # config.arch_set
-inference_epoch = 75  # config.epoch_set
-inference_l2 = 0.1  # config.l2_set
-inference_dr = 0.2  # config.dr_set
-inference_transferLearning = True  # config.transfer_learning
-inference_ast = True  # config.ast
-inference_evid = False  # config.evid
-inference_cat_num = 5
-inference_cats = [
-    "wet",
-    "dry",
-    "snow",
-    "snow_severe",
-    "poor_viz",
-]
-inference_imheight = 224
-inference_imwidth = 224
-inference_aug = False
-inference_activation_layer_def = "relu"
-inference_activation_output_def = "softmax"
-
-print("HERE:C")
 
 #####################
 
-
 def make_preds(
-    run_tr_filename=inference_run_tracker,
-    models_to_run=model_paths,
-    tracker_rundetails="",
-    wandblog="",
-    run_arch=inference_arch,
-    run_trle=inference_transferLearning,
-    run_ast=inference_ast,
-    run_l2=inference_l2,
-    run_dr=inference_dr,
-    run_aug=inference_aug,
+    run_tr_filename,
+    models_to_run,
+    dir_save_preds,
+    run_arch,
+    run_trle,
+    run_ast,
+    run_l2,
+    run_dr,
+    run_aug,
+    run_evid,
+    run_num_classes,
+    run_height,
+    run_width,
+    run_activlayer,
+    run_outputlayer,
+    run_cats,
     saveflag=True,
     phaseuse="",
     inference_otherdata="",
+    tracker_rundetails="",
+    wandblog="",
 ):  # check saveflag
     """
     Loads a trained model and validation dataset, generates predictions, and returns a
@@ -132,16 +99,16 @@ def make_preds(
     print(f"Recreate model architecture")
 
     model = model_build.model_baseline(
-        evid=inference_evid,  # global
-        num_classes=inference_cat_num,  # global
-        input_shape=(inference_imheight, inference_imwidth, 3),  # global
-        arch=inference_arch,
+        evid=run_evid,  # global
+        num_classes=run_num_classes,  # global
+        input_shape=(run_height, run_width, 3),  # global
+        arch=run_arch,
         transfer_learning=run_trle,
         ast=run_ast,
         dropout_rate=run_dr,
         l2weight=run_l2,
-        activation_layer_def=inference_activation_layer_def,  # global
-        activation_output_def=inference_activation_output_def,  # global
+        activation_layer_def=run_activlayer,  # global
+        activation_output_def=run_outputlayer,  # global
     )
 
     #### get preds for each model
@@ -209,7 +176,7 @@ def make_preds(
 
         df_final["tracker"] = modelname
 
-        cats = inference_cats  # global
+        cats = run_cats  # global
         cats_alphabetical = sorted(cats)
         cols_for_prob_cats = [f"prob_{c}" for c in cats_alphabetical]
         print("preparing model_prob col in make_preds function")
@@ -221,7 +188,7 @@ def make_preds(
         beg = inference_otherdata.rfind("/")
         infdata_name = inference_otherdata[beg + 1 : -4]
         # remove csv
-        predssaveto = f"{dir_tosave_preds}/{modelname}.csv"
+        predssaveto = f"{dir_save_preds}/{modelname}.csv"
 
         print(predssaveto)
 
@@ -230,6 +197,74 @@ def make_preds(
         print(predssaveto)
 
 
-make_preds()
 
 # Note on tensorflow warnings: - may get some warnings about checkpoints and unrestored values at the end... these are safe to ignore if only doing inference (predicting). It only matters if we care about resuming the exact training state, o/w, can ignore this warning.
+
+
+    
+    
+    
+    
+    
+    
+
+def cnn_run(inference_run_tracker, model_nums, yyyymmdd):
+    
+    dir_of_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_1_cnn"
+    model_paths = [f"{dir_of_models}/cnn_{i}" for i in model_nums]
+
+    print("HERE:A")
+    print(inference_run_tracker)
+    print(model_nums)
+    print(model_paths)
+
+    dir_tosave_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_2_cnnpreds/{yyyymmdd}"
+    os.makedirs(dir_tosave_preds, exist_ok=True)
+
+    print("HERE:B")
+    print(dir_tosave_preds)
+
+    inference_arch = "resnet"  # config.arch_set
+    inference_epoch = 75  # config.epoch_set
+    inference_l2 = 0.1  # config.l2_set
+    inference_dr = 0.2  # config.dr_set
+    inference_transferLearning = True  # config.transfer_learning
+    inference_ast = True  # config.ast
+    inference_evid = False  # config.evid
+    inference_cat_num = 5
+    inference_cats = [
+        "wet",
+        "dry",
+        "snow",
+        "snow_severe",
+        "poor_viz",
+    ]
+    inference_imheight = 224
+    inference_imwidth = 224
+    inference_aug = False
+    inference_activation_layer_def = "relu"
+    inference_activation_output_def = "softmax"
+
+    print("HERE:C")
+
+    make_preds(run_tr_filename=inference_run_tracker,
+    models_to_run=model_paths,
+    dir_save_preds=dir_tosave_preds,
+    run_arch=inference_arch,
+    run_trle=inference_transferLearning,
+    run_ast=inference_ast,
+    run_l2=inference_l2,
+    run_dr=inference_dr,
+    run_aug=inference_aug,
+    run_evid = inference_evid,
+    run_num_classes = inference_cat_num,
+    run_height = inference_imheight,
+    run_width = inference_imwidth,
+    run_activlayer = inference_activation_layer_def,
+    run_outputlayer = inference_activation_output_def,
+    run_cats = inference_cats,
+    saveflag=True,
+    phaseuse="",
+    inference_otherdata="",
+    tracker_rundetails="",
+    wandblog="",)
