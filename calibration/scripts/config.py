@@ -1,5 +1,5 @@
 # this is a directory containing all csvs, for which calibration will be done on each one. Each csv represents data that is used to train/eval the calibration. The csvs stem from previous classification model outputs, so they are the predictions from multiple splits and models. Each one require calibration (as a new calib model).
-dir_of_datacsvs = "/home/csutter/DRIVE-clean/operational_models/CNN/preds"
+dir_of_datacsvs = "/home/csutter/DRIVE-clean/operational_models/downstream/data_preds"
 # "/home/csutter/DRIVE-clean/downstream/data_predsFinal"
 # "/home/csutter/DRIVE-clean/CNN/data_preds" <-- main one for calib CNN
 # "/home/csutter/DRIVE-clean/downstream/data_preds" <-- main one for calib DS
@@ -13,7 +13,7 @@ subset_downstream = "{'max_depth': 10, 'max_samples': 0.5, 'n_estimators': 300, 
 #####  SET variables and then the right chunk of code will run
 calib_model_type = "isotonic"  # "isotonic"
 
-classif_model = "CNN"  # HERE!! "CNN" or "downstream" or 'fcstOnly" or for side experiments "CNNexpHalved", "CNNexpOneTrain". A dir will be made to save the data and models to according to this classif model
+classif_model = "downstream"  # HERE!! "CNN" or "downstream" or 'fcstOnly" or for side experiments "CNNexpHalved", "CNNexpOneTrain". A dir will be made to save the data and models to according to this classif model
 
 calib_saveto_dir = "/home/csutter/DRIVE-clean/operational_models/calibration" # this the dir that then the subdirs for the model and also data will be created
 # "/home/csutter/DRIVE-clean/calibration"
