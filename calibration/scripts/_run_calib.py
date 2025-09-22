@@ -52,14 +52,14 @@ for f in datafiles:
     t_val = t_all[t_all["innerPhase"] == "innerVal"]
 
     # where to save out the model
-    modeldir = (
-        f"/home/csutter/DRIVE-clean/calibration/calib_{config.classif_model}_model"
-    )
+    modeldir = f"{config.calib_saveto_dir}/calib_{config.classif_model}_model"
+    # important, note that this is a DIRECTORY being created with calib_CNN_model, for example
     os.makedirs(modeldir, exist_ok=True)
     model_savename = f"{modeldir}/{f[:-4]}_trainedOnVal.pkl"
 
     # where to save out calibrated data results
-    datadir = f"/home/csutter/DRIVE-clean/calibration/calib_{config.classif_model}_data"
+    datadir = f"{config.calib_saveto_dir}/calib_{config.classif_model}_data"
+    # important, note that this is a DIRECTORY being created with calib_CNN_data, for example
     os.makedirs(datadir, exist_ok=True)
     calib_tracker_savename = f"{datadir}/{f}"
 
