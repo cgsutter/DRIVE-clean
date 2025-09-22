@@ -15,7 +15,7 @@ final_downstream_hyp = {
 
 # Where to look for csv files containing calibrated CNN probabilties
 dir_of_datacsvs_CNNCalibPreds = (
-    "/home/csutter/DRIVE-clean/calibration/calib_CNN_data"  # HERE!!
+    "/home/csutter/DRIVE-clean/operational_models/calibration/calib_CNN_data"  # HERE!!
 )
 # "/home/csutter/DRIVE-clean/calibration/calib_CNN_data" <-- main one
 # Side experiment: e.g. /home/csutter/DRIVE-clean/side_experiments_data_and_models/calibration/calib_CNNexpOneTrain_data
@@ -34,17 +34,17 @@ file_collect_results = (
 )
 
 # to save prediction data
-predictions_directory = "/home/csutter/DRIVE-clean/side_experiments_data_and_models/downstream/data_preds_expOneTrain"
+predictions_directory = "/home/csutter/DRIVE-clean/operational_models/downstream/data_preds"
 # "/home/csutter/DRIVE-clean/downstream/data_predsFinal" # HERE!!
 # "/home/csutter/DRIVE-clean/downstream/data_preds" <-- main one
 # Side experiment: e.g., /home/csutter/DRIVE-clean/side_experiments_data_and_models/downstream/data_preds_expOneTrain
-model_directory = "/home/csutter/DRIVE-clean/side_experiments_data_and_models/downstream/data_models_expOneTrain"
+model_directory = "/home/csutter/DRIVE-clean/operational_models/downstream/data_models"
 # "/home/csutter/DRIVE-clean/downstream/data_modelsFinal_downstream"
-scalarmodel_directory = "/home/csutter/DRIVE-clean/downstream/data_modelsFinal_scalar"
+scalarmodel_directory = "/home/csutter/DRIVE-clean/operational_models/downstream/data_models_scaler"
 
 cols_from_cnn = [
     "innerPhase",
-    "outerPhase",
+    # "outerPhase", #HERE!! comment out for final inference model run
     "img_name",
     "img_orig",
     "site",

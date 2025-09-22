@@ -157,6 +157,8 @@ elif config.final_selected_train:
             )
         )
 
+        os.makedirs(config.scalarmodel_directory, exist_ok=True)
+
         dump(
             scaler_model, f"{config.scalarmodel_directory}/{savetoname}.pkl"
         )  # comment out for side experiments where we just want the predictions
@@ -180,6 +182,8 @@ elif config.final_selected_train:
                 alldata_output_use=all_o,
             )
         )
+
+        os.makedirs(config.model_directory, exist_ok=True)
 
         dump(
             model, f"{config.model_directory}/{savetoname}.pkl"
@@ -225,4 +229,5 @@ elif config.final_selected_train:
         correcty = sum(df_final["ds_pred"] == df_final["img_cat"])
         print(correcty / len(df_final))
 
+        os.makedirs(config.predictions_directory, exist_ok = True)
         df_final.to_csv(f"{config.predictions_directory}/{savetoname}.csv")
