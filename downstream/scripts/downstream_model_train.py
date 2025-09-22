@@ -77,7 +77,7 @@ def merge_cnn_and_weather_data(cnndata_df, weatherdata_df, cols_to_keep_cnn):
     return hrrr_full
 
 
-def prepare_data_fortraining(dfinput, features=config.features_for_training):
+def prepare_data_fortraining(dfinput, features):
     ## prepare data
     print("size of data inside prepare_data_fortraining function")
 
@@ -532,7 +532,7 @@ def calcstats_onefold(ytrueinput, ypredinput):
     return splitspecific_list
 
 
-def track_results_main_file(dict_results, mainresultsfile=config.file_collect_results):
+def track_results_main_file(dict_results, mainresultsfile):
     # save out to a main file that will collect all model results, even hyptuning
 
     file_exists = os.path.isfile(mainresultsfile)
