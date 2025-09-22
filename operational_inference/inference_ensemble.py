@@ -5,17 +5,22 @@ sys.path.append("/home/csutter/DRIVE-clean/ensembling/scripts")
 
 import nested_ensemble
 import pandas as pd
+import os
 
 model_nums = ["m0","m1","m2","m3","m4"]
 
+yyyymmdd = "20250919"
+
 # directory each of the ensemble member predictions are already saved
-dir_with_preds = "/home/csutter/DRIVE-clean/operational_inference/data_5_downstreamcalib"
+dir_with_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_5_downstreamcalib/{yyyymmdd}"
 datafiles = [f"{dir_with_preds}/downstreamcalib_{i}.csv" for i in model_nums]
 print(datafiles)
 
 # Dir to save the output predicted downstream csv
-directory_preds = "/home/csutter/DRIVE-clean/operational_inference/data_6_ensembling"
+directory_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_6_ensembling/{yyyymmdd}"
 # directory_summaries = "/home/csutter/DRIVE-clean/ensembling/data_results" # wont need for inference mode
+
+os.makedirs(directory_preds, exist_ok = True)
 
 # ensemble_flag = True
 

@@ -15,7 +15,9 @@ import downstream_model_train
 
 model_nums = ["m0","m1","m2","m3","m4"]
 
-dir_of_cnncalib_preds = "/home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib"
+yyyymmdd = "20250919"
+
+dir_of_cnncalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib/{yyyymmdd}"
 datafiles = [f"{dir_of_cnncalib_preds}/cnncalib_{i}.csv" for i in model_nums]
 print(datafiles)
 
@@ -26,7 +28,9 @@ print(modelfiles)
 print(scalerfiles)
 
 # Dir to save the output predicted downstream csv
-downstream_preds_dir = "/home/csutter/DRIVE-clean/operational_inference/data_4_downstream"
+downstream_preds_dir = f"/home/csutter/DRIVE-clean/operational_inference/data_4_downstream/{yyyymmdd}"
+
+os.makedirs(downstream_preds_dir, exist_ok = True)
 
 # Where the hrrr data lives
 hrrr_data_csv = "/home/csutter/DRIVE/weather_img_concatmodels/cnn_hrrr_fcsthr2/nestedcv_imgname_hrrrdata_fcsthr2.csv"

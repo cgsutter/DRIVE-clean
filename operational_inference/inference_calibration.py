@@ -14,29 +14,45 @@ import numpy as np
 
 model_nums = ["m0","m1","m2","m3","m4"] #
 
-classif_model = "downstream"  #"CNN" or "downstream" or "fcstOnly" # HERE!!
+yyyymmdd = "20250919"
+
+classif_model = "downstream"  # "CNN" or "downstream" or "fcstOnly" # HERE!!
 
 if classif_model == "CNN":
-    dir_of_uncalib_preds = "/home/csutter/DRIVE-clean/operational_inference/data_2_cnnpreds"
+    dir_of_uncalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_2_cnnpreds/{yyyymmdd}"
     datafiles = [f"{dir_of_uncalib_preds}/cnn_{i}.csv" for i in model_nums]
-    print(datafiles)
+    # print(datafiles)
 
     dir_of_calib_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_2_calib_cnn"
     modelfiles = [f"{dir_of_calib_models}/calib_{i}.pkl" for i in model_nums]
-    print(modelfiles)
+    # print(modelfiles)
 
-    saveto_noext = f"/home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib/cnncalib_"
+    saveto_dir = f"/home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib/{yyyymmdd}"
+
+    os.makedirs(saveto_dir, exist_ok= True)
+
+    print(f"dir will be {saveto_dir}")
+
+    saveto_noext = f"{saveto_dir}/cnncalib_"
 
 elif classif_model == "downstream":
-    dir_of_uncalib_preds = "/home/csutter/DRIVE-clean/operational_inference/data_4_downstream"
+
+    dir_of_uncalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_4_downstream/{yyyymmdd}"
+
     datafiles = [f"{dir_of_uncalib_preds}/downstream_{i}.csv" for i in model_nums]
-    print(datafiles)
+    # print(datafiles)
 
     dir_of_calib_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_4_calib_downstream"
     modelfiles = [f"{dir_of_calib_models}/calib_{i}.pkl" for i in model_nums]
-    print(modelfiles)
+    # print(modelfiles)
 
-    saveto_noext = f"/home/csutter/DRIVE-clean/operational_inference/data_5_downstreamcalib/downstreamcalib_"
+    saveto_dir = f"/home/csutter/DRIVE-clean/operational_inference/data_5_downstreamcalib/{yyyymmdd}"
+
+    os.makedirs(saveto_dir, exist_ok= True)
+
+    print(f"dir will be {saveto_dir}")
+
+    saveto_noext = f"{saveto_dir}/downstreamcalib_"
 
 for i in range(0,len(model_nums)):
     # runname = f[:-4] # remove the .csv
@@ -116,4 +132,4 @@ for i in range(0,len(model_nums)):
 
     saveto = f"{saveto_noext}m{i}.csv"
     t_all.to_csv(saveto)
-    print(saveto)
+    print(f"saved predictions to {saveto}")
