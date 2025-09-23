@@ -4,7 +4,7 @@ import inference_downstream
 import inference_ensemble
 
 inference_run_tracker = (
-    "/home/csutter/DRIVE-clean/operational_inference/data_1_images/example_small.csv"
+    "/home/csutter/DRIVE-clean/operational_inference/data_1_images/tracker_m0.csv"
 )
 
 # Where the hrrr data lives
@@ -17,13 +17,13 @@ yyyymmdd = "20250919"
 # inference_cnn.cnn_run(inference_run_tracker = inference_run_tracker, model_nums = model_nums, yyyymmdd = yyyymmdd)
 
 # Step B
-# inference_calibration.calib_run(model_nums = model_nums, yyyymmdd = yyyymmdd, classif_model = "CNN")
+inference_calibration.calib_run(model_nums = model_nums, yyyymmdd = yyyymmdd, classif_model = "CNN")
 
 # Step C
-# inference_downstream.downstream_run(model_nums = model_nums, yyyymmdd = yyyymmdd, hrrrdatapath = hrrr_data_csv)
+inference_downstream.downstream_run(model_nums = model_nums, yyyymmdd = yyyymmdd, hrrrdatapath = hrrr_data_csv)
 
 # Step D
-# inference_calibration.calib_run(model_nums = model_nums, yyyymmdd = yyyymmdd, classif_model = "downstream")
+inference_calibration.calib_run(model_nums = model_nums, yyyymmdd = yyyymmdd, classif_model = "downstream")
 
 # Step E
 inference_ensemble.ensemble_run(model_nums = model_nums, yyyymmdd = yyyymmdd)

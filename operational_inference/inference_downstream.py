@@ -34,7 +34,7 @@ def downstream_run(model_nums, yyyymmdd, hrrrdatapath):
 
     cols_from_cnn = [
         "innerPhase",
-        "outerPhase",
+        # "outerPhase",
         "img_name",
         "img_orig",
         "site",
