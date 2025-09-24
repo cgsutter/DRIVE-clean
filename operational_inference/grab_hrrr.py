@@ -1,6 +1,6 @@
 import multiprocessing
 
-import config
+# import config
 import pandas as pd
 
 total_cores = multiprocessing.cpu_count()
@@ -14,29 +14,29 @@ import numpy as np
 from joblib import Parallel, delayed
 
 
-def step3_fn(dirsave):
+def step3_fn(imgfile, hrrrfile):
 
     print("Starting step 3, grabbing relevant HRRR files for observations")
+    os.makedirs(os.path.dirname(hrrrfile), exist_ok = True)
     # grab path where csv from step 1 is saved out
     # comment out one or the other...
 
-    step1file = f"{dirsave}/step1_imgfiles.csv"
-
     # Add camera latitude and longitude to df
-    step1data = pd.read_csv(step1file)
+    imgcamdata = pd.read_csv(imgfile) # step1data = 
 
     # cam lat and lon reference file
-    camlocs = pd.read_csv(
-        "/home/csutter/DRIVE/site_analysis/_reference/ny511sites_ID_latlon.csv"
-    )
+    # camlocs = pd.read_csv(
+    #     "/home/csutter/DRIVE/site_analysis/_reference/ny511sites_ID_latlon.csv"
+    # )
 
-    # merge to get
-    imgcamdata = step1data.merge(
-        camlocs[["site", "Latitude", "Longitude"]], how="inner", on="site"
-    )
+    # # merge to get
+    # imgcamdata = step1data.merge(
+    #     camlocs[["site", "Latitude", "Longitude"]], how="inner", on="site"
+    # )
 
     # imgcamdata.head(3)
     print(len(imgcamdata))
+    print(imgcamdata.columns)
     # print(imgcamdata[0:8])
 
     # CODE FROM /home/csutter/DRIVE/inference/hrrr_colocate.py
@@ -59,7 +59,7 @@ def step3_fn(dirsave):
         datelist = []
         timelist = []
         for ind in range(0, len(modelpreds)):
-            i = modelpreds["img_model"][ind]
+            i = modelpreds["img_orig"][ind]
             # if confighrrr.for_inference == True:
             #     sitestart = i.find("data/") + 5  # find first occurance
             #     siteinter = i[sitestart:]
@@ -333,7 +333,7 @@ def step3_fn(dirsave):
 
         print(len(inputdf))
 
-        print("starting parallelization to map to nearest data")
+        print("starting parallelization to map to nearest hrrr data")
         hrrrdatalists = Parallel(n_jobs=4)(
             delayed(colocate_add_hrrr_data)(row) for index, row in inputdf.iterrows()
         )  # (n_jobs=cores_to_use
@@ -429,9 +429,9 @@ def step3_fn(dirsave):
         .any(axis=1)
     ]
 
-    print(f"{dirsave}/step3_hrrrdata.csv")
+    # print(f"{dirsave}/step3_hrrrdata.csv")
     # Save out as step3
-    finaldf_step3_clean.to_csv(f"{dirsave}/step3_hrrrdata.csv")
+    finaldf_step3_clean.to_csv(hrrrfile)
 
     # MOVED ABOVE IN FN 925
     # hrrrdatalists = Parallel(n_jobs=cores_to_use)(

@@ -75,6 +75,8 @@ def downstream_run(model_nums, yyyymmdd, hrrrdatapath):
 
         #### Load data
         cnndata = pd.read_csv(csv)
+        print("here")
+        print(cnndata.columns)
 
         # load in weather data
         hrrr = downstream_model_train.hrrr_data_load_prep(hrrrdatapath)

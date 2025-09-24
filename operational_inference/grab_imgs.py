@@ -4,7 +4,7 @@ import glob
 import os
 from datetime import datetime, timedelta
 
-import config
+# import config
 import numpy as np
 import pandas as pd
 
@@ -12,11 +12,10 @@ import pandas as pd
 # print(config.flag_now_event)
 
 
-def testfn():
-    print("hii!")
+def step1_fn(rundate, runhour, saveimgcsv, y, m, d, hour_str, min_str,max_time_diff_imgs = 10):
 
-
-def step1_fn(rundate, runhour, dirsave, y, m, d, hour_str, min_str):
+    print(f"making dir {os.path.dirname(saveimgcsv)}")
+    os.makedirs(os.path.dirname(saveimgcsv), exist_ok = True)
 
     print("Starting step 1, grabbing relevant image file paths")
     # runhour = config.run_hour
@@ -28,6 +27,7 @@ def step1_fn(rundate, runhour, dirsave, y, m, d, hour_str, min_str):
     #     subdir = config.parentdir
 
     # grab all site sub dir names
+    
     sites = os.listdir("/home/csutter/cron/data")
     if ".ipynb_checkpoints" in sites:
         sites.remove(".ipynb_checkpoints")
@@ -116,6 +116,12 @@ def step1_fn(rundate, runhour, dirsave, y, m, d, hour_str, min_str):
     # print(f"created directory")
 
     # target datetime for differencing
+    print("check here")
+    print(y)
+    print(m)
+    print(d)
+    print(hour_str)
+    print(min_str)
     target_datetime = datetime.strptime(
         f"{y}-{m}-{d}-{hour_str}:{min_str}:00", "%Y-%m-%d-%H:%M:%S"
     )
@@ -186,9 +192,9 @@ def step1_fn(rundate, runhour, dirsave, y, m, d, hour_str, min_str):
     print(lowerbound_string_imgname)
 
     print(
-        f"{config.max_time_diff_imgs} minutes: Maximum difference between time of interest and most recent image considered is {config.max_time_diff_imgs} minutes"
+        f"{max_time_diff_imgs} minutes: Maximum difference between time of interest and most recent image considered is {max_time_diff_imgs} minutes"
     )
-    max_min_diff = timedelta(minutes=config.max_time_diff_imgs)
+    max_min_diff = timedelta(minutes=max_time_diff_imgs)
     # print(type(max_min_diff))
     # print(max_min_diff)
 
@@ -300,12 +306,24 @@ def step1_fn(rundate, runhour, dirsave, y, m, d, hour_str, min_str):
 
     # make as df and save as csv to directory
     step1_imgfiles = pd.DataFrame(
-        {"img_model": current_batch_of_images, "site": sites_with_images}
+        {"img_orig": current_batch_of_images, "site": sites_with_images}
     )
 
+    step1_imgfiles["img_cat"] = "dry" # just a placehold cat to assign to all images
+    step1_imgfiles["img_name"] = current_batch_of_images # adding so that img_name for observation matching is available
+
+    step1_imgfiles["innerPhase"] = "innerTrain" # placeholder, not needed for inference
+
+    step1_imgfiles["foldnum"] = 0 # placeholder, not needed for inference
+
+    print(len(step1_imgfiles))
+    # grab lat and lons
+
+    sitelatlon = pd.read_csv("/home/csutter/DRIVE/site_analysis/_reference/ny511sites_ID_latlon.csv")
+
+    step1_imgfiles = step1_imgfiles.merge(sitelatlon[['site','Latitude','Longitude']], how = "left", on = "site")
+    
     print(len(step1_imgfiles))
 
-    print(f"{dirsave}/step1_imgfiles.csv")
-
     # save out
-    step1_imgfiles.to_csv(f"{dirsave}/step1_imgfiles.csv")
+    step1_imgfiles.to_csv(saveimgcsv)
