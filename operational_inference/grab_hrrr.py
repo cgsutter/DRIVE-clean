@@ -272,6 +272,8 @@ def colocate_add_hrrr_data(row):
 
 def runall(fhnum_input, imgdatacsv, hrrrdatacsv_tosave):
 
+    os.makedirs(os.path.dirname(hrrrdatacsv_tosave), exist_ok = True)
+
     imgcamdata = pd.read_csv(
         imgdatacsv
     )  
