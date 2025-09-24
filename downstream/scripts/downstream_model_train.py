@@ -59,6 +59,8 @@ def merge_cnn_and_weather_data(cnndata_df, weatherdata_df, cols_to_keep_cnn):
 
     # merge the datasets dealing with multiple of the same cols, etc
 
+    # print("infor about weather data")
+
     # already in cnn df don't need to carry it over from hrrr dataset
     hrrr_full1 = weatherdata_df.drop(
         columns=["img_cat", "site"]
@@ -66,14 +68,20 @@ def merge_cnn_and_weather_data(cnndata_df, weatherdata_df, cols_to_keep_cnn):
 
     print("len cnn df")
     print(len(cnndata_df))
+    # nan_rows = cnndata_df[cnndata_df.isna().any(axis=1)]
+    # print("should be 0 nans")
+    # print(len(nan_rows))
 
     # note that hrrr has more data than labeled dataset bc it used to have obstructions in it, and also was before relabeling. Must left merge into the labeled_dataset to use the right data
-    hrrr_full = cnndata_df.merge(hrrr_full1, how="left", on="img_name")
-    # print(len(hrrr_full))
-    # print(hrrr_full.columns)
+
+    hrrr_full = cnndata_df.merge(hrrr_full1, how="inner", on="img_name") # use inner st we dont use images that dont have corresponding hrrr data
 
     print("len all data for training downstream")
     print(len(hrrr_full))
+    # nan_rows = hrrr_full[hrrr_full.isna().any(axis=1)]
+    # print("should be 0 nans")
+    # print(len(nan_rows))
+
     return hrrr_full
 
 
