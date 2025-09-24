@@ -112,36 +112,72 @@ def identify_timeofday(timestamp_nysm, dictinput):
 
     
     return  timeofday
-# Examples to test functions above ^
 
-timeinput1 = pd.to_datetime("2022-05-06 05:05:05")
-timeinput1
-print(timeinput1)
-
-# timeinput1 = date_series[1]
-# print(timeinput1)
-
-k = sunevents(timeinput1, 42.418171, -79.3666, "fred")
-
-print(k)
-
-l= identify_timeofday(timeinput1, k)
-
-print(l)
-# print(o)
-
-
-d = pd.read_csv("/home/csutter/DRIVE-clean/operational_inference/data_1_images/2025/09/23/20250923_2345/step1_imgfiles.csv")
-
-print(d[0:3])
-print(d.columns)
 
 def eventtime(row):
-    t = row["img_orig"][-23:][:-4]
-    return t
+    yyyymmdd = row["img_orig"][-23:][:10]
+    hhmm = row["img_orig"][-12:][:-4]
+    dt_st = f"{yyyymmdd} {hhmm}"
+    return dt_st
 
-d["time"] = d.apply(eventtime, axis =1 )
+def sunevent_row(row):
+    dt_pd = pd.to_datetime(row["dt_str"])
+    k = sunevents(dt_pd, row["Latitude"],row["Longitude"], row["site"])
+    return k
 
-print(d[0:3])
-# def sunevent_row(row):
-#     k = sunevents(row[""], 42.418171, -79.3666, "fred")
+def timeofday_row(row):
+    dt_pd = pd.to_datetime(row["dt_str"])
+    k = identify_timeofday(dt_pd,row["timeofevent"])
+    return k
+
+def run_timeinfo(d):
+    print("starting time info function")
+    # d = pd.read_csv(csvpath)
+    d["dt_str"] = d.apply(eventtime, axis =1)
+    d["timeofevent"] = d.apply(sunevent_row, axis =1)
+    d["timeofday"] = d.apply(timeofday_row, axis =1)
+
+    print(d[0:3])
+
+    print("added time info to inputted df")
+
+    return d
+
+
+# ######### EXAMPLES
+
+# # EXAMPLE: One-off examples to test functions above ^
+
+# timeinput1 = pd.to_datetime("2022-05-06 05:05:05")
+# timeinput1
+# print(timeinput1)
+
+# # timeinput1 = date_series[1]
+# # print(timeinput1)
+
+# k = sunevents(timeinput1, 42.418171, -79.3666, "fred")
+
+# print(k)
+
+# l= identify_timeofday(timeinput1, k)
+
+# print(l)
+
+# # Example using df, applying how it would for operations image csv
+
+# d = pd.read_csv("/home/csutter/DRIVE-clean/operational_inference/data_1_images/2025/09/23/20250923_2345/step1_imgfiles.csv")
+
+# print(d[0:3])
+# print(d.columns)
+
+# d["dt_str"] = d.apply(eventtime, axis =1 )
+
+# d["timeofevent"] = d.apply(sunevent_row, axis =1 )
+
+# d["timeofday"] = d.apply(timeofday_row, axis =1 )
+
+# print(d[0:3])
+
+
+
+

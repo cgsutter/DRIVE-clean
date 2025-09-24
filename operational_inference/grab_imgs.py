@@ -8,9 +8,16 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 
+import assign_timeofday
+
 # print(config.parentdir)
 # print(config.flag_now_event)
 
+
+def addimgnamecol(row):
+        elem = row["img_orig"].rfind("/")
+        name = row["img_orig"][elem + 1 :]
+        return name
 
 def step1_fn(rundate, runhour, saveimgcsv, y, m, d, hour_str, min_str,max_time_diff_imgs = 10):
 
@@ -310,7 +317,11 @@ def step1_fn(rundate, runhour, saveimgcsv, y, m, d, hour_str, min_str,max_time_d
     )
 
     step1_imgfiles["img_cat"] = "dry" # just a placehold cat to assign to all images
-    step1_imgfiles["img_name"] = current_batch_of_images # adding so that img_name for observation matching is available
+
+
+    step1_imgfiles["img_name"] = step1_imgfiles.apply(addimgnamecol, axis=1)
+
+    # step1_imgfiles["img_name"] = current_batch_of_images # adding so that img_name for observation matching is available
 
     step1_imgfiles["innerPhase"] = "innerTrain" # placeholder, not needed for inference
 
@@ -325,5 +336,8 @@ def step1_fn(rundate, runhour, saveimgcsv, y, m, d, hour_str, min_str,max_time_d
     
     print(len(step1_imgfiles))
 
+    # ADD TIME AND EVENT INFORMATION
+    imgdf = assign_timeofday.run_timeinfo(step1_imgfiles)
+
     # save out
-    step1_imgfiles.to_csv(saveimgcsv)
+    imgdf.to_csv(saveimgcsv)

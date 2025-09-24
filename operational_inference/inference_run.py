@@ -29,30 +29,29 @@ imgdir = f"/home/csutter/DRIVE-clean/operational_inference/data_1_images/{dirstr
 imgcsv = "step1_imgfiles.csv"
 imgcsv_save = f"/home/csutter/DRIVE-clean/operational_inference/data_1_images/{dirstructure}/step1_imgfiles.csv"
 
-grab_imgs.step1_fn(
-    rundate=ymd,
-    runhour=hr_int,  # this is an int. only need hour as int, dont need minute as int which is why we just have minute as string below
-    saveimgcsv = imgcsv_save,
-    # dirsave=imgdir,
-    # imgfile=imgcsv,
-    y=y,
-    m=m,
-    d=d,
-    hour_str=hr,
-    min_str=min,
-)
+# grab_imgs.step1_fn(
+#     rundate=ymd,
+#     runhour=hr_int,  # this is an int. only need hour as int, dont need minute as int which is why we just have minute as string below
+#     saveimgcsv = imgcsv_save,
+#     # dirsave=imgdir,
+#     # imgfile=imgcsv,
+#     y=y,
+#     m=m,
+#     d=d,
+#     hour_str=hr,
+#     min_str=min,
+# )
 
 ## Grab HRRR data
 hrrrcsv_save = f"/home/csutter/DRIVE-clean/operational_inference/data_1b_hrrr/{dirstructure}/step1b_hrrr.csv"
-# Where the hrrr data lives
-# hrrr_data_csv = "/home/csutter/DRIVE/weather_img_concatmodels/cnn_hrrr_fcsthr2/nestedcv_imgname_hrrrdata_fcsthr2.csv"
-grab_hrrr.step3_fn(imgfile = imgcsv_save, hrrrfile = hrrrcsv_save)
+
+# grab_hrrr.runall(fhnum_input = 2, imgdatacsv = imgcsv_save, hrrrdatacsv_tosave = hrrrcsv_save)
 
 # ## Step A
-inference_cnn.cnn_run(inference_run_tracker = imgcsv_save, model_nums = model_nums, yyyymmdd = dirstructure)
+# inference_cnn.cnn_run(inference_run_tracker = imgcsv_save, model_nums = model_nums, yyyymmdd = dirstructure)
 
 # ## Step B
-inference_calibration.calib_run(model_nums = model_nums, yyyymmdd = dirstructure, classif_model = "CNN")
+# inference_calibration.calib_run(model_nums = model_nums, yyyymmdd = dirstructure, classif_model = "CNN")
 
 ## Step C
 inference_downstream.downstream_run(model_nums = model_nums, yyyymmdd = dirstructure, hrrrdatapath = hrrrcsv_save)

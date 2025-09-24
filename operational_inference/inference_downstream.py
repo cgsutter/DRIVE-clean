@@ -75,8 +75,8 @@ def downstream_run(model_nums, yyyymmdd, hrrrdatapath):
 
         #### Load data
         cnndata = pd.read_csv(csv)
-        print("here")
-        print(cnndata.columns)
+        print("here CNN calib data")
+        # print(cnndata.columns)
 
         # load in weather data
         hrrr = downstream_model_train.hrrr_data_load_prep(hrrrdatapath)
@@ -87,11 +87,15 @@ def downstream_run(model_nums, yyyymmdd, hrrrdatapath):
             weatherdata_df=hrrr,
             cols_to_keep_cnn=cols_from_cnn,
         )
+        print("check 0 nans after merge")
+        nan_rows = cnn_and_weather_data[cnn_and_weather_data.isna().any(axis=1)]
+        print(len(nan_rows))
 
         # Prepped data length
         print(len(cnn_and_weather_data))
 
         all_input_data = cnn_and_weather_data[features]
+
         all_output_data = cnn_and_weather_data["img_cat"] # need?
         all_imgname = cnn_and_weather_data["img_name"] # need?
 
