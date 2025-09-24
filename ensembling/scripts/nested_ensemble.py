@@ -192,6 +192,94 @@ def rowfn_dict_calcs_from_5preds(row):
     )
 
 
+# def rowfn_dict_calcs_from_4preds(row): # For operational inference of ODM
+#     """
+#     A function to be applied to rows of a df.
+#     Returns arrays of dictionaries (which will be added as cols to the dataframe).
+#     For each observation, make two dictionaries. One dictionary with the class as key, and the list of models whose prediction was that class as the values. E.g. {'dry': ['m0', 'm4'], 'wet': ['m1', 'm2', 'm3']}. The second dictionary with the count of models who predicted that cat, e.g. {'dry': 2, 'wet': 3}. The third dict is the average probability value from the predicted classes, e.g. {'dry': 0.4718, 'wet': 0.5170}.
+#     """
+#     list_5preds = row["list_5preds"]
+#     dict_modelkeys_predcatvalues = {}
+#     for i in range(0, 4):
+#         # add key value pair
+#         dict_modelkeys_predcatvalues[f"m{i}"] = list_5preds[i]
+#     dict_catAsKeys_modelAsValues = reverse_dict(dict_modelkeys_predcatvalues)
+#     dict_catAsKeys_countAsValues = {}
+#     dict_catAsKeys_probsAsValues = {}
+#     # these two lists are for finding the most confident
+#     probs5 = []
+#     preds5 = []
+#     for predcat in dict_catAsKeys_modelAsValues.keys():
+#         models_w_predcat = dict_catAsKeys_modelAsValues[predcat]
+#         # add key value pair
+#         dict_catAsKeys_countAsValues[predcat] = len(models_w_predcat)
+#         models_w_predcat_probs = []
+#         for m in models_w_predcat:
+#             models_w_predcat_probs.append(row[f"{m}_model_prob"])
+#             probs5.append(row[f"{m}_model_prob"])
+#             preds5.append(row[f"{m}_model_pred"])
+#         avg = np.mean(models_w_predcat_probs)
+#         # add key value pair
+#         dict_catAsKeys_probsAsValues[predcat] = avg
+
+#     # grab the 1 most confident prediction out of the 5 as a dictionary with single value
+#     dict_mostConfident_singleModel = {}
+#     for i in range(0, 4):
+#         if probs5[i] == max(probs5):
+#             # add key value pair
+#             dict_mostConfident_singleModel[f"{preds5[i]}"] = probs5[i]
+#     return (
+#         dict_catAsKeys_modelAsValues,
+#         dict_catAsKeys_countAsValues,
+#         dict_catAsKeys_probsAsValues,
+#         dict_mostConfident_singleModel,
+#     )
+
+def rowfn_dict_calcs_from_4preds(row):
+    """
+    A function to be applied to rows of a df.
+    Returns arrays of dictionaries (which will be added as cols to the dataframe).
+    For each observation, make two dictionaries. One dictionary with the class as key, and the list of models whose prediction was that class as the values. E.g. {'dry': ['m0', 'm4'], 'wet': ['m1', 'm2', 'm3']}. The second dictionary with the count of models who predicted that cat, e.g. {'dry': 2, 'wet': 3}. The third dict is the average probability value from the predicted classes, e.g. {'dry': 0.4718, 'wet': 0.5170}.
+    """
+    list_5preds = row["list_5preds"]
+    dict_modelkeys_predcatvalues = {}
+    mlist = ["m0","m1","m2","m3"]  # update here for 3-member ensemble "A", "B", "C", "D", "E"
+    for i in range(0, len(mlist)):
+        # add key value pair
+        dict_modelkeys_predcatvalues[f"{mlist[i]}"] = list_5preds[i]
+    dict_catAsKeys_modelAsValues = reverse_dict(dict_modelkeys_predcatvalues)
+    dict_catAsKeys_countAsValues = {}
+    dict_catAsKeys_probsAsValues = {}
+    # these two lists are for finding the most confident
+    probs5 = []
+    preds5 = []
+    for predcat in dict_catAsKeys_modelAsValues.keys():
+        models_w_predcat = dict_catAsKeys_modelAsValues[predcat]
+        # add key value pair
+        dict_catAsKeys_countAsValues[predcat] = len(models_w_predcat)
+        models_w_predcat_probs = []
+        for m in models_w_predcat:
+            models_w_predcat_probs.append(row[f"{m}_model_prob"])
+            probs5.append(row[f"{m}_model_prob"])
+            preds5.append(row[f"{m}_model_pred"])
+        avg = np.mean(models_w_predcat_probs)
+        # add key value pair
+        dict_catAsKeys_probsAsValues[predcat] = avg
+
+    # grab the 1 most confident prediction out of the 5 as a dictionary with single value
+    dict_mostConfident_singleModel = {}
+    for i in range(0, 4):  # update here 3-member ensemble
+        if probs5[i] == max(probs5):
+            # add key value pair
+            dict_mostConfident_singleModel[f"{preds5[i]}"] = probs5[i]
+    return (
+        dict_catAsKeys_modelAsValues,
+        dict_catAsKeys_countAsValues,
+        dict_catAsKeys_probsAsValues,
+        dict_mostConfident_singleModel,
+    )
+
+
 # Dicionary cols made in above function sets up for doing Method 1: mode, and method 3: max prob. See below:
 
 
@@ -230,6 +318,34 @@ def rowfn_grab_mode(row):
         maxcat = max_keys[0]
 
     return maxcat
+
+
+def rowfn_grab_mode_ynobs(row):
+    """
+    Apply row wise to a df
+    Returns array of the mode prediction based on the dictionary column that has the counts for each pred cat in it
+    """
+    dict_catAsKeys_countAsValues = row["dict_catAsKeys_countAsValues"]
+
+    max_key = max(dict_catAsKeys_countAsValues, key=dict_catAsKeys_countAsValues.get)
+
+    max_value = max(dict_catAsKeys_countAsValues.values())
+    max_keys = [
+        key for key, value in dict_catAsKeys_countAsValues.items() if value == max_value
+    ]
+
+    if len(max_keys) > 1:
+        if "nonobs" in max_keys:
+            maxcat = "nonobs"
+        elif "obs" in max_keys:
+            maxcat = "obs"
+        else:
+            print("issue with max_keys")
+    else:
+        maxcat = max_keys[0]
+
+    return maxcat
+
 
 
 def rowfn_grab_max_confidence(row):
@@ -328,6 +444,59 @@ def dffn_return_avg_cols(dfinput):
 
     return dfinput
 
+
+
+# Method 2: average probabilities
+def dffn_return_avg_cols_ynobs(dfinput):
+    """Function on a df, return the updated df"""
+
+    obscols = [
+        "m0_prob_obs",
+        "m1_prob_obs",
+        "m2_prob_obs",
+        "m3_prob_obs",
+        # "D_prob_obs", # update here 3-member ensemble
+        # "E_prob_obs", # update here 3-member ensemble
+    ]
+    nonobscols = [
+        "m0_prob_nonobs",
+        "m1_prob_nonobs",
+        "m2_prob_nonobs",
+        "m3_prob_nonobs",
+        # "D_prob_nonobs", # update here 3-member ensemble
+        # "E_prob_nonobs", # update here 3-member ensemble
+    ]
+
+    dfinput["ensembleAvg_obs"] = dfinput[obscols].mean(axis=1)
+    dfinput["ensembleAvg_nonobs"] = dfinput[nonobscols].mean(axis=1)
+
+    # grab the column of probs that was the highest and parse out to just get the cat name from the col name that was max
+
+    # make into a temporary df just to pull the max
+
+    dfinput["ensembleAvg_pred"] = (
+        dfinput[
+            [
+                "ensembleAvg_obs",
+                "ensembleAvg_nonobs",
+            ]
+        ]
+        .idxmax(axis=1)
+        .str[12:]
+    )
+
+    print("through here")
+
+    # grab the max probability to retrun as model_prob
+
+    dfinput["ensembleAvg_predprob"] = dfinput[
+        [
+            "ensembleAvg_obs",
+            "ensembleAvg_nonobs",
+        ]
+    ].max(axis=1)
+
+    return dfinput
 
 # if 1 and 2 dont align, then look whether 3 aligns with either of them, and if it does, use that one. If it doesnt align, then we have 3 distinct model preds! Use the highest severity one
 

@@ -140,6 +140,8 @@ def make_preds(
         print("PRINT after predict")
         c2 = np.argmax(p2, axis=1)
 
+        print(np.unique(c2))
+
         print("Complete with evaluate() in results_predictions.py")
 
         # note: this is not set up right now for evid, which requires loading of the custom loss function to deserialize (and that requires class weights which are unique to each of the 30 datasets, come back to this..
@@ -148,7 +150,13 @@ def make_preds(
             helper_fns_adhoc.cat_str_ind_dictmap(listcats=run_cats)
         )
 
+        print(np.unique(dict_catKey_indValue))
+        print(np.unique(dict_indKey_catValue))
+
+
         predicted_classname = [dict_indKey_catValue[i] for i in c2]
+
+        print(predicted_classname)
 
         df_results = pd.DataFrame(
             p2,
@@ -210,7 +218,7 @@ def make_preds(
 
 def cnn_run(inference_run_tracker, model_nums, yyyymmdd):
     
-    dir_of_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_1_cnn"
+    dir_of_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_odm_CNN"
     model_paths = [f"{dir_of_models}/cnn_{i}" for i in model_nums]
 
     print("HERE:A")
@@ -218,7 +226,7 @@ def cnn_run(inference_run_tracker, model_nums, yyyymmdd):
     print(model_nums)
     print(model_paths)
 
-    dir_tosave_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_2_cnnpreds/{yyyymmdd}"
+    dir_tosave_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_odm_1_cnnpreds/{yyyymmdd}"
     os.makedirs(dir_tosave_preds, exist_ok=True)
 
     print("HERE:B")
@@ -231,13 +239,10 @@ def cnn_run(inference_run_tracker, model_nums, yyyymmdd):
     inference_transferLearning = True  # config.transfer_learning
     inference_ast = True  # config.ast
     inference_evid = False  # config.evid
-    inference_cat_num = 5
+    inference_cat_num = 2
     inference_cats = [
-        "wet",
-        "dry",
-        "snow",
-        "snow_severe",
-        "poor_viz",
+        "obs",
+        "nonobs",
     ]
     inference_imheight = 224
     inference_imwidth = 224

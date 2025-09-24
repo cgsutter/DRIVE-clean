@@ -6,19 +6,26 @@ sys.path.append("/home/csutter/DRIVE-clean/ensembling/scripts")
 import nested_ensemble
 import pandas as pd
 import os
+import numpy as np
 
 
-def ensemble_run(model_nums,yyyymmdd):
-    # directory each of the ensemble member predictions are already saved
-    dir_with_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_5_downstreamcalib/{yyyymmdd}"
-    datafiles = [f"{dir_with_preds}/downstreamcalib_{i}.csv" for i in model_nums]
-    print(datafiles)
+def ensemble_run(modeltype, model_nums,yyyymmdd,dir_modelpreds,dir_save_finalpreds, catsuse):
 
+    if modeltype == "SCM":
+        # directory each of the ensemble member predictions are already saved
+        # dir_with_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_5_downstreamcalib/{yyyymmdd}"
+        datafiles = [f"{dir_modelpreds}/downstreamcalib_{i}.csv" for i in model_nums]
+        print(datafiles)
+    elif modeltype == "ODM":
+        datafiles = [f"{dir_modelpreds}/cnn_{i}.csv" for i in model_nums]
+        print(datafiles)
+    else:
+        print("set modeltype to either SCM or ODM")
     # Dir to save the output predicted downstream csv
-    directory_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_6_ensembling/{yyyymmdd}"
+    # dir_save_finalpreds = f"/home/csutter/DRIVE-clean/operational_inference/data_6_ensembling/{yyyymmdd}"
     # directory_summaries = "/home/csutter/DRIVE-clean/ensembling/data_results" # wont need for inference mode
 
-    os.makedirs(directory_preds, exist_ok = True)
+    os.makedirs(dir_save_finalpreds, exist_ok = True)
 
     # ensemble_flag = True
 
@@ -43,7 +50,8 @@ def ensemble_run(model_nums,yyyymmdd):
         # read in predicted probs
         r = pd.read_csv(datafiles[i])
         
-
+        print("initial")
+        print(r.columns)
         print(len(r))
 
         r = r.drop(columns=["Unnamed: 0"])
@@ -54,18 +62,35 @@ def ensemble_run(model_nums,yyyymmdd):
         print(f"inner model number {innermodelnum}")
 
         # will read in all 5 results dfs for ensembling but all hve same col names so to work in a df (concatting all the columns) will want to rename the columns so not to have overlap
-        cols_to_rename = [
-            "calib_prob_dry",
-            "calib_prob_poor_viz",
-            "calib_prob_snow",
-            "calib_prob_snow_severe",
-            "calib_prob_wet",
-            "calib_pred",
-            "calib_prob",  # finalprob
-        ]
 
+        if modeltype == "SCM":
+            cols_to_rename = [f"calib_prob_{c}" for c in catsuse]
+            cols_to_rename.append("calib_pred")
+            cols_to_rename.append("calib_prob")
+        elif modeltype == "ODM":
+            cols_to_rename = [f"prob_{c}" for c in catsuse]
+            cols_to_rename.append("model_pred")
+            cols_to_rename.append("model_prob")
+            print("cols to rename")
+            print(cols_to_rename)
+            print(r.columns)
+        else:
+            print("set modeltype to either SCM or ODM")
+
+        # cols_to_rename = [f"calib_prob_{c}" for c in catsuse]
+        #     "calib_prob_dry",
+        #     "calib_prob_poor_viz",
+        #     "calib_prob_snow",
+        #     "calib_prob_snow_severe",
+        #     "calib_prob_wet",
+        #     "calib_pred",
+        #     "calib_prob",  # finalprob
+        # ]
+        print("cols_to_rename")
+        print(cols_to_rename)
         r = r.rename(columns={col: f"{innermodelnum}_{col}" for col in cols_to_rename})
 
+        print('here check r')
         print(r.columns)
 
         r = r.sort_values(
@@ -77,23 +102,46 @@ def ensemble_run(model_nums,yyyymmdd):
             # Since we will need to mergs all dfs, only keep the identifyer cols from the first df, and then merge all the rest of the dfs with just the model related columns.
 
             # only keep the columns needed for everything except the first
-            r = r[
-                [
-                    "img_name",
-                    f"{innermodelnum}_calib_prob_dry",
-                    f"{innermodelnum}_calib_prob_poor_viz",
-                    f"{innermodelnum}_calib_prob_snow",
-                    f"{innermodelnum}_calib_prob_snow_severe",
-                    f"{innermodelnum}_calib_prob_wet",
-                    f"{innermodelnum}_calib_pred",
-                    f"{innermodelnum}_calib_prob",
-                ]
-            ]
+            colskeep = ["img_name"]
+            for c in catsuse:
+                if modeltype == "SCM":
+                    colskeep.append(f"{innermodelnum}_calib_prob_{c}")
+                elif modeltype == "ODM":
+                    colskeep.append(f"{innermodelnum}_prob_{c}")
+                else:
+                    print("set modeltype to either SCM or ODM")
+
+            if modeltype == "SCM":
+                colskeep.append(f"{innermodelnum}_calib_prob")
+                colskeep.append(f"{innermodelnum}_calib_pred")
+            elif modeltype == "ODM":
+                colskeep.append(f"{innermodelnum}_model_prob")
+                colskeep.append(f"{innermodelnum}_model_pred")
+            else:
+                print("set modeltype to either SCM or ODM")
+            print("colskeep")
+            print(colskeep)
+            r = r[colskeep]
+                # [
+                #     "img_name",
+                #     f"{innermodelnum}_calib_prob_dry",
+                #     f"{innermodelnum}_calib_prob_poor_viz",
+                #     f"{innermodelnum}_calib_prob_snow",
+                #     f"{innermodelnum}_calib_prob_snow_severe",
+                #     f"{innermodelnum}_calib_prob_wet",
+                #     f"{innermodelnum}_calib_pred",
+                #     f"{innermodelnum}_calib_prob",
+                # ]
+            # ]
         # r = r.drop(columns = ["innerPhase"])
         dfs_individ.append(r)
 
         print(r.columns)
 
+        print("check r up here")
+        print(len(r.columns))
+        print(len(np.unique(r.columns)))
+        print(r.columns)
         print("through col renaming")
 
 
@@ -127,57 +175,136 @@ def ensemble_run(model_nums,yyyymmdd):
 
     print(dd.columns)
 
-    ## add cols which are lists of predicted cats
+
+
+    if modeltype == "SCM":
+        predcols = [f"{mnum}_calib_pred" for mnum in model_nums]
+    elif modeltype == "ODM":
+        predcols = [f"{mnum}_model_pred" for mnum in model_nums]
+    else:
+        print("set modeltype to either SCM or ODM")
+        
     list_colvalues = nested_ensemble.dffn_combine_cols_tolist(
         dd,
-        columns=[
-            "m0_calib_pred",
-            "m1_calib_pred",
-            "m2_calib_pred",
-            "m3_calib_pred", 
-            "m4_calib_pred", 
-        ],
+        columns=predcols
+        # [
+        #     "m0_calib_pred",
+        #     "m1_calib_pred",
+        #     "m2_calib_pred",
+        #     "m3_calib_pred", 
+        #     "m4_calib_pred", 
+        # ],
     )
     dd["list_5preds"] = list_colvalues
     # print(dd)
 
+    if modeltype == "SCM":
+        probcols = [f"{mnum}_calib_prob" for mnum in model_nums]
+    elif modeltype == "ODM":
+        probcols = [f"{mnum}_model_prob" for mnum in model_nums]
+    else:
+        print("set modeltype to either SCM or ODM")
+
+    print("here2")
+    print(probcols)
+
+    def dffn_combine_cols_tolist(df, columns):
+        """
+        Make a new column that contains a list of all the 5 model's predictions
+        """
+        list_colvalues = df[columns].values.tolist()
+        return list_colvalues
+        
     list_colvalues = nested_ensemble.dffn_combine_cols_tolist(
         dd,
-        columns=[
-            "m0_calib_prob",
-            "m1_calib_prob",
-            "m2_calib_prob",
-            "m3_calib_prob",
-            "m4_calib_prob",
-        ],
+        columns=probcols
+        # [
+        #     "m0_calib_prob",
+        #     "m1_calib_prob",
+        #     "m2_calib_prob",
+        #     "m3_calib_prob",
+        #     "m4_calib_prob",
+        # ],
     )
-    dd["list_5probs"] = list_colvalues
+
+
+
+    dd["list_5probs"] = list_colvalues #"list_5probs"
     # print(dd)
 
-    ## add dictionary columns
-    dd[
-        [
-            "dict_catAsKeys_modelAsValues",
-            "dict_catAsKeys_countAsValues",
-            "dict_catAsKeys_probsAsValues",
-            "dict_mostConfident_singleModel",
-        ]
-    ] = dd.apply(
-        nested_ensemble.rowfn_dict_calcs_from_5preds, axis=1, result_type="expand"
-    )
+    print(model_nums)
+    print("here ")
+    
+    print(probcols)
+    print(dd.columns)
+    print(dd[probcols])
 
+    dd["list_5probs"] = dd[probcols].values.tolist()
+    # print(list_colvalues[0])
+
+    print(dd)
+    print(dd["list_5probs"][0])
+    print(dd.columns)
+
+    # add cols which are lists of predicted cats
+    if modeltype == "SCM":
+        ## add dictionary columns
+        dd[
+            [
+                "dict_catAsKeys_modelAsValues",
+                "dict_catAsKeys_countAsValues",
+                "dict_catAsKeys_probsAsValues",
+                "dict_mostConfident_singleModel",
+            ]
+        ] = dd.apply(
+            nested_ensemble.rowfn_dict_calcs_from_5preds, axis=1, result_type="expand"
+        )
+    elif modeltype == "ODM":
+        ## add dictionary columns
+        dd[
+            [
+                "dict_catAsKeys_modelAsValues",
+                "dict_catAsKeys_countAsValues",
+                "dict_catAsKeys_probsAsValues",
+                "dict_mostConfident_singleModel",
+            ]
+        ] = dd.apply(
+            nested_ensemble.rowfn_dict_calcs_from_4preds, axis=1, result_type="expand"
+        )
+        print("xyz")
+        print(dd)
+
+
+    else:
+        print("set modeltype to either SCM or ODM")
+
+    
+    
     # print("finished!!")
     print(dd[0:5])
 
     ## add cols for Method 2: avg
 
-    dd2 = nested_ensemble.dffn_return_avg_cols(dd)
+    if modeltype == "SCM":
+        dd2 = nested_ensemble.dffn_return_avg_cols(dd)
+    elif modeltype == "ODM":
+        dd2 = nested_ensemble.dffn_return_avg_cols_ynobs(dd)
+    else:
+        print("set modeltype to either SCM or ODM")
+
 
     print("through averaging")
 
     ##  add cols for Methods 1: mode and 3: max
 
-    dd2["ensembleMode_pred"] = dd2.apply(nested_ensemble.rowfn_grab_mode, axis=1)
+    if modeltype == "SCM":
+        dd2["ensembleMode_pred"] = dd2.apply(nested_ensemble.rowfn_grab_mode, axis=1)
+    elif modeltype == "ODM":
+        dd2["ensembleMode_pred"] = dd2.apply(nested_ensemble.rowfn_grab_mode_ynobs, axis=1)
+    else:
+        print("set modeltype to either SCM or ODM")
+
+
     print("through mode")
 
     dd2["ensembleMaxConf_pred"] = dd2.apply(
@@ -241,18 +368,33 @@ def ensemble_run(model_nums,yyyymmdd):
     dd3["num_models_pred_cat"] = dd3.apply(num_models_pred_cat, axis = 1)
 
     # translate the count into confidence 5 = high, 4 = medium, the rest = low
-    def confidence_consisency(row):
-        # grab the value that corresponds to the key which is the predicted cat (from "select" col)
-        ct = row["num_models_pred_cat"]
-        if ct <= 3:
-            conf = 1
-        elif ct == 4:
-            conf = 2
-        elif ct == 5:
-            conf = 3
-        else:
-            conf = 0
-        return conf
+
+    if modeltype == "SCM":
+        def confidence_consisency(row):
+            # grab the value that corresponds to the key which is the predicted cat (from "select" col)
+            ct = row["num_models_pred_cat"]
+            if ct <= 3:
+                conf = 1
+            elif ct == 4:
+                conf = 2
+            elif ct == 5:
+                conf = 3
+            else:
+                conf = 0
+            return conf
+    elif modeltype == "ODM": 
+        def confidence_consisency(row):
+            # grab the value that corresponds to the key which is the predicted cat (from "select" col)
+            ct = row["num_models_pred_cat"]
+            if ct <= 2:
+                conf = 1
+            elif ct == 3:
+                conf = 2
+            elif ct == 4:
+                conf = 3
+            else:
+                conf = 0
+            return conf
 
     dd3["conf_consist"] = dd3.apply(confidence_consisency, axis = 1)
 
@@ -292,7 +434,7 @@ def ensemble_run(model_nums,yyyymmdd):
 
     print(dd3.columns)
 
-    saveto = f"{directory_preds}/finalpreds.csv"
+    saveto = f"{dir_save_finalpreds}/finalpreds.csv"
     print(saveto)
     dd3.to_csv(saveto)
 
