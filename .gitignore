@@ -86,3 +86,4 @@ operational_inference/__pycache__/
 operational_inference/data_odm_2_ensembling
 operational_inference/data_odm_1_cnnpreds
 operational_inference/trainedModels_odm_CNN
+operational_runs

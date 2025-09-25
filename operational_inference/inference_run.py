@@ -6,8 +6,6 @@ import inference_cnn
 import inference_downstream
 import inference_ensemble
 
-import odm_inference_cnn
-
 import os
 from datetime import datetime
 
@@ -25,18 +23,20 @@ START = datetime.now()
 y,m,d,ymd,hr,hr_int,min,min_int,dirstructure  = grab_time.time_given( timestampstring = "20250925_0050")
 
 ## Prep dir and file names for data (based on date info above)
-imgdir = f"/home/csutter/DRIVE-clean/operational_inference/data_1_images/{dirstructure}"
-imgcsv = "step1_imgfiles.csv"
-imgcsv_save = f"/home/csutter/DRIVE-clean/operational_inference/data_1_images/{dirstructure}/step1_imgfiles.csv"
-hrrrcsv_save = f"/home/csutter/DRIVE-clean/operational_inference/data_1b_hrrr/{dirstructure}/step1b_hrrr.csv"
-cnn_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_2_cnnpreds/{dirstructure}"
-cnncalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib/{dirstructure}"
-downstream_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_4_downstream/{dirstructure}"
-downstreamcalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_5_downstreamcalib/{dirstructure}"
-final_ensemble_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_6_ensembling/{dirstructure}"
-odm_cnnmodels_dir = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_odm_CNN"
-odm_cnn_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_odm_1_cnnpreds/{dirstructure}"
-odm_final_ensemble_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_odm_2_ensembling/{dirstructure}"
+
+# TO DEFINE -- where all the data prediction dirs should be nested within
+parentdir = "/home/csutter/DRIVE-clean/operational_runs/set1_20250924"
+# "/home/csutter/DRIVE-clean/operational_inference" # for one-off runs, e.g. testing code
+
+imgcsv_save = f"{parentdir}/data_1_images/{dirstructure}/step1_imgfiles.csv"
+hrrrcsv_save = f"{parentdir}/data_1b_hrrr/{dirstructure}/step1b_hrrr.csv"
+cnn_preds = f"{parentdir}/data_2_cnnpreds/{dirstructure}"
+cnncalib_preds = f"{parentdir}/data_3_cnncalib/{dirstructure}"
+downstream_preds = f"{parentdir}/data_4_downstream/{dirstructure}"
+downstreamcalib_preds = f"{parentdir}/data_5_downstreamcalib/{dirstructure}"
+final_ensemble_preds = f"{parentdir}/data_6_ensembling/{dirstructure}"
+odm_cnn_preds = f"{parentdir}/data_odm_1_cnnpreds/{dirstructure}"
+odm_final_ensemble_preds = f"{parentdir}/data_odm_2_ensembling/{dirstructure}"
 
 
 ####### Grab data for the instance run
@@ -107,6 +107,7 @@ print(f"TIME CHECK DONE EVERYTHING ELSE: {FINISH}")
 
 model_nums_ODM = ["m0","m1","m2","m3"] #,"m4","m5"
 catslist_ODM = ["nonobs","obs"]
+odm_cnnmodels_dir = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_odm_CNN"
 
 inference_cnn.cnn_run(inference_run_tracker = imgcsv_save, model_nums = model_nums_ODM, dir_tosave_preds = odm_cnn_preds, dir_of_models = odm_cnnmodels_dir, catnum = 2, catlist = catslist_ODM)
 
