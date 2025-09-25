@@ -362,7 +362,13 @@ def ensemble_run(modeltype, model_nums,dir_modelpreds,dir_save_finalpreds, catsu
 
     def num_models_pred_cat(row):
         # grab the value that corresponds to the key which is the predicted cat (from "select" col)
-        countnum = row["dict_catAsKeys_countAsValues"][row["select"]]
+        # It is possible for no cat to never have been predicted from one of the 5 models but to end up being the max prob when averaging the models, this this would return a keyerror. 
+        dic = row["dict_catAsKeys_countAsValues"]
+        key = row["select"]
+        if key in dic.keys():
+            countnum = dic[key]
+        else:
+            countnum = 0
         return countnum
 
     dd3["num_models_pred_cat"] = dd3.apply(num_models_pred_cat, axis = 1)
