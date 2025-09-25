@@ -208,9 +208,9 @@ def make_preds(
     
     
 
-def cnn_run(inference_run_tracker, model_nums, yyyymmdd):
+def cnn_run(inference_run_tracker, model_nums, dir_tosave_preds, dir_of_models, catnum, catlist):
     
-    dir_of_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_1_cnn"
+    # dir_of_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_1_cnn"
     model_paths = [f"{dir_of_models}/cnn_{i}" for i in model_nums]
 
     print("HERE:A")
@@ -218,7 +218,6 @@ def cnn_run(inference_run_tracker, model_nums, yyyymmdd):
     print(model_nums)
     print(model_paths)
 
-    dir_tosave_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_2_cnnpreds/{yyyymmdd}"
     os.makedirs(dir_tosave_preds, exist_ok=True)
 
     print("HERE:B")
@@ -231,14 +230,8 @@ def cnn_run(inference_run_tracker, model_nums, yyyymmdd):
     inference_transferLearning = True  # config.transfer_learning
     inference_ast = True  # config.ast
     inference_evid = False  # config.evid
-    inference_cat_num = 5
-    inference_cats = [
-        "wet",
-        "dry",
-        "snow",
-        "snow_severe",
-        "poor_viz",
-    ]
+    inference_cat_num = catnum
+    inference_cats = catlist
     inference_imheight = 224
     inference_imwidth = 224
     inference_aug = False

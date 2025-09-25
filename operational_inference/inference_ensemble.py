@@ -9,7 +9,7 @@ import os
 import numpy as np
 
 
-def ensemble_run(modeltype, model_nums,yyyymmdd,dir_modelpreds,dir_save_finalpreds, catsuse):
+def ensemble_run(modeltype, model_nums,dir_modelpreds,dir_save_finalpreds, catsuse):
 
     if modeltype == "SCM":
         # directory each of the ensemble member predictions are already saved

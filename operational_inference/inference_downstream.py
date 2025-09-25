@@ -13,9 +13,9 @@ import helper_fns_adhoc
 import downstream_model_train
 
 
-def downstream_run(model_nums, yyyymmdd, hrrrdatapath):
+def downstream_run(model_nums, dir_of_cnncalib_preds, hrrrdatapath, downstream_preds_dir):
 
-    dir_of_cnncalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib/{yyyymmdd}"
+    # dir_of_cnncalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib/{yyyymmdd}"
     datafiles = [f"{dir_of_cnncalib_preds}/cnncalib_{i}.csv" for i in model_nums]
     print(datafiles)
 
@@ -26,7 +26,7 @@ def downstream_run(model_nums, yyyymmdd, hrrrdatapath):
     print(scalerfiles)
 
     # Dir to save the output predicted downstream csv
-    downstream_preds_dir = f"/home/csutter/DRIVE-clean/operational_inference/data_4_downstream/{yyyymmdd}"
+    # downstream_preds_dir = f"/home/csutter/DRIVE-clean/operational_inference/data_4_downstream/{yyyymmdd}"
 
     os.makedirs(downstream_preds_dir, exist_ok = True)
 

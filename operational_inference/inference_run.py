@@ -11,14 +11,59 @@ import odm_inference_cnn
 import os
 from datetime import datetime
 
-# inference_run_tracker = (
-#     "/home/csutter/DRIVE-clean/operational_inference/data_1_images/tracker_m0.csv"
-# )
+
+####### Define time of run and prepare corresponding filenames
 
 START = datetime.now()
 
+## TO DEFINE -- run A or B. This sets time and date information
+
+# A: for using current time (for live/operational run)
+# y,m,d,ymd,hr,hr_int,min,min_int,dirstructure = grab_time.time_current()
+
+# B: for providing a given time (for case studies/past dates). Should be in UTC (+4EDT, +5EST)
+y,m,d,ymd,hr,hr_int,min,min_int,dirstructure  = grab_time.time_given( timestampstring = "20250925_0050")
+
+## Prep dir and file names for data (based on date info above)
+imgdir = f"/home/csutter/DRIVE-clean/operational_inference/data_1_images/{dirstructure}"
+imgcsv = "step1_imgfiles.csv"
+imgcsv_save = f"/home/csutter/DRIVE-clean/operational_inference/data_1_images/{dirstructure}/step1_imgfiles.csv"
+hrrrcsv_save = f"/home/csutter/DRIVE-clean/operational_inference/data_1b_hrrr/{dirstructure}/step1b_hrrr.csv"
+cnn_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_2_cnnpreds/{dirstructure}"
+cnncalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib/{dirstructure}"
+downstream_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_4_downstream/{dirstructure}"
+downstreamcalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_5_downstreamcalib/{dirstructure}"
+final_ensemble_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_6_ensembling/{dirstructure}"
+odm_cnnmodels_dir = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_odm_CNN"
+odm_cnn_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_odm_1_cnnpreds/{dirstructure}"
+odm_final_ensemble_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_odm_2_ensembling/{dirstructure}"
 
 
+####### Grab data for the instance run
+
+# Grab image data 
+grab_imgs.step1_fn(
+    rundate=ymd,
+    runhour=hr_int,  # this is an int. only need hour as int, dont need minute as int which is why we just have minute as string below
+    saveimgcsv = imgcsv_save,
+    y=y,
+    m=m,
+    d=d,
+    hour_str=hr,
+    min_str=min,
+)
+
+IMG = datetime.now()
+
+# Grab HRRR data
+grab_hrrr.runall(fhnum_input = 2, imgdatacsv = imgcsv_save, hrrrdatacsv_tosave = hrrrcsv_save)
+
+HRRR = datetime.now()
+
+
+###### Surface condition model (SCM)
+
+# Set model info related to SCM
 model_nums = ["m0","m1","m2","m3","m4"] #
 cats = [
         "wet",
@@ -28,71 +73,41 @@ cats = [
         "poor_viz",
     ]
 
-## Prep time and date information -- run A or B
-## come back and double check as not all of these may have been needed
-# A: for using current time (for live/operational run)
-# y,m,d,ymd,hr,hr_int,min,min_int,dirstructure = grab_time.time_current()
+# # ## Step A - CNN
+cnnmodels_dir = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_1_cnn"
+inference_cnn.cnn_run(inference_run_tracker = imgcsv_save, model_nums = model_nums, dir_tosave_preds = cnn_preds,dir_of_models = cnnmodels_dir, catnum = 5, catlist = cats)
 
-# B: for providing a given time (for case studies/past dates). Should be in UTC (+4EDT, +5EST)
-y,m,d,ymd,hr,hr_int,min,min_int,dirstructure  = grab_time.time_given( timestampstring = "20250908_1245")
+CNN = datetime.now()
 
-# Using date, prep dir and file names for data
-imgdir = f"/home/csutter/DRIVE-clean/operational_inference/data_1_images/{dirstructure}"
-imgcsv = "step1_imgfiles.csv"
-imgcsv_save = f"/home/csutter/DRIVE-clean/operational_inference/data_1_images/{dirstructure}/step1_imgfiles.csv"
-hrrrcsv_save = f"/home/csutter/DRIVE-clean/operational_inference/data_1b_hrrr/{dirstructure}/step1b_hrrr.csv"
+# # ## Step B - CNN CALIB
 
-## Grab image data 
-# grab_imgs.step1_fn(
-#     rundate=ymd,
-#     runhour=hr_int,  # this is an int. only need hour as int, dont need minute as int which is why we just have minute as string below
-#     saveimgcsv = imgcsv_save,
-#     y=y,
-#     m=m,
-#     d=d,
-#     hour_str=hr,
-#     min_str=min,
-# )
+inference_calibration.calib_run(model_nums = model_nums, dir_of_uncalib_preds = cnn_preds, classif_model = "CNN", saveto_dir = cnncalib_preds)
 
-IMG = datetime.now()
+# ## Step C - DOWNSTREAM
 
-## Grab HRRR data
+inference_downstream.downstream_run(model_nums = model_nums, dir_of_cnncalib_preds = cnncalib_preds, hrrrdatapath = hrrrcsv_save, downstream_preds_dir = downstream_preds)
 
-# grab_hrrr.runall(fhnum_input = 2, imgdatacsv = imgcsv_save, hrrrdatacsv_tosave = hrrrcsv_save)
+# # ## Step D - DOWNSTREAM CALIB
 
-# HRRR = datetime.now()
+inference_calibration.calib_run(model_nums = model_nums, dir_of_uncalib_preds = downstream_preds, classif_model = "downstream", saveto_dir = downstreamcalib_preds)
+
+# # ## Step E - ENSEMBLING
+
+inference_ensemble.ensemble_run(modeltype = "SCM", model_nums = model_nums, dir_modelpreds = downstreamcalib_preds,dir_save_finalpreds = final_ensemble_preds, catsuse= cats)
+
+FINISH = datetime.now()
+print(f"TIME CHECK DONE START: {START}")
+print(f"TIME CHECK DONE IMG: {IMG}")
+print(f"TIME CHECK DONE HRRR: {HRRR}")
+print(f"TIME CHECK DONE CNN: {CNN}")
+print(f"TIME CHECK DONE EVERYTHING ELSE: {FINISH}")
 
 
-# # ## Step A
-# inference_cnn.cnn_run(inference_run_tracker = imgcsv_save, model_nums = model_nums, yyyymmdd = dirstructure)
+####### Obstruction detection model (ODM)
 
-# CNN = datetime.now()
+model_nums_ODM = ["m0","m1","m2","m3"] #,"m4","m5"
+catslist_ODM = ["nonobs","obs"]
 
-# # ## Step B
-# inference_calibration.calib_run(model_nums = model_nums, yyyymmdd = dirstructure, classif_model = "CNN")
+inference_cnn.cnn_run(inference_run_tracker = imgcsv_save, model_nums = model_nums_ODM, dir_tosave_preds = odm_cnn_preds, dir_of_models = odm_cnnmodels_dir, catnum = 2, catlist = catslist_ODM)
 
-# ## Step C
-# inference_downstream.downstream_run(model_nums = model_nums, yyyymmdd = dirstructure, hrrrdatapath = hrrrcsv_save)
-
-# # ## Step D
-# inference_calibration.calib_run(model_nums = model_nums, yyyymmdd = dirstructure, classif_model = "downstream")
-
-# # ## Step E
-inference_ensemble.ensemble_run(modeltype = "SCM", model_nums = model_nums, yyyymmdd = dirstructure, dir_modelpreds = f"/home/csutter/DRIVE-clean/operational_inference/data_5_downstreamcalib/{dirstructure}",dir_save_finalpreds = f"/home/csutter/DRIVE-clean/operational_inference/data_6_ensembling/{dirstructure}", catsuse= cats)
-
-# FINISH = datetime.now()
-
-# print(f"TIME CHECK DONE START: {START}")
-# print(f"TIME CHECK DONE IMG: {IMG}")
-# print(f"TIME CHECK DONE HRRR: {HRRR}")
-# print(f"TIME CHECK DONE CNN: {CNN}")
-# print(f"TIME CHECK DONE EVERYTHING ELSE: {FINISH}")
-
-
-#### ODM
-
-# model_nums_ODM = ["m0","m1","m2","m3"] #,"m4","m5"
-
-# # odm_inference_cnn.cnn_run(inference_run_tracker = imgcsv_save, model_nums = model_nums_ODM, yyyymmdd = dirstructure)
-
-# inference_ensemble.ensemble_run(modeltype = "ODM", model_nums = model_nums_ODM, yyyymmdd = dirstructure, dir_modelpreds = f"/home/csutter/DRIVE-clean/operational_inference/data_odm_1_cnnpreds/{dirstructure}",dir_save_finalpreds = f"/home/csutter/DRIVE-clean/operational_inference/data_odm_2_ensembling/{dirstructure}", catsuse = ["nonobs","obs"])
+inference_ensemble.ensemble_run(modeltype = "ODM", model_nums = model_nums_ODM, dir_modelpreds = odm_cnn_preds,dir_save_finalpreds = odm_final_ensemble_preds, catsuse = ["nonobs","obs"])

@@ -12,9 +12,9 @@ import joblib
 import numpy as np
 
 
-def calib_run(model_nums, yyyymmdd, classif_model):
+def calib_run(model_nums, dir_of_uncalib_preds, classif_model, saveto_dir):
     if classif_model == "CNN":
-        dir_of_uncalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_2_cnnpreds/{yyyymmdd}"
+        # dir_of_uncalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_2_cnnpreds/{yyyymmdd}"
         datafiles = [f"{dir_of_uncalib_preds}/cnn_{i}.csv" for i in model_nums]
         # print(datafiles)
 
@@ -22,7 +22,7 @@ def calib_run(model_nums, yyyymmdd, classif_model):
         modelfiles = [f"{dir_of_calib_models}/calib_{i}.pkl" for i in model_nums]
         # print(modelfiles)
 
-        saveto_dir = f"/home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib/{yyyymmdd}"
+        # saveto_dir = f"/home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib/{yyyymmdd}"
 
         os.makedirs(saveto_dir, exist_ok= True)
 
@@ -32,7 +32,7 @@ def calib_run(model_nums, yyyymmdd, classif_model):
 
     elif classif_model == "downstream":
 
-        dir_of_uncalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_4_downstream/{yyyymmdd}"
+        # dir_of_uncalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_4_downstream/{yyyymmdd}"
 
         datafiles = [f"{dir_of_uncalib_preds}/downstream_{i}.csv" for i in model_nums]
         # print(datafiles)
@@ -41,7 +41,7 @@ def calib_run(model_nums, yyyymmdd, classif_model):
         modelfiles = [f"{dir_of_calib_models}/calib_{i}.pkl" for i in model_nums]
         # print(modelfiles)
 
-        saveto_dir = f"/home/csutter/DRIVE-clean/operational_inference/data_5_downstreamcalib/{yyyymmdd}"
+        # saveto_dir = f"/home/csutter/DRIVE-clean/operational_inference/data_5_downstreamcalib/{yyyymmdd}"
 
         os.makedirs(saveto_dir, exist_ok= True)
 
