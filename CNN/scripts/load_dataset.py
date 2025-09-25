@@ -149,9 +149,27 @@ def load_and_ready_image(image_path, arch_str, aug_bool):
     try:
         image_array = cv2.imread(image_path_format, cv2.IMREAD_UNCHANGED)
         # print(image_array)
-        # Convert BGR (OpenCV default) to RGB
-        image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB)
 
+        # Ensure 3 channels (RGB)
+        # 1) Usual case: 3 channels (BGR from OpenCV) - most images are like this
+        if len(image_array.shape) == 3 and image_array.shape[2] == 3:
+            image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB)
+
+        # 2) Grayscale (2D array) -- if an image happens to be in only grayscale
+        elif len(image_array.shape) == 2:
+            # print(f"Note: Grayscale image detected at {image_path_format}, converting to RGB.")
+            image_array = cv2.cvtColor(image_array, cv2.COLOR_GRAY2RGB)
+
+        # 3) RGBA (4 channels) -- if an image is in color (3 channels) but is length 4, where there is RGB AND A which is alpha, for transparency
+        elif len(image_array.shape) == 3 and image_array.shape[2] == 4:
+            # print(f"Note: RGBA image detected at {image_path_format}, converting to RGB.")
+            image_array = cv2.cvtColor(image_array, cv2.COLOR_BGRA2BGR)
+            image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB)
+
+        # 4) Unexpected shape
+        else:
+            print(f"Warning: Unexpected image shape {image_array.shape} at {image_path_format}. Using dummy array.")
+            image_array = np.zeros((*config.TARGET_SIZE, 3), dtype=np.float32)
         # Crop 20% from the top)
         h, w, _ = image_array.shape
         crop_height = int(0.2 * h)
@@ -159,11 +177,11 @@ def load_and_ready_image(image_path, arch_str, aug_bool):
 
         image_array = cv2.resize(image_array, config.TARGET_SIZE)  # Resize
     except:
-
+        # This catches the hard errors (file missing, unreadable, corrupted).
         print(
             f"Warning: Could not read image {image_path_format}. Returning dummy array."
         )
-        image_array = np.zeros(config.TARGET_SIZE, dtype=np.float32)
+        image_array = np.zeros((*config.TARGET_SIZE, 3), dtype=np.float32)
 
     # images_pixel.append(image_array)
     # labels_imgs.append(listlabels[im_i])
