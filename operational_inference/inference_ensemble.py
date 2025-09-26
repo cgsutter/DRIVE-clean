@@ -332,6 +332,8 @@ def ensemble_run(modeltype, model_nums,dir_modelpreds,dir_save_finalpreds, catsu
         nested_ensemble.rowfn_select_from_ensembles, axis=1, result_type="expand"
     )
 
+    dd2["select_prob"] =  dd2.apply(nested_ensemble.selectprob, axis=1)
+
     print(dd2[0:6])
     g1 = dd2[dd2["decision"] == "align_avg_mode"]
     g2 = dd2[dd2["decision"] == "align_avg_maxConf"]
@@ -379,7 +381,7 @@ def ensemble_run(modeltype, model_nums,dir_modelpreds,dir_save_finalpreds, catsu
         def confidence_consisency(row):
             # grab the value that corresponds to the key which is the predicted cat (from "select" col)
             ct = row["num_models_pred_cat"]
-            if ct <= 3:
+            if ct <= 3: # 3 here as threshold for low bc this has possibility to be essentially split, 3 vs 2
                 conf = 1
             elif ct == 4:
                 conf = 2
@@ -388,6 +390,7 @@ def ensemble_run(modeltype, model_nums,dir_modelpreds,dir_save_finalpreds, catsu
             else:
                 conf = 0
             return conf
+            
     elif modeltype == "ODM": 
         def confidence_consisency(row):
             # grab the value that corresponds to the key which is the predicted cat (from "select" col)
@@ -427,12 +430,14 @@ def ensemble_run(modeltype, model_nums,dir_modelpreds,dir_save_finalpreds, catsu
 
     def confidence_qual(row):
         overall = row["conf_overall"]
-        if overall < 1:
+        if overall <= 1.5: # three ways this can happen
             conf = "low"
-        elif ((overall >= 1) & (overall < 2)):
+        elif overall == 2: # three ways this can happen
             conf = "medium"
-        else:
+        elif overall >= 2.5: # three ways this can happen
             conf = "high"
+        else:
+            conf = "issue_confidence"
         return conf
 
     dd3["confidence"] = dd3.apply(confidence_qual, axis = 1)

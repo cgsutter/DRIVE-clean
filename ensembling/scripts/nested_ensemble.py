@@ -536,8 +536,15 @@ def rowfn_select_from_ensembles(row):
     return select, qualit
 
 
-# Add cols to categorize correct and oks
+# Add col to get prob of selected cat (since there may be some cases when the selected cat is not the same as the ensembleAvg)
 
+def selectprob(row):
+    pred = row["select"]
+    grabprob = row[f"ensembleAvg_{pred}"]
+    return grabprob
+
+
+# Add cols to categorize correct and oks
 
 def dffn_addcols_correct_oks(dfinput):
     dfinput["select_correct"] = dfinput["select"] == dfinput["img_cat"]
