@@ -146,13 +146,17 @@ def load_and_ready_image(image_path, arch_str, aug_bool):
     arch_str_format = arch_str.numpy().decode("utf-8")  # Decode string tensor
     aug_bool_format = aug_bool.numpy().item()  # Convert boolean tensor to Python bool
 
-    try:
+    try: # if cv2.imread succeeds
         image_array = cv2.imread(image_path_format, cv2.IMREAD_UNCHANGED)
         # print(image_array)
 
+        if image_array is None: # even if cv2 reads it, it may still return None in erroneous cases. Note that this is different from the except clause, which is needed if imread fails completely (corrupt image). So we need both this if statement to catch None, and the except statememnt to catch corrupted images 
+            print(f"Warning: cv2.imread failed at {image_path_format}. Using dummy.")
+            image_array = np.zeros((*config.TARGET_SIZE, 3), dtype=np.float32)
+        
         # Ensure 3 channels (RGB)
         # 1) Usual case: 3 channels (BGR from OpenCV) - most images are like this
-        if len(image_array.shape) == 3 and image_array.shape[2] == 3:
+        elif len(image_array.shape) == 3 and image_array.shape[2] == 3:
             image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB)
 
         # 2) Grayscale (2D array) -- if an image happens to be in only grayscale
