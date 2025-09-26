@@ -14,12 +14,14 @@ from datetime import datetime
 
 import pandas as pd
 
-datestorun = pd.read_csv("/home/csutter/DRIVE-clean/operational_runs/set1_20250924/dates.csv") #HERE!!
-
+datestorun = pd.read_csv("/home/csutter/DRIVE-clean/operational_runs/set6_probSRsample_20250925/dates.csv") #HERE!!
+# set6_probSRsample_20250925
+# set4_iceWTA_20250925
 dates = list(datestorun["date"])
+print(dates[0:4])
 
 # TO DEFINE -- where all the data prediction dirs should be nested within
-parentdir = "/home/csutter/DRIVE-clean/operational_runs/set1_20250924" #HERE!!
+parentdir = "/home/csutter/DRIVE-clean/operational_runs/set6_probSRsample_20250925" #HERE!!
 # "/home/csutter/DRIVE-clean/operational_inference" # for one-off runs, e.g. testing code
 
 for i in dates:
@@ -47,16 +49,20 @@ for i in dates:
     ####### Grab data for the instance run
 
     # Grab image data 
-    grab_imgs.step1_fn(
-        rundate=ymd,
-        runhour=hr_int,  # this is an int. only need hour as int, dont need minute as int which is why we just have minute as string below
-        saveimgcsv = imgcsv_save,
-        y=y,
-        m=m,
-        d=d,
-        hour_str=hr,
-        min_str=min,
-    )
+
+    try: 
+        grab_imgs.step1_fn(
+            rundate=ymd,
+            runhour=hr_int,  # this is an int. only need hour as int, dont need minute as int which is why we just have minute as string below
+            saveimgcsv = imgcsv_save,
+            y=y,
+            m=m,
+            d=d,
+            hour_str=hr,
+            min_str=min,
+        )
+    except: # if there are no images available within the time window, then don't run this instance. The continue command moves on to the next ith iteration in the loop, and none of the code below the try/except block will run, which is what we want since there are no images
+        continue
 
     IMG = datetime.now()
 
