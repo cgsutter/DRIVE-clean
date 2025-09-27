@@ -17,7 +17,7 @@ def ensemble_run(modeltype, model_nums,dir_modelpreds,dir_save_finalpreds, catsu
         datafiles = [f"{dir_modelpreds}/downstreamcalib_{i}.csv" for i in model_nums]
         print(datafiles)
     elif modeltype == "ODM":
-        datafiles = [f"{dir_modelpreds}/cnn_{i}.csv" for i in model_nums]
+        datafiles = [f"{dir_modelpreds}/cnncalib_{i}.csv" for i in model_nums]
         print(datafiles)
     else:
         print("set modeltype to either SCM or ODM")
@@ -68,9 +68,9 @@ def ensemble_run(modeltype, model_nums,dir_modelpreds,dir_save_finalpreds, catsu
             cols_to_rename.append("calib_pred")
             cols_to_rename.append("calib_prob")
         elif modeltype == "ODM":
-            cols_to_rename = [f"prob_{c}" for c in catsuse]
-            cols_to_rename.append("model_pred")
-            cols_to_rename.append("model_prob")
+            cols_to_rename = [f"calib_prob_{c}" for c in catsuse]
+            cols_to_rename.append("calib_pred")
+            cols_to_rename.append("calib_prob")
             print("cols to rename")
             print(cols_to_rename)
             print(r.columns)
@@ -107,7 +107,7 @@ def ensemble_run(modeltype, model_nums,dir_modelpreds,dir_save_finalpreds, catsu
                 if modeltype == "SCM":
                     colskeep.append(f"{innermodelnum}_calib_prob_{c}")
                 elif modeltype == "ODM":
-                    colskeep.append(f"{innermodelnum}_prob_{c}")
+                    colskeep.append(f"{innermodelnum}_calib_prob_{c}")
                 else:
                     print("set modeltype to either SCM or ODM")
 
@@ -115,8 +115,8 @@ def ensemble_run(modeltype, model_nums,dir_modelpreds,dir_save_finalpreds, catsu
                 colskeep.append(f"{innermodelnum}_calib_prob")
                 colskeep.append(f"{innermodelnum}_calib_pred")
             elif modeltype == "ODM":
-                colskeep.append(f"{innermodelnum}_model_prob")
-                colskeep.append(f"{innermodelnum}_model_pred")
+                colskeep.append(f"{innermodelnum}_calib_prob")
+                colskeep.append(f"{innermodelnum}_calib_pred")
             else:
                 print("set modeltype to either SCM or ODM")
             print("colskeep")
@@ -180,7 +180,7 @@ def ensemble_run(modeltype, model_nums,dir_modelpreds,dir_save_finalpreds, catsu
     if modeltype == "SCM":
         predcols = [f"{mnum}_calib_pred" for mnum in model_nums]
     elif modeltype == "ODM":
-        predcols = [f"{mnum}_model_pred" for mnum in model_nums]
+        predcols = [f"{mnum}_calib_pred" for mnum in model_nums]
     else:
         print("set modeltype to either SCM or ODM")
         
@@ -201,7 +201,7 @@ def ensemble_run(modeltype, model_nums,dir_modelpreds,dir_save_finalpreds, catsu
     if modeltype == "SCM":
         probcols = [f"{mnum}_calib_prob" for mnum in model_nums]
     elif modeltype == "ODM":
-        probcols = [f"{mnum}_model_prob" for mnum in model_nums]
+        probcols = [f"{mnum}_calib_prob" for mnum in model_nums]
     else:
         print("set modeltype to either SCM or ODM")
 

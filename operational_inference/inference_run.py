@@ -40,7 +40,8 @@ downstream_preds = f"{parentdir}/data_4_downstream/{dirstructure}"
 downstreamcalib_preds = f"{parentdir}/data_5_downstreamcalib/{dirstructure}"
 final_ensemble_preds = f"{parentdir}/data_6_ensembling/{dirstructure}"
 odm_cnn_preds = f"{parentdir}/data_odm_1_cnnpreds/{dirstructure}"
-odm_final_ensemble_preds = f"{parentdir}/data_odm_2_ensembling/{dirstructure}"
+odm_cnncalib_preds = f"{parentdir}/data_odm_2_cnncalib/{dirstructure}"
+odm_final_ensemble_preds = f"{parentdir}/data_odm_3_ensembling/{dirstructure}"
 
 # Set model info related to SCM
 model_nums = ["m0","m1","m2","m3","m4"] #
@@ -117,6 +118,9 @@ inference_ensemble.ensemble_run(modeltype = "SCM", model_nums = model_nums, dir_
 
 ####### Obstruction detection model (ODM)
 
-inference_cnn.cnn_run(inference_run_tracker = imgcsv_save, model_nums = model_nums_ODM, dir_tosave_preds = odm_cnn_preds, dir_of_models = odm_cnnmodels_dir, catnum = 2, catlist = catslist_ODM)
+# inference_cnn.cnn_run(inference_run_tracker = imgcsv_save, model_nums = model_nums_ODM, dir_tosave_preds = odm_cnn_preds, dir_of_models = odm_cnnmodels_dir, catnum = 2, catlist = catslist_ODM)
 
-inference_ensemble.ensemble_run(modeltype = "ODM", model_nums = model_nums_ODM, dir_modelpreds = odm_cnn_preds,dir_save_finalpreds = odm_final_ensemble_preds, catsuse = ["nonobs","obs"])
+# inference_calibration.calib_run_odm(model_nums = model_nums_ODM, dir_of_uncalib_preds = odm_cnn_preds, classif_model = "CNN", saveto_dir = odm_cnncalib_preds)
+
+
+inference_ensemble.ensemble_run(modeltype = "ODM", model_nums = model_nums_ODM, dir_modelpreds = odm_cnncalib_preds,dir_save_finalpreds = odm_final_ensemble_preds, catsuse = ["nonobs","obs"])

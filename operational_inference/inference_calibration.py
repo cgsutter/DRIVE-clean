@@ -3,13 +3,15 @@
 import sys
 
 sys.path.append("/home/csutter/DRIVE-clean/calibration/scripts")  
-
 import calib
 # import config
 import os
 import pandas as pd
 import joblib
 import numpy as np
+
+sys.path.append("/home/csutter/DRIVE-clean/operational_models/odm_calibration")  
+import odm_calib
 
 
 def calib_run(model_nums, dir_of_uncalib_preds, classif_model, saveto_dir):
@@ -119,6 +121,100 @@ def calib_run(model_nums, dir_of_uncalib_preds, classif_model, saveto_dir):
                 "calib_prob_snow",
                 "calib_prob_snow_severe",
                 "calib_prob_wet",
+            ]
+        ].max(axis=1)
+
+        # print(t_all.columns)
+        # print(t_all[0:3])
+
+        saveto = f"{saveto_noext}m{i}.csv"
+        t_all.to_csv(saveto)
+        print(f"saved predictions to {saveto}")
+    
+
+
+# ODM
+def calib_run_odm(model_nums, dir_of_uncalib_preds, classif_model, saveto_dir):
+    if classif_model == "CNN":
+        # dir_of_uncalib_preds = f"/home/csutter/DRIVE-clean/operational_inference/data_2_cnnpreds/{yyyymmdd}"
+        datafiles = [f"{dir_of_uncalib_preds}/cnn_{i}.csv" for i in model_nums]
+        # print(datafiles)
+
+        dir_of_calib_models = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_odm_2_calib"
+        modelfiles = [f"{dir_of_calib_models}/calib_{i}.pkl" for i in model_nums]
+        # print(modelfiles)
+
+        # saveto_dir = f"/home/csutter/DRIVE-clean/operational_inference/data_3_cnncalib/{yyyymmdd}"
+
+        os.makedirs(saveto_dir, exist_ok= True)
+
+        print(f"dir will be {saveto_dir}")
+
+        saveto_noext = f"{saveto_dir}/cnncalib_"
+    else:
+        print("classif model needs to be CNN for ODM")
+
+    for i in range(0,len(model_nums)):
+        # runname = f[:-4] # remove the .csv
+
+        csv = datafiles[i]
+        print(f"reading in uncalibrated predictions from {csv}")
+        # read in data
+        dfread = pd.read_csv(csv)
+
+        # prep column names
+        t_all = odm_calib.rename_cols_for_calibration_consistency(
+            dfinput=dfread, classification_model=classif_model
+        )
+
+        # print(t_all.columns)
+
+        # add classifier col of 0s and 1s if model predicted that cat
+        t_all["classifier_TF"] = t_all["img_cat"] == t_all["o_pred"]
+        t_all["classifier_01"] = t_all["classifier_TF"].astype(int)
+
+        # prep the data for training/eval
+        X_eval_unshaped = np.array(t_all["o_prob"])
+        X_eval = X_eval_unshaped.reshape(-1, 1)
+
+        # load in calibration model
+        m = modelfiles[i]
+        print(f"loading model {m}")
+        model = joblib.load(m)
+
+        # transform call evaluates the isotonic model on X_eval data to get the calibrated probabilities
+        evaldata_output_predProb = model.transform(X_eval) # Calibrate the probabilities
+        # print(X_eval[0:3])
+
+        # add columns with calibrated probs
+        t_all["o_prob_calib"] = evaldata_output_predProb
+
+        t_all[
+            [
+                "calib_prob_nonobs",
+                "calib_prob_obs",
+            ]
+        ] = t_all.apply(odm_calib.rowfn_normalize_remaining, axis=1, result_type="expand")
+
+
+        # Look at all the final probability columns to find the highest one now, and parse out the string cat name from the column which was highest. This *should* be the same as the original model's pred, but theoretically there could be some borderline cases where the predicted highest orig probability was calibrated downward so that one of the other classes surpassed it. Should be rare if at all, but need to account for this case.
+
+        t_all["calib_pred"] = (
+            t_all[
+                [
+                    "calib_prob_nonobs",
+                    "calib_prob_obs"
+                ]
+            ]
+            .idxmax(axis=1)
+            .str.replace("calib_prob_", "", regex=False)
+        )
+
+        # note that this has to be done after calib AND normalizing bc sometimes the highest prob can change
+        t_all["calib_prob"] = t_all[
+            [
+                "calib_prob_nonobs",
+                "calib_prob_obs"
             ]
         ].max(axis=1)
 

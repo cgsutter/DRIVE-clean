@@ -259,9 +259,9 @@ def rowfn_dict_calcs_from_4preds(row):
         dict_catAsKeys_countAsValues[predcat] = len(models_w_predcat)
         models_w_predcat_probs = []
         for m in models_w_predcat:
-            models_w_predcat_probs.append(row[f"{m}_model_prob"])
-            probs5.append(row[f"{m}_model_prob"])
-            preds5.append(row[f"{m}_model_pred"])
+            models_w_predcat_probs.append(row[f"{m}_calib_prob"])
+            probs5.append(row[f"{m}_calib_prob"])
+            preds5.append(row[f"{m}_calib_pred"])
         avg = np.mean(models_w_predcat_probs)
         # add key value pair
         dict_catAsKeys_probsAsValues[predcat] = avg
@@ -451,18 +451,18 @@ def dffn_return_avg_cols_ynobs(dfinput):
     """Function on a df, return the updated df"""
 
     obscols = [
-        "m0_prob_obs",
-        "m1_prob_obs",
-        "m2_prob_obs",
-        "m3_prob_obs",
+        "m0_calib_prob_obs",
+        "m1_calib_prob_obs",
+        "m2_calib_prob_obs",
+        "m3_calib_prob_obs",
         # "D_prob_obs", # update here 3-member ensemble
         # "E_prob_obs", # update here 3-member ensemble
     ]
     nonobscols = [
-        "m0_prob_nonobs",
-        "m1_prob_nonobs",
-        "m2_prob_nonobs",
-        "m3_prob_nonobs",
+        "m0_calib_prob_nonobs",
+        "m1_calib_prob_nonobs",
+        "m2_calib_prob_nonobs",
+        "m3_calib_prob_nonobs",
         # "D_prob_nonobs", # update here 3-member ensemble
         # "E_prob_nonobs", # update here 3-member ensemble
     ]
