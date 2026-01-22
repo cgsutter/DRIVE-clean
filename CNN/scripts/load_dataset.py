@@ -1,4 +1,4 @@
-# Portions of this code were writen with the assistance of AI tools (e.g., ChatGPT).
+# Portions of this code were writen with the assistance of AI tools (e.g., ChatGPT, Gemini).
 
 # Process used for training and validation datasets can be done with loading all images to memory (eagerly), and that way has it's benefits because we can track things like number of corrupt images, etc. But for evaluation where all 22k images need to be read in (compared to 7k for training, 3k for validation) -- these methods are bottlenecks. Need to make use of TF's parallelization and loading images in batches. The tracking of broken images (which is 0, but helpful for confirmation that all data is loaded) is not used in this code, only in the training and validation one, skipping that here in this code.
 
@@ -101,6 +101,21 @@ def preprocess_and_aug(image_np, arch_for_preprocess, augflag):
     image_tensor = tf.convert_to_tensor(image_np)
     image_tensor = tf.cast(image_tensor, tf.float32)
     # print("converted to tensor")
+
+    # --- NEW GATEKEEPER (STEP 3) ---
+    # Check if the tensor is empty or has lost its 3D shape during the hand-off.
+    # Also check if it's just a blank/zero tensor using tf.math.reduce_std.
+    is_empty = tf.equal(tf.size(image_tensor), 0)
+    has_no_variance = tf.equal(tf.math.reduce_std(image_tensor), 0.0)
+
+    if is_empty or len(image_tensor.shape) != 3 or has_no_variance:
+        # If we hit this, the data is corrupt or missing. 
+        # This will show up in your terminal/logs during the run
+        tf.print("Gatekeeper triggered: Replacing corrupt tensor with dummy zeros.")
+        # We force it to a clean 224x224x3 block of zeros.
+        image_tensor = tf.zeros((*config.TARGET_SIZE, 3), dtype=tf.float32)
+    # -------------------------------
+
     # Apply augmentation
     if augflag:
         # print("inside augmentation")
@@ -174,17 +189,43 @@ def load_and_ready_image(image_path, arch_str, aug_bool):
         else:
             print(f"Warning: Unexpected image shape {image_array.shape} at {image_path_format}. Using dummy array.")
             image_array = np.zeros((*config.TARGET_SIZE, 3), dtype=np.float32)
-        # Crop 20% from the top)
-        h, w, _ = image_array.shape
+
+        # --- NEW DEFENSIVE CHECK FOR RESIZING ---
+        # 1. Verify rank (shape) before unpacking to avoid ValueError
+        if len(image_array.shape) != 3:
+            print(f"Warning: Rank mismatch {len(image_array.shape)} at {image_path_format}. Using dummy.")
+            image_array = np.zeros((*config.TARGET_SIZE, 3), dtype=np.float32)
+        
+        # 2. Safe unpack (since checked it above before doing this code)
+        h, w, c = image_array.shape
+
+        # 3. Check for 'Empty' dimensions or wrong channel count
+        if h == 0 or w == 0 or c != 3:
+            print(f"Warning: Zero-size or channel error at {image_path_format}. Using dummy.")
+            image_array = np.zeros((*config.TARGET_SIZE, 3), dtype=np.float32)
+            h, w, _ = image_array.shape # Re-assign h for the crop math below
+
+        # 4. Perform the crop (now safe)  
+        # Crop 20% from the top
         crop_height = int(0.2 * h)
         image_array = image_array[crop_height:, :, :]
 
-        image_array = cv2.resize(image_array, config.TARGET_SIZE)  # Resize
-    except:
+        # 5. Resize (now safe)
+        image_array = cv2.resize(image_array, config.TARGET_SIZE)
+
+        # --- NEW ADDED BLOCK TO CHECK FOR ANY REMAINING ISSUES 
+        # This step acts as a final filter. It says: "Whether this image was corrupt from the start, or it was a half-corrupt image that OpenCV 'faked' its way through, I am going to check it one last time. If it's garbage (all black or NaN), I will replace it with a clean, perfectly-sized black square and stop trying to crop or manipulate it."
+        # Basically, we are making sure that what goes into resnet_preprocess is always a pristine, correctly-formatted 3D block, even if the data inside that block is just zeros.
+
+        # Check if the image is just a solid block of color (usually black/zero)
+        # or if it contains invalid numbers (NaN/Inf) from a decoder glitch.
+        if np.std(image_array) == 0 or not np.isfinite(image_array).all():
+            print(f"Warning: Corrupt data (no variance or NaN) at {image_path_format}. Using dummy.")
+            image_array = np.zeros((*config.TARGET_SIZE, 3), dtype=np.float32)
+
+    except Exception as e:
         # This catches the hard errors (file missing, unreadable, corrupted).
-        print(
-            f"Warning: Could not read image {image_path_format}. Returning dummy array."
-        )
+        print(f"Warning: Hard error {e} at {image_path_format}. Returning dummy.")
         image_array = np.zeros((*config.TARGET_SIZE, 3), dtype=np.float32)
 
     # images_pixel.append(image_array)
