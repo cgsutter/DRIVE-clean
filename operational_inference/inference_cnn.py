@@ -132,6 +132,11 @@ def make_preds(
 
         #### make preds
 
+        # --- ADDED BLOCK 
+        # This overrides the Keras internal default that caused the "Python scalar" error.
+        # It forces the model to handle one batch at a time, which is much more stable when the Gatekeeper is frequently triggered by corrupt JPEGs.
+        model.compile(steps_per_execution=1)
+
         dataset_for_prediction = tf_ds_val.map(lambda x, y: x)
         print(dataset_for_prediction.element_spec)
 
@@ -139,6 +144,14 @@ def make_preds(
 
         print("PRINT after predict")
         c2 = np.argmax(p2, axis=1)
+
+        # CRITICAL SYNC: Get the actual count of predictions returned
+        num_predictions_made = p2.shape[0]
+        print(f"Model generated {num_predictions_made} predictions.")
+        
+        # Slice the names list to match the actual results
+        # This prevents the ValueError even if the model stops early in case it only finished a certain number of batches for whatever reason (come back to debugging why this would happen)
+        synced_imgnames = val_imgnames[:num_predictions_made]
 
         print("Complete with evaluate() in results_predictions.py")
 
@@ -159,7 +172,7 @@ def make_preds(
         )
 
         df_results["model_pred"] = predicted_classname
-        df_results["img_name"] = val_imgnames
+        df_results["img_name"] = synced_imgnames # updated here from val_imgnames
 
         print(df_results[0:10])
         print(df_results.columns)

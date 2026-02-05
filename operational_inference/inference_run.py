@@ -1,6 +1,6 @@
-# This is the main inference run code. Run this script in terminal. To run a given date or now. 
+# Code to run multiple inference runs is inference_run_loop -- refer to that file for code that is fully functional
 
-# The other files inference_run_loop are using this code but adjusted for specific setup  needs, e.g. to run a loop of dates. 
+# This script is to run a given date or now. 
 
 import grab_time
 import grab_imgs
@@ -24,7 +24,7 @@ START = datetime.now()
 # y,m,d,ymd,hr,hr_int,min,min_int,dirstructure = grab_time.time_current()
 
 # B: for providing a given time (for case studies/past dates). Should be in UTC (+4EDT, +5EST)
-y,m,d,ymd,hr,hr_int,min,min_int,dirstructure  = grab_time.time_given( timestampstring = "20231206_2000") #20250925_0050
+y,m,d,ymd,hr,hr_int,min,min_int,dirstructure  = grab_time.time_given( timestampstring = "20251112_1000") #20250925_0050
 
 ## Prep dir and file names for data (based on date info above)
 
@@ -58,7 +58,7 @@ cnnmodels_dir = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_1
 
 model_nums_ODM = ["m0","m1","m2","m3"] #,"m4","m5"
 catslist_ODM = ["nonobs","obs"]
-odm_cnnmodels_dir = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_odm_CNN"
+odm_cnnmodels_dir = "/home/csutter/DRIVE-clean/operational_inference/trainedModels_odm_1_CNN"
 
 ####### Grab data for the instance run
 
@@ -85,42 +85,42 @@ odm_cnnmodels_dir = "/home/csutter/DRIVE-clean/operational_inference/trainedMode
 # ###### Surface condition model (SCM)
 
 
-# # # ## Step A - CNN
+# # # # ## Step A - CNN
 
 # inference_cnn.cnn_run(inference_run_tracker = imgcsv_save, model_nums = model_nums, dir_tosave_preds = cnn_preds,dir_of_models = cnnmodels_dir, catnum = 5, catlist = cats)
 
-# CNN = datetime.now()
+# # CNN = datetime.now()
 
-# # # ## Step B - CNN CALIB
+# # # # ## Step B - CNN CALIB
 
 # inference_calibration.calib_run(model_nums = model_nums, dir_of_uncalib_preds = cnn_preds, classif_model = "CNN", saveto_dir = cnncalib_preds)
 
-# # ## Step C - DOWNSTREAM
+# # # ## Step C - DOWNSTREAM
 
 # inference_downstream.downstream_run(model_nums = model_nums, dir_of_cnncalib_preds = cnncalib_preds, hrrrdatapath = hrrrcsv_save, downstream_preds_dir = downstream_preds)
 
-# # # ## Step D - DOWNSTREAM CALIB
+# # # # ## Step D - DOWNSTREAM CALIB
 
 # inference_calibration.calib_run(model_nums = model_nums, dir_of_uncalib_preds = downstream_preds, classif_model = "downstream", saveto_dir = downstreamcalib_preds)
 
-# # ## Step E - ENSEMBLING
+# # # ## Step E - ENSEMBLING
 
-inference_ensemble.ensemble_run(modeltype = "SCM", model_nums = model_nums, dir_modelpreds = downstreamcalib_preds,dir_save_finalpreds = final_ensemble_preds, catsuse= cats)
+# inference_ensemble.ensemble_run(modeltype = "SCM", model_nums = model_nums, dir_modelpreds = downstreamcalib_preds,dir_save_finalpreds = final_ensemble_preds, catsuse= cats)
 
-# Uncomment if running time analysis
-# FINISH = datetime.now()
-# print(f"TIME CHECK DONE START: {START}")
-# print(f"TIME CHECK DONE IMG: {IMG}")
-# print(f"TIME CHECK DONE HRRR: {HRRR}")
-# print(f"TIME CHECK DONE CNN: {CNN}")
-# print(f"TIME CHECK DONE EVERYTHING ELSE: {FINISH}")
+# # Uncomment if running time analysis
+# # FINISH = datetime.now()
+# # print(f"TIME CHECK DONE START: {START}")
+# # print(f"TIME CHECK DONE IMG: {IMG}")
+# # print(f"TIME CHECK DONE HRRR: {HRRR}")
+# # print(f"TIME CHECK DONE CNN: {CNN}")
+# # print(f"TIME CHECK DONE EVERYTHING ELSE: {FINISH}")
 
 
 ####### Obstruction detection model (ODM)
 
-# inference_cnn.cnn_run(inference_run_tracker = imgcsv_save, model_nums = model_nums_ODM, dir_tosave_preds = odm_cnn_preds, dir_of_models = odm_cnnmodels_dir, catnum = 2, catlist = catslist_ODM)
+inference_cnn.cnn_run(inference_run_tracker = imgcsv_save, model_nums = model_nums_ODM, dir_tosave_preds = odm_cnn_preds, dir_of_models = odm_cnnmodels_dir, catnum = 2, catlist = catslist_ODM)
 
-# inference_calibration.calib_run_odm(model_nums = model_nums_ODM, dir_of_uncalib_preds = odm_cnn_preds, classif_model = "CNN", saveto_dir = odm_cnncalib_preds)
+inference_calibration.calib_run_odm(model_nums = model_nums_ODM, dir_of_uncalib_preds = odm_cnn_preds, classif_model = "CNN", saveto_dir = odm_cnncalib_preds)
 
 
 inference_ensemble.ensemble_run(modeltype = "ODM", model_nums = model_nums_ODM, dir_modelpreds = odm_cnncalib_preds,dir_save_finalpreds = odm_final_ensemble_preds, catsuse = ["nonobs","obs"])

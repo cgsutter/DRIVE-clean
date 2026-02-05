@@ -14,15 +14,15 @@ from datetime import datetime
 
 import pandas as pd
 
-datestorun = pd.read_csv("/home/csutter/DRIVE-clean/operational_runs/set6_probSRsample_20250925/dates.csv") #HERE!!
-# set6_probSRsample_20250925
-# set4_iceWTA_20250925
+datestorun = pd.read_csv("/home/csutter/DRIVE-clean/operational_runs/set41_heavyrain/dates.csv") #HERE!!
 dates = list(datestorun["date"])
 print(dates[0:4])
 
 # TO DEFINE -- where all the data prediction dirs should be nested within
-parentdir = "/home/csutter/DRIVE-clean/operational_runs/set6_probSRsample_20250925" #HERE!!
+parentdir = "/home/csutter/DRIVE-clean/operational_runs/set41_heavyrain" #HERE!!
 # "/home/csutter/DRIVE-clean/operational_inference" # for one-off runs, e.g. testing code
+
+# Note: if re running just only parts of this code in retrospect (e.g. updated ensembling or something), should put the part being re-ran in a try and except: continue.
 
 for i in dates:
 
@@ -120,10 +120,14 @@ for i in dates:
     print(f"TIME CHECK DONE EVERYTHING ELSE: {FINISH}")
 
 
-    # ###### Obstruction detection model (ODM)
+    # # ###### Obstruction detection model (ODM)
 
     inference_cnn.cnn_run(inference_run_tracker = imgcsv_save, model_nums = model_nums_ODM, dir_tosave_preds = odm_cnn_preds, dir_of_models = odm_cnnmodels_dir, catnum = 2, catlist = catslist_ODM)
 
     inference_calibration.calib_run_odm(model_nums = model_nums_ODM, dir_of_uncalib_preds = odm_cnn_preds, classif_model = "CNN", saveto_dir = odm_cnncalib_preds)
 
     inference_ensemble.ensemble_run(modeltype = "ODM", model_nums = model_nums_ODM, dir_modelpreds = odm_cnncalib_preds,dir_save_finalpreds = odm_final_ensemble_preds, catsuse = ["nonobs","obs"])
+    
+    FINISHODM = datetime.now()
+    print(f"TIME CHECK DONE ODM: {FINISHODM}")
+
