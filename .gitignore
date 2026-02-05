@@ -95,6 +95,6 @@ operational_inference/trainedModels_odm_1_CNN
 operational_inference/trainedModels_odm_2_calib/
 data_misc
 notebooks/cache
-NWS_warnings/data
-NWS_warnings/models
+weather_events/data
+weather_events/models
 
