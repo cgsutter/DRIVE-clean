@@ -13,6 +13,27 @@ from ast import literal_eval
 
 from shapely import wkt
 
+######## CONFIG
+
+alldirs_data_preds = glob("/home/csutter/DRIVE-clean/operational_runs_wQPE/data_6_ensembling") #HERE!! Where model pred data lives
+#### A - Typical run, considering all camera preds (no QPE filter)
+# For 5cat model: glob("/home/csutter/DRIVE-clean/operational_runs/*/data_6_ensembling") 
+# For obs model: glob("/home/csutter/DRIVE-clean/operational_runs/*/data_odm_3_ensembling") 
+#### B - Filter to cam model preds only with active QPE. NOTE! To do this version, need to run this code first: /home/csutter/DRIVE-clean/weather_events/notebooks/cam_modelpred_QPE_active.py. This has already been ran for about 13k instances in runs dir, but for any new case inference runs we add, will need to run those too. 
+# For 5cat model: glob("/home/csutter/DRIVE-clean/operational_runs_wQPE/data_6_ensembling") 
+# For obs model: glob("/home/csutter/DRIVE-clean/operational_runs_wQPE/data_odm_3_ensembling") 
+
+csv_path = "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_wQPE.csv" # HERE!!! Where to save out aggregated stats that this script produces. Should change this every time!
+#### 5cat model was saved here:
+# "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats.csv"
+#### ynobs model saved here:
+# "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_odm.csv"
+#### 5cat model w/ QPE filter:
+# "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_wQPE.csv"
+#### ynobs model saved here:
+# "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_wQPE_odm.csv"
+
+###########
 
 # Need to read in multiple datasets: 1) NCEI geodataframe with geometries 2) Events csvs (with logic about every 15 min frequency, etc) and 3)  Model run data 
 
@@ -82,12 +103,6 @@ for ev in events_ofinterest_paths:
 
 
         ### Find all model run files that correspond to those dates from that event
-        # Note: will need to repeat this for ODM since that may be beneficial for snow squall/blizzards
-
-        alldirs_data_preds = glob("/home/csutter/DRIVE-clean/operational_runs/*/data_odm_3_ensembling") #HERE!! Update with whether running 5-cat model or obs model
-        # For 5cat model: glob("/home/csutter/DRIVE-clean/operational_runs/*/data_6_ensembling") 
-        # For obs model: glob("/home/csutter/DRIVE-clean/operational_runs/*/data_odm_3_ensembling") 
-
 
         allfiles_data = []
         for i in alldirs_data_preds:
@@ -202,14 +217,6 @@ for ev in events_ofinterest_paths:
                 "datetime":datetime_stamp,
                 "model_counts": countdict # This will be stringified
             }
-
-            csv_path = "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_odm.csv" # HERE!!! Where to save out stats, I like to change this every time since still playing around w/ how to deal w everything
-
-            # original w events and 5cat model was saved here:
-            # "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats.csv"
-
-            # ynobs model saved here:
-            # "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_odm.csv"
 
             # Pre-process: Convert the nested dict to a JSON string
             data_to_log["model_counts"] = json.dumps(data_to_log["model_counts"])
