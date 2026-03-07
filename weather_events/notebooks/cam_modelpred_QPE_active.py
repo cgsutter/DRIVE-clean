@@ -1,3 +1,5 @@
+# Code written with assistance of Gemini
+
 # Our main aggregate code in the stats python scripts can't simply add the additional step of pulling the xarray QPE data for every event and timestep bc it takes ~15-20 sec ... w/ 96k rows in the events stats, it would take roughly 22 days!
 
 # Need to do some data prep to only do this ONCE per every modelpred file, that way we're not repeating the operation for events (which are split by regions) for which many will have overlapping times. 
@@ -7,7 +9,11 @@
 # Note that since I don't have code built into the operational model run, if i run more case studies, will need to specifially come here and run this code for the new operational runs
 
 # w cpu-per-task of 16 and mem-per-cpu of 4gb, set workers = 12
+# w/ parallelization, takes ~ 3-4s/run
 
+# To run: from slurm, see clean_qpe_a100_1.sh
+# One off runs from terminal in vs code, run:
+# /home/csutter/miniconda3/bin/python /home/csutter/DRIVE-clean/weather_events/notebooks/cam_modelpred_QPE_active.py
 
 import xarray as xr
 import requests
@@ -29,6 +35,7 @@ newdir = "/home/csutter/DRIVE-clean/operational_runs_wQPE/data_6_ensembling" # H
 # For 5cat model: "/home/csutter/DRIVE-clean/operational_runs/*/data_6_ensembling"
 # For obs model: "/home/csutter/DRIVE-clean/operational_runs/*/data_odm_3_ensembling"
 
+
 alldirs_data_preds = glob(dir_ofpreds) 
 
 allfiles_data = []
@@ -44,6 +51,7 @@ for i in alldirs_data_preds:
 print(len(allfiles_data))
 print(len(allfiles_tosaveto))
 
+
 # one list will grabs the preduiction file, the other list just tracks the time for the file (not sure if we'll need but might as well)
 matched_cnn_file = [] 
 matched_cnn_time = []
@@ -57,7 +65,19 @@ for ind in range(0, len(allfiles_data)):
     # # print(model_time)
     # see if that model_time exists in the list of event times
     # also just have to make sure we already didn't log that file (just in case was accidentally ran twice in operational_run, which can also happen just due to reorg in set__aggregate_allruns, so need to just use one csv pred)
-    if model_time not in matched_cnn_time:
+
+    # OPTION 0 [from initial run, don't need to run this version again (unless changing the QPE threshold or something)]
+    # COMMENT OUT!
+    # if model_time not in matched_cnn_time:
+    #     matched_cnn_time.append(model_time) # log the time that matches
+    #     matched_cnn_file.append(model_f) # log the pred file that matches
+    #     tosave_modelpred_wQPE.append(allfiles_tosaveto[ind])
+
+    # OPTION 2 - for when needing to find which model runs from the main dir of preds have not yet been ran w/ QPE subset. E.g. need to do this after running new operational set
+    # Check if the file already exists in the QPE directory. 
+    filterqpe_exist = os.path.isfile(allfiles_tosaveto[ind])
+
+    if ((model_time not in matched_cnn_time) & (filterqpe_exist == False)):
         matched_cnn_time.append(model_time) # log the time that matches
         matched_cnn_file.append(model_f) # log the pred file that matches
         tosave_modelpred_wQPE.append(allfiles_tosaveto[ind])
@@ -70,14 +90,14 @@ print(len(np.unique(matched_cnn_time)))
 print(matched_cnn_file[0:3])
 print(matched_cnn_time[0:3])
 
-# FOR TESTING SMALL AMOUNT FOR PARALLELIZING
-# matched_cnn_file = matched_cnn_file[50:100]
-# matched_cnn_time = matched_cnn_time[50:100]
-# tosave_modelpred_wQPE = tosave_modelpred_wQPE[50:100] # where to save out the subsetted CNN df after tying in QPE data
+# # # FOR TESTING SMALL AMOUNT FOR PARALLELIZING
+# # # matched_cnn_file = matched_cnn_file[50:100]
+# # # matched_cnn_time = matched_cnn_time[50:100]
+# # # tosave_modelpred_wQPE = tosave_modelpred_wQPE[50:100] # where to save out the subsetted CNN df after tying in QPE data
 
 
 
-# # Define function that pulls in QPE data, which we execute in teh loop code below
+# # # Define function that pulls in QPE data, which we execute in teh loop code below
 
 
 def get_qpe_s3(ts):
@@ -152,9 +172,9 @@ def execute_for_datetime(predpath = matched_cnn_file[0], time_str = matched_cnn_
     start_time = time.time()
 
     cam_df = pd.read_csv(predpath)
-# # 1. SETUP PARAMETERS
-# time_str = "20250412_0015"  # Your input format
-# THRESHOLD = 0.1             # mm/hr (The "Active" cutoff)
+    # # 1. SETUP PARAMETERS
+    # time_str = "20250412_0015"  # Your input format
+    # THRESHOLD = 0.1             # mm/hr (The "Active" cutoff)
 
     # 2. TIME ALIGNMENT (The 2-Minute Even Rule)
     # Convert string to Timestamp
@@ -199,18 +219,17 @@ def execute_for_datetime(predpath = matched_cnn_file[0], time_str = matched_cnn_
         # Create the Boolean Filter
         cam_df['is_active'] = cam_df['qpe_val'] >= THRESHOLD
         
-        print(f"Processing complete.")
-        print(f"Active Cameras (>{THRESHOLD}mm/hr): {cam_df['is_active'].sum()} / {len(cam_df)}")
-
-
-        # subset to QPE active
-        cam_QPE_active = cam_df[cam_df['is_active'] == True ]
-        print(len(cam_QPE_active))
+        # Decided to run QPE analysis for all cams, not to artifically discard them based on threshold. Now we'll have mm/hr for all cams and can set whatever threshold we want, or include all cams and just do something w/ average QPE. Either way, don't need to subset here. 
+        # print(f"Processing complete.")
+        # print(f"Active Cameras (>{THRESHOLD}mm/hr): {cam_df['is_active'].sum()} / {len(cam_df)}")
+        # # subset to QPE active
+        # cam_QPE_active = cam_df[cam_df['is_active'] == True ]
+        # print(len(cam_QPE_active))
 
         # save out NEED TO ADD THIS
         print(saveto)
         os.makedirs(os.path.dirname(saveto), exist_ok=True)
-        cam_QPE_active.to_csv(saveto)
+        cam_df.to_csv(saveto)
 
         qpe_ds.close() # Close the xarray dataset
         del qpe_ds     # Remove the variable from the namespace
