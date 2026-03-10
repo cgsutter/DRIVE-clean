@@ -11,7 +11,7 @@
 # w cpu-per-task of 16 and mem-per-cpu of 4gb, set workers = 12
 # w/ parallelization, takes ~ 3-4s/run
 
-# To run: from slurm, see clean_qpe_a100_1.sh
+# To run: from slurm, see clean_qpe_a100_1.sh. Note that we have clean_qpe_a100_1.sh in order to run odm code too. 
 # One off runs from terminal in vs code, run:
 # /home/csutter/miniconda3/bin/python /home/csutter/DRIVE-clean/weather_events/notebooks/cam_modelpred_QPE_active.py
 
@@ -28,9 +28,9 @@ from concurrent.futures import ThreadPoolExecutor
 
 # First, grab all datetime model pred files that exist in our entire directory
 
-dir_ofpreds = "/home/csutter/DRIVE-clean/operational_runs/*/data_6_ensembling" #HERE!! 
+dir_ofpreds = "/home/csutter/DRIVE-clean/operational_runs/*/data_odm_3_ensembling" #HERE!! 
 # new dir to save subsetted QPE model preds 
-newdir = "/home/csutter/DRIVE-clean/operational_runs_wQPE/data_6_ensembling" # HERE!! 
+newdir = "/home/csutter/DRIVE-clean/operational_runs_QPEdata/data_odm_3_ensembling" # HERE!! 
 # For both of the above, Update with whether running 5-cat model or obs model
 # For 5cat model: "/home/csutter/DRIVE-clean/operational_runs/*/data_6_ensembling"
 # For obs model: "/home/csutter/DRIVE-clean/operational_runs/*/data_odm_3_ensembling"
