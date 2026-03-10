@@ -12,7 +12,24 @@ from ast import literal_eval
 from shapely import wkt
 
 
+######### CONFIG
 
+alldirs_data_preds = glob("/home/csutter/DRIVE-clean/operational_runs_wQPE/data_odm_3_ensembling") #HERE!! 
+
+# For 5cat model: glob("/home/csutter/DRIVE-clean/operational_runs/*/data_6_ensembling") 
+# For obs model: glob("/home/csutter/DRIVE-clean/operational_runs/*/data_odm_3_ensembling") 
+
+# /home/csutter/DRIVE-clean/operational_runs_wQPE/data_6_ensembling
+# /home/csutter/DRIVE-clean/operational_runs_wQPE/data_odm_3_ensembling
+
+csv_path = "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_bufferwQPE_odm.csv"# HERE!!! Where to save out stats. Should change this every time so that we don't overwrite existing files
+
+# original w events and 5cat model was saved here:
+# "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_buffer.csv"
+# ynobs model saved here:
+# "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_buffer_odm.csv"
+
+##########
 #### 1 - NCEI data
 d_readin = gpd.read_file("/home/csutter/DRIVE-clean/weather_events/data/ncei_events/ncei_ny_events_clean.gpkg")
 
@@ -133,34 +150,39 @@ locsunique_bare.head(3)
 # - But we will eventually want to "connect" event geometries so that we can compare model preds in regions that have events vs when those same regions don't have events
 # - Uses the df built from events work in cells above
 
+# Important note, the buffer data had many datetimes to run but many of them had already been ran already, so, they were NOT reran in set45_buffermisc directory. We have to tie in the buffer tracker df to get the full list of buffer times needed, and then find where those files are in the operational_runs directory
+# Use the df tracker that has all buffer times organized w/ corresponding events, etc
+buffertracker = pd.read_csv("/home/csutter/DRIVE-clean/weather_events/data/nonevents_ofinterest/buffertimes_for_nceievents.csv")
+alltimes = np.unique(buffertracker["buffer_datetime"])
+alltimes = sorted(alltimes)
 
 
-inf_sets_ran = ["/home/csutter/DRIVE-clean/operational_runs/set45_buffermisc"]
+# #### BEGIN REMOVE?
+# inf_sets_ran = ["/home/csutter/DRIVE-clean/operational_runs/set45_buffermisc"]
+# dirs_w_preds = [f"{i}/data_odm_3_ensembling/*/*/*/*/*" for i in inf_sets_ran] 
+# #HERE!!! 
+# # If looking for 5cat model or ODM model, update accordingly
+# # 5-cat model: f"{i}/data_6_ensembling/*/*/*/*/*"
+# # ODM model: f"{i}/data_odm_3_ensembling/*/*/*/*/*"
 
-dirs_w_preds = [f"{i}/data_odm_3_ensembling/*/*/*/*/*" for i in inf_sets_ran] #HERE!!! 
-# If looking for 5cat model or ODM model, update accordingly
-# 5-cat model: f"{i}/data_6_ensembling/*/*/*/*/*"
-# ODM model: f"{i}/data_odm_3_ensembling/*/*/*/*/*"
+# # # print(dirs_w_preds)
 
-# # print(dirs_w_preds)
+# pred_datetimes = []
+# pred_path = []
+# for dr in dirs_w_preds:
+#     # # print(dr) # just for checking counts per dir
+#     # dr_files = [] # just for checking counts per dir
+#     listpredfiles = glob(dr)
+#     for fl in listpredfiles:
+#         # # print(fl)
+#         i = fl.rfind("/")
+#         filedate = fl[i-13:i]
+#         pred_datetimes.append(filedate)
+#         # dr_files.append(filedate) # just for checking counts per dir
 
-pred_datetimes = []
-pred_path = []
-for dr in dirs_w_preds:
-    # # print(dr) # just for checking counts per dir
-    # dr_files = [] # just for checking counts per dir
-    listpredfiles = glob(dr)
-    for fl in listpredfiles:
-        # # print(fl)
-        i = fl.rfind("/")
-        filedate = fl[i-13:i]
-        pred_datetimes.append(filedate)
-        # dr_files.append(filedate) # just for checking counts per dir
-
-        ### Must also grab the tracker path which contains the predictions and the image path (should have all the data in it we need)
-        pred_path.append(fl)
-    # # print(len(dr_files)) # just for checking counts per dir
-
+#         ### Must also grab the tracker path which contains the predictions and the image path (should have all the data in it we need)
+#         pred_path.append(fl)
+#     # # print(len(dr_files)) # just for checking counts per dir
 
 # print(len(pred_datetimes))
 # print(len(pred_path))
@@ -169,24 +191,49 @@ for dr in dirs_w_preds:
 # print(pred_datetimes[0:4])
 # print(pred_path[0:4])
 
+# ##### END REMOVE
 
-# Get stats for nonevents...
 
-# First -- take the model pred df and Connect to locations (wfo, geom, etc.. things in ncei events) that have events associated with them, bc we will ultimately want to compare how locations with events compare to locations with nonevents
+allfiles_data = []
+for i in alldirs_data_preds:
+    fs = glob(f"{i}/*/*/*/*/*")
+    for f in fs:
+        allfiles_data.append(f)
+# print(allfiles_data[0:3])
+
+### Identify files that specifically align with event occurances
+# one list will grabs the preduiction file, the other list just tracks the time for the file (not sure if we'll need but might as well)
+matched_cnn_file = [] 
+matched_cnn_time = []
+for model_f in allfiles_data:
+    # parse just the time corresponding to the model pred
+    beg = model_f.rfind("/")
+    model_time = model_f[beg-13:beg]
+    # # print(model_time)
+    # see if that model_time exists in the list of event times
+    # also just have to make sure we already didn't log that file (just in case was accidentally ran twice in operational_run, which can also happen just due to reorg in set__aggregate_allruns, so need to just use one csv pred)
+    if ((model_time in alltimes) & (model_time not in matched_cnn_time)):
+        matched_cnn_time.append(model_time) # log the time that matches
+        matched_cnn_file.append(model_f) # log the pred file that matches
+    
+
+# Get stats for buffers...
+
+# First -- take the model pred df and Connect to locations (wfo, geom, etc.. things in ncei events) that have events associated with them, bc we will ultimately want to compare how locations with events compare to locations with buffers
 # We ran the model preds statewide, but when we merge with locations-with-events, this will shorten the amount of cameras in a model pred file
 # Already have the location df with geoms and cam lat/lon
 # Connect the model pred df , by site, with the "ID" in that location df
 
 # Read in all model pred dfs, which have cams in them, and tie in the corresponding region for each cam
 
-# Note the looping order here for nonevents is different than for events, given the different datastructure, have to start with model pred files. And don't need to "find" the right model pred files that match events, bc starting w model pred files.
+# Note the looping order here for buffers is different than for events, given the different datastructure, have to start with model pred files. And don't need to "find" the right model pred files that match events, bc starting w model pred files.
 
 # Loop 1 - model files
-for i in range(0, len(pred_path)):
+for i in range(0, len(matched_cnn_file)):
 
 
-    d = pd.read_csv(pred_path[i])
-    t = pred_datetimes[i]# for tracking results
+    d = pd.read_csv(matched_cnn_file[i])
+    t = matched_cnn_time[i]# for tracking results
     # # print(len(d))
     # note that im not making the modelpred df into a gdf right now, dont think we need the geom for anything rn at least for stats runs
     d_allinfo = d.merge(locsunique_bare, how = "inner", left_on = "site", right_on = "ID")
@@ -216,7 +263,7 @@ for i in range(0, len(pred_path)):
 
             id_event = t
             id_ep = t
-            id_type ="nonevent"
+            id_type ="buffer"
             id_loc = l # loop 2
             id_wfo = w # loop 3
             datetime_stamp = t 
@@ -235,14 +282,6 @@ for i in range(0, len(pred_path)):
                 "datetime":datetime_stamp,
                 "model_counts": countdict # This will be stringified
             }
-
-            csv_path = "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_buffer_odm.csv"# HERE!!! Where to save out stats, I like to change this every time since still playing around w/ how to deal w everything
-
-            # original w events and 5cat model was saved here:
-            # "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_buffer.csv"
-
-            # ynobs model saved here:
-            # "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_buffer_odm.csv"
 
 
             # Pre-process: Convert the nested dict to a JSON string
