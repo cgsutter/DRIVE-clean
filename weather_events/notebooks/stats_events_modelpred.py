@@ -19,15 +19,15 @@ from shapely import wkt
 
 ######## CONFIG
 
-alldirs_data_preds = glob("/home/csutter/DRIVE-clean/operational_runs_QPEdata/data_odm_3_ensembling") #HERE!! Where model pred data lives
+alldirs_data_preds = glob("/home/csutter/DRIVE-clean/operational_runs_QPEdata/data_6_ensembling") #HERE!! Where model pred data lives
 #### A - Typical run, considering all camera preds (no QPE filter)
 # For 5cat model: glob("/home/csutter/DRIVE-clean/operational_runs/*/data_6_ensembling") 
 # For obs model: glob("/home/csutter/DRIVE-clean/operational_runs/*/data_odm_3_ensembling") 
-#### B - Filter to cam model preds only with active QPE. NOTE! To do this version, need to run this code first: /home/csutter/DRIVE-clean/weather_events/notebooks/cam_modelpred_QPE_active.py. This has already been ran for about 13k instances in runs dir, but for any new case inference runs we add, will need to run those too. 
+#### B - Filter to cam model preds only with active QPE. Note! To do this version, need to run this code first: /home/csutter/DRIVE-clean/weather_events/notebooks/cam_modelpred_QPE_active.py. This has already been ran for about 13k instances in runs dir, but for any new case inference runs we add, will need to run those too. 
 # For 5cat model: glob("/home/csutter/DRIVE-clean/operational_runs_wQPE/data_6_ensembling") 
 # For obs model: glob("/home/csutter/DRIVE-clean/operational_runs_wQPE/data_odm_3_ensembling") 
 
-csv_path = "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_odm_QPEdata.csv" # HERE!!! Where to save out aggregated stats that this script produces. Should change this every time!
+csv_path = "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_events_rsc.csv" # HERE!!! Where to save out aggregated stats that this script produces. Should change this every time!
 #### 5cat model was saved here:
 # "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats.csv"
 #### ynobs model saved here:
@@ -280,9 +280,7 @@ for ev in events_ofinterest_paths:
 
             # For each model pred file, spatial join with the event location (geometry) in the events1 df
 
-            # Start with one model file for example...
-
-            cols_to_use = ["Latitude", "Longitude", "select", "img_name", "select_prob", "qpe_val"] # only keeping the cols we need makes the join much faster
+            cols_to_use = ["site", "Latitude", "Longitude", "select", "img_name", "select_prob", "qpe_val"] # only keeping the cols we need makes the join much faster
 
             modelfile = pd.read_csv(mf, usecols=cols_to_use)
 
@@ -314,6 +312,10 @@ for ev in events_ofinterest_paths:
             # display(joined_df.head(4))
 
 
+            # Just for tracking purposes, which may make other analyses easier in the future - we won't need to spatially do the gdf join between NCEI events and the lat lons from the modelfile of int
+            siteslist = list(joined_df["site"])
+
+
             #### THEN JUST LOG EVERYTHING
 
             # note that "select" is the model pred col w final model pred across the 5 ensemble members
@@ -332,23 +334,31 @@ for ev in events_ofinterest_paths:
             # We count 'img_name' and take the mean of all our probability columns. Note that in step 3, we'll grab just the prob_snow associated with that the snow predictions, etc. 
             agg_results = joined_df.groupby("select").agg({
                 "img_name": "count",
-                "select_prob": "mean"
-            }).rename(columns={"img_name": "count", "select_prob": "avg_predprob"})
+                "select_prob": "mean",
+                "qpe_val": "mean",
+            }).rename(columns={"img_name": "count", "select_prob": "avg_predprob", "qpe_val": "avg_qpe"})
 
             # 2. Create the Counts Dictionary
             countdict = agg_results["count"].to_dict()
 
             # 3. Create the Probabilities Dictionary
+            # Note that in addition to splitting by pred-cat, we also track the avg prob across all preds (avgprob_overall) (could back-solve for this using this dict, but easier just to do here in this code)
             probdict = {
                 pred_class: round(avg, 3) 
                 for pred_class, avg in agg_results["avg_predprob"].items()
             }
+            avgprob_overall = np.mean(joined_df["select_prob"])
+
+            # 4. Create the QPE dictionary
+            # Note that in addition to splitting by pred-cat, we also track the avg qpe across all preds (avgqpe_overall) (could back-solve for this using this dict, but easier just to do here in this code)
+            qpedict = {
+                pred_class: round(avg, 3) 
+                for pred_class, avg in agg_results["avg_qpe"].items()
+            }
+            avgqpe_overall = np.mean(joined_df["qpe_val"])
 
             # other info needed in addition to the id_event etc created above
             datetime_stamp = mdate 
-
-            # grab the avg QPE - which is ONE stat for this event & datetime (one avg value for this row of agg stat)
-            avgqpe = np.mean(joined_df["qpe_val"])
 
             # Your data
             data_to_log = {
@@ -358,9 +368,13 @@ for ev in events_ofinterest_paths:
                 "id_loc":id_loc,
                 "id_wfo":id_wfo,
                 "datetime":datetime_stamp,
+                "modelfile": mf,
+                "sites": siteslist,
                 "model_counts": countdict, # This will be stringified
                 "model_probs": probdict,
-                "qpe_avg":avgqpe
+                "prob_avg": avgprob_overall,
+                "model_qpe":qpedict,
+                "qpe_avg":avgqpe_overall
             }
 
             # Pre-process: Convert the nested dict to a JSON string

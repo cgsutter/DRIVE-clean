@@ -16,11 +16,11 @@ from shapely import wkt
 
 ######### CONFIG
 
-alldirs_data_preds = glob("/home/csutter/DRIVE-clean/operational_runs_QPEdata/data_6_ensembling") #HERE!! 
+alldirs_data_preds = glob("/home/csutter/DRIVE-clean/operational_runs_QPEdata/data_odm_3_ensembling") #HERE!! 
 # data_6_ensembling
 # data_odm_3_ensembling
 
-csv_path = "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_buffer_QPEdata.csv"# HERE!!!
+csv_path = "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_buffer_odm.csv"# HERE!!!
 
 ##########
 #### 1 - NCEI data
@@ -133,12 +133,16 @@ for i in range(len(matched_cnn_file)):
             # Filter by WFO to get the exact subset we care about
             ld2 = ld1[ld1["WFO"]==w] 
 
+            # Just for tracking purposes, which may make other analyses easier in the future - we won't need to spatially do the gdf join between NCEI events and the lat lons from the modelfile of int
+            siteslist = list(ld2["site"])
+
             # --- CALCULATE COUNTS AND PROBABILITIES ---
             # Group by 'select' to get both counts and mean probabilities efficiently
             agg_results = ld2.groupby("select").agg({
                 "img_name": "count",
-                "select_prob": "mean"
-            }).rename(columns={"img_name": "count", "select_prob": "avg_predprob"})
+                "select_prob": "mean",
+                "qpe_val": "mean",
+            }).rename(columns={"img_name": "count", "select_prob": "avg_predprob", "qpe_val": "avg_qpe"})
 
             countdict = agg_results["count"].to_dict()
             
@@ -147,8 +151,14 @@ for i in range(len(matched_cnn_file)):
                 for pred_class, avg in agg_results["avg_predprob"].items()
             }
 
-            # --- CALCULATE QPE ---
-            avgqpe = round(np.mean(ld2["qpe_val"]), 4)
+            avgprob_overall = np.mean(ld2["select_prob"])
+
+            qpedict = {
+                pred_class: round(avg, 3) 
+                for pred_class, avg in agg_results["avg_qpe"].items()
+            }
+
+            avgqpe_overall = round(np.mean(ld2["qpe_val"]), 4)
 
             id_event = t
             id_ep = t
@@ -165,9 +175,13 @@ for i in range(len(matched_cnn_file)):
                 "id_loc": id_loc,
                 "id_wfo": id_wfo,
                 "datetime": datetime_stamp,
+                "modelfile": mf,
+                "sites": siteslist,
                 "model_counts": json.dumps(countdict),
-                "model_probs": json.dumps(probdict), # Added!
-                "qpe_avg": avgqpe # Added!
+                "model_probs": json.dumps(probdict), 
+                "prob_avg": avgprob_overall,
+                "model_qpe":qpedict,
+                "qpe_avg": avgqpe_overall
             }
 
             file_exists = os.path.isfile(csv_path)
