@@ -1,3 +1,7 @@
+# Written with the assistance of Gemini
+
+# To run in slurm: clean_events_aggstats.sh
+
 # See notebook for work: /home/csutter/DRIVE-clean/weather_events/notebooks/model_scratchwork.ipynb
 
 import pandas as pd 
@@ -278,7 +282,7 @@ for ev in events_ofinterest_paths:
 
             # Start with one model file for example...
 
-            cols_to_use = ["Latitude", "Longitude", "select", "img_name", "ensembleAvg_predprob", "qpe_val"] # only keeping the cols we need makes the join much faster
+            cols_to_use = ["Latitude", "Longitude", "select", "img_name", "select_prob", "qpe_val"] # only keeping the cols we need makes the join much faster
 
             modelfile = pd.read_csv(mf, usecols=cols_to_use)
 
@@ -328,8 +332,8 @@ for ev in events_ofinterest_paths:
             # We count 'img_name' and take the mean of all our probability columns. Note that in step 3, we'll grab just the prob_snow associated with that the snow predictions, etc. 
             agg_results = joined_df.groupby("select").agg({
                 "img_name": "count",
-                "ensembleAvg_predprob": "mean"
-            }).rename(columns={"img_name": "count", "ensembleAvg_predprob": "avg_predprob"})
+                "select_prob": "mean"
+            }).rename(columns={"img_name": "count", "select_prob": "avg_predprob"})
 
             # 2. Create the Counts Dictionary
             countdict = agg_results["count"].to_dict()
