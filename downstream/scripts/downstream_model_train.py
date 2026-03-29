@@ -30,7 +30,18 @@ def hrrr_data_load_prep(hrrr_data_path_csv):
 
     hrrr = pd.read_csv(hrrr_data_path_csv)
 
-    hrrr = hrrr.dropna()  # ADDED 1231 bc starting w FH9 had an issue
+    # --- UPDATED DROPNA LOGIC ---
+    # Only drop rows if NaNs exist in the columns the model ACTUALLY uses.
+    # This prevents the script from deleting rows when NOAA drops unused 
+    # variables like 'dswrf' or 'dlwrf' from the GRIB2 files.
+    features_to_check = ["t2m", "r2", "u10", "v10", "asnow", "tp", "tcc"]
+    
+    # Ensure we only check columns that actually exist in the dataframe 
+    # (in case the file is missing a required feature, which we catch later)
+    existing_features = [col for col in features_to_check if col in hrrr.columns]
+    
+    hrrr = hrrr.dropna(subset=existing_features)
+    # ----------------------------
 
     def addimgnamecol(row):
         elem = row["img_orig"].rfind("/")

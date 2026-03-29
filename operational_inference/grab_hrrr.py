@@ -158,36 +158,19 @@ def colocate_add_hrrr_data(row):
         #     print("using 3 fcst hour")
 
         # read in hrrr file of interest for that element
+        # Updated to deal with HRRR data issues where if a var is missing from the source HRRR dataset, it won't break the whole code. 
         hrrrdf = pd.read_parquet(hrrrfile)
         hrrrdf = hrrrdf.reset_index()
-        hrrrdf_vars = hrrrdf[
-            [
-                "time",
-                "valid_time",
-                "latitude",
-                "longitude",
-                "t2m",
-                "pt",
-                "sh2",
-                "d2m",
-                "r2",
-                "u10",
-                "v10",
-                "si10",
-                "asnow",
-                "tp",
-                "orog",
-                "cape",
-                "mslma",
-                "dswrf",
-                "dlwrf",
-                "tcc",
-                "gh",
-                "dpt",
-                "atmosphere",
-                "isobaricInhPa",
-            ]
-        ]  # will subset this for each location below
+        # Define the exact columns you expect
+        expected_columns = [
+            "time", "valid_time", "latitude", "longitude", "t2m", "pt", "sh2",
+            "d2m", "r2", "u10", "v10", "si10", "asnow", "tp", "orog", "cape",
+            "mslma", "dswrf", "dlwrf", "tcc", "gh", "dpt", "atmosphere", "isobaricInhPa"
+        ]
+        # Use reindex instead of brackets. 
+        # Missing columns (like dswrf) will be safely created and filled with NaNs.
+        hrrrdf_vars = hrrrdf.reindex(columns=expected_columns)
+        # will subset this ^ for each location below
         # display(hrrrdf_vars.head(3))
         # note that usually each time snapshot of cam data (every 5 mins) will be from the same hrrr file since they are at the top of the hour, but for any in between times (e.g. if one image snapshot is 3:29 for one image and 3:31 for another image they would technically be pulling from)
         # subset the df containing the hrrr data that should already be read in
