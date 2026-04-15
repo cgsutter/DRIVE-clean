@@ -2,7 +2,7 @@
 
 # To run: from slurm, see clean_qpe_a100_1.sh. Note that we have clean_qpe_a100_1.sh in order to run odm code too. 
 # One off runs from terminal in vs code, run:
-# /home/csutter/miniconda3/bin/python /home/csutter/DRIVE-clean/weather_events/notebooks/cam_modelpred_QPE_active.py 
+# /home/csutter/miniconda3/bin/python /home/csutter/DRIVE-clean/weather_events/notebooks/cam_modelpred_QPE.py 
 # CRITICAL note ^!!!! To run from miniconda 
 
 # Our main aggregate code in the stats python scripts can't simply add the additional step of pulling the xarray QPE data for every event and timestep bc it takes ~15-20 sec ... w/ 96k rows in the events stats, it would take roughly 22 days! Need to do some data prep to only do this ONCE per every modelpred file, that way we're not repeating the operation for events (which are split by regions) for which many will have overlapping times. 
@@ -20,7 +20,7 @@
 # MRMS files available every 2 minutes. 
 
 # w cpu-per-task of 16 and mem-per-cpu of 4gb, set workers = 12
-# w/ parallelization, takes ~ 5 sec / run
+# w/ parallelization, takes ~ 4-5 sec / run
 
 
 import xarray as xr
@@ -39,12 +39,12 @@ from concurrent.futures import ThreadPoolExecutor
 # =====================================================================
 
 # Define input directory (where model predictions currently live)
-dir_ofpreds = "/home/csutter/DRIVE-clean/operational_runs/*/data_6_ensembling"
+dir_ofpreds = "/home/csutter/DRIVE-clean/operational_runs/*/data_odm_3_ensembling"
 # data_odm_3_ensembling
 # data_6_ensembling
 
 # Define output directory (where subsetted/updated predictions will be saved)
-newdir = "/home/csutter/DRIVE-clean/operational_runs_wMRMS/data_6_ensembling" # data_6_ensembling or data_odm_3_ensembling
+newdir = "/home/csutter/DRIVE-clean/operational_runs_wMRMS/data_odm_3_ensembling" # data_6_ensembling or data_odm_3_ensembling
 
 # Define parallelization workers (12 is optimal for 16 cpu / 4gb mem per cpu)
 MAX_WORKERS = 12
@@ -98,7 +98,7 @@ print(f"Found {total_found} total files.")
 print(f"Skipped {total_skipped} files (duplicates or already processed... could be because there are duplicate model pred csvs (and we only need one), or could be because the version with the MRMS has already been ran and exists in the dir already.")
 print(f"Processing {total_to_process} new files.")
 
-# print(matched_cnn_file)
+print(matched_cnn_file)
 # -----------------------
 
 # =====================================================================

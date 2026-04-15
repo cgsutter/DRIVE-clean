@@ -2,6 +2,8 @@
 
 # To run in slurm: clean_evBuffer_aggstats.sh
 
+# The reason event id can't be incorporated in this analysis is bc for a given time (which the cnn files are saved out by) there may be MANY events for that single buffer time. Instead we need to rely on location to tie it to evets, whcih we do in /home/csutter/DRIVE-clean/weather_events/notebooks/ncei_dataset_analysis.ipynb
+
 import pandas as pd 
 import numpy as np 
 from glob import glob
@@ -16,11 +18,15 @@ from shapely import wkt
 
 ######### CONFIG
 
-alldirs_data_preds = glob("/home/csutter/DRIVE-clean/operational_runs_QPEdata/data_odm_3_ensembling") #HERE!! 
+alldirs_data_preds = glob("/home/csutter/DRIVE-clean/operational_runs_wMRMS/data_odm_3_ensembling") #HERE!! 
 # data_6_ensembling
 # data_odm_3_ensembling
 
-csv_path = "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_buffer_odm.csv"# HERE!!!
+csv_path = "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_MRMS_bufferExtraCaseStudies_odm.csv"# HERE!!!
+
+buffertracker = pd.read_csv("/home/csutter/DRIVE-clean/weather_events/data/nonevents_ofinterest/buffertimes_extra_for_casestudies.csv") # HERE!! whether buffer2 or the original full buffer file
+# "/home/csutter/DRIVE-clean/weather_events/data/nonevents_ofinterest/buffertimes_for_nceievents.csv"
+# "/home/csutter/DRIVE-clean/weather_events/data/nonevents_ofinterest/buffertimes_extra_for_casestudies.csv"
 
 ##########
 #### 1 - NCEI data
@@ -84,8 +90,7 @@ locsunique['ID'] = locsunique['ID'].str.replace('-', '_')
 
 locsunique_bare = locsunique[["geometry","CZ_NAME","WFO", "ID"]]
 
-##### Buffer Tracker
-buffertracker = pd.read_csv("/home/csutter/DRIVE-clean/weather_events/data/nonevents_ofinterest/buffertimes_for_nceievents.csv")
+##### Grab times to run from buffer Tracker
 alltimes = sorted(np.unique(buffertracker["buffer_datetime"]))
 
 # --- EFFICIENCY UPGRADE 1: Dictionary Lookup ---
@@ -110,7 +115,7 @@ for etime in alltimes:
             matched_cnn_file.append(file_lookup[str(etime)])
 
 # --- EFFICIENCY UPGRADE 2: usecols for fast reading ---
-# Added the prob and qpe columns here!
+# Added the prob and qpe columns here
 cols_to_use = ["site", "select", "img_name", "select_prob", "qpe_val"] 
 
 # Loop 1 - model files

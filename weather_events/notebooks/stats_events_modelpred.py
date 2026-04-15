@@ -4,6 +4,8 @@
 
 # See notebook for work: /home/csutter/DRIVE-clean/weather_events/notebooks/model_scratchwork.ipynb
 
+# IMPORTANT!! UNDERSTANDING ZONES VS COUNTIES -- see notebook: visualize_stats_events_modelpred.ipynb
+
 import pandas as pd 
 import numpy as np 
 from glob import glob
@@ -19,7 +21,7 @@ from shapely import wkt
 
 ######## CONFIG
 
-alldirs_data_preds = glob("/home/csutter/DRIVE-clean/operational_runs_QPEdata/data_6_ensembling") #HERE!! Where model pred data lives
+alldirs_data_preds = glob("/home/csutter/DRIVE-clean/operational_runs_wMRMS/data_odm_3_ensembling") #HERE!! Where model pred data lives
 #### A - Typical run, considering all camera preds (no QPE filter)
 # For 5cat model: glob("/home/csutter/DRIVE-clean/operational_runs/*/data_6_ensembling") 
 # For obs model: glob("/home/csutter/DRIVE-clean/operational_runs/*/data_odm_3_ensembling") 
@@ -27,7 +29,7 @@ alldirs_data_preds = glob("/home/csutter/DRIVE-clean/operational_runs_QPEdata/da
 # For 5cat model: glob("/home/csutter/DRIVE-clean/operational_runs_wQPE/data_6_ensembling") 
 # For obs model: glob("/home/csutter/DRIVE-clean/operational_runs_wQPE/data_odm_3_ensembling") 
 
-csv_path = "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_events_rsc.csv" # HERE!!! Where to save out aggregated stats that this script produces. Should change this every time!
+csv_path = "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats_MRMS_events_odm.csv" # HERE!!! Where to save out aggregated stats that this script produces. Should change this every time!
 #### 5cat model was saved here:
 # "/home/csutter/DRIVE-clean/weather_events/models/stats_events_modelpred/stats.csv"
 #### ynobs model saved here:
