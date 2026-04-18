@@ -102,9 +102,14 @@ operational_runs_QPEdata
 operational_runs_wMRMS
 operational_analysis/misc_scripts/grabcams.py
 forecasting/coloc_hrrrdata
+forecasting/data_ensembled_preds
+forecasting/data_ensembled_stats
 forecasting/data_final_models
 forecasting/data_final_preds
 forecasting/data_final_stats
 forecasting/data_HT_aggregate
 forecasting/data_HT_results
 forecasting/data_trackers_withhrrr
+forecast_operational_runs
+forecast_operational_models/models
+
