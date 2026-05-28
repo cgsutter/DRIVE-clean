@@ -14,12 +14,12 @@ from datetime import datetime
 
 import pandas as pd
 
-datestorun = pd.read_csv("/home/csutter/DRIVE-clean/operational_runs/set41_heavyrain/dates.csv") #HERE!!
+datestorun = pd.read_csv("/home/csutter/DRIVE-clean/operational_runs/set63_squall_buffer2/dates.csv") #HERE!!
 dates = list(datestorun["date"])
 print(dates[0:4])
 
 # TO DEFINE -- where all the data prediction dirs should be nested within
-parentdir = "/home/csutter/DRIVE-clean/operational_runs/set41_heavyrain" #HERE!!
+parentdir = "/home/csutter/DRIVE-clean/operational_runs/set63_squall_buffer2" #HERE!!
 # "/home/csutter/DRIVE-clean/operational_inference" # for one-off runs, e.g. testing code
 
 # Note: if re running just only parts of this code in retrospect (e.g. updated ensembling or something), should put the part being re-ran in a try and except: continue.
