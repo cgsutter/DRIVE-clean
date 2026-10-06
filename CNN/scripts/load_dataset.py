@@ -190,28 +190,40 @@ def load_and_ready_image(image_path, arch_str, aug_bool):
             print(f"Warning: Unexpected image shape {image_array.shape} at {image_path_format}. Using dummy array.")
             image_array = np.zeros((*config.TARGET_SIZE, 3), dtype=np.float32)
 
-        # --- NEW DEFENSIVE CHECK FOR RESIZING ---
+        # # --- DEFENSIVE CHECK FOR RESIZING (BEFORE WE UPDATED ARCHIVE TO DEAL WITH CROPPING AND RESIZING). See chunk after this one. ---
+        # # 1. Verify rank (shape) before unpacking to avoid ValueError
+        # if len(image_array.shape) != 3:
+        #     print(f"Warning: Rank mismatch {len(image_array.shape)} at {image_path_format}. Using dummy.")
+        #     image_array = np.zeros((*config.TARGET_SIZE, 3), dtype=np.float32)
+        
+        # # 2. Safe unpack (since checked it above before doing this code)
+        # h, w, c = image_array.shape
+
+        # # 3. Check for 'Empty' dimensions or wrong channel count
+        # if h == 0 or w == 0 or c != 3:
+        #     print(f"Warning: Zero-size or channel error at {image_path_format}. Using dummy.")
+        #     image_array = np.zeros((*config.TARGET_SIZE, 3), dtype=np.float32)
+        #     h, w, _ = image_array.shape # Re-assign h for the crop math below
+
+        # # 4. Perform the crop (now safe)  
+        # # Crop 20% from the top
+        # crop_height = int(0.2 * h)
+        # image_array = image_array[crop_height:, :, :]
+
+        # # 5. Resize (now safe)
+        # image_array = cv2.resize(image_array, config.TARGET_SIZE)
+
+        # --- UPDATED DEFENSIVE CHECK (Update for when images are already cropped and resized in archive) ---
         # 1. Verify rank (shape) before unpacking to avoid ValueError
         if len(image_array.shape) != 3:
             print(f"Warning: Rank mismatch {len(image_array.shape)} at {image_path_format}. Using dummy.")
             image_array = np.zeros((*config.TARGET_SIZE, 3), dtype=np.float32)
-        
-        # 2. Safe unpack (since checked it above before doing this code)
-        h, w, c = image_array.shape
-
-        # 3. Check for 'Empty' dimensions or wrong channel count
-        if h == 0 or w == 0 or c != 3:
-            print(f"Warning: Zero-size or channel error at {image_path_format}. Using dummy.")
-            image_array = np.zeros((*config.TARGET_SIZE, 3), dtype=np.float32)
-            h, w, _ = image_array.shape # Re-assign h for the crop math below
-
-        # 4. Perform the crop (now safe)  
-        # Crop 20% from the top
-        crop_height = int(0.2 * h)
-        image_array = image_array[crop_height:, :, :]
-
-        # 5. Resize (now safe)
-        image_array = cv2.resize(image_array, config.TARGET_SIZE)
+        else:
+            # 2. Check that the image is ALREADY the target size and has 3 channels
+            h, w, c = image_array.shape
+            if h != config.TARGET_SIZE[0] or w != config.TARGET_SIZE[1] or c != 3:
+                print(f"Warning: Image size mismatch (expected {config.TARGET_SIZE}, got {(h, w)}) at {image_path_format}. Using dummy.")
+                image_array = np.zeros((*config.TARGET_SIZE, 3), dtype=np.float32)
 
         # --- NEW ADDED BLOCK TO CHECK FOR ANY REMAINING ISSUES 
         # This step acts as a final filter. It says: "Whether this image was corrupt from the start, or it was a half-corrupt image that OpenCV 'faked' its way through, I am going to check it one last time. If it's garbage (all black or NaN), I will replace it with a clean, perfectly-sized black square and stop trying to crop or manipulate it."
