@@ -35,7 +35,10 @@ def step1_fn(rundate, runhour, saveimgcsv, y, m, d, hour_str, min_str,max_time_d
 
     # grab all site sub dir names
     
-    sites = os.listdir("/home/csutter/cron/data")
+    # sites = os.listdir("/home/csutter/cron/data")
+    new_base_dir = "/home/csutter/cron/data_convert_dissertation_images/data_images"
+    sites = os.listdir(new_base_dir)
+
     if ".ipynb_checkpoints" in sites:
         sites.remove(".ipynb_checkpoints")
     print(len(sites))
@@ -230,22 +233,42 @@ def step1_fn(rundate, runhour, saveimgcsv, y, m, d, hour_str, min_str,max_time_d
         # print(f"/home/csutter/cron/data/{s}/{today}/*{currenthour_string_imgname}*")
         # print(f"/home/csutter/cron/data/{s}/{day_of_prevhour}/*{lowerbound_string_imgname}*")
         # print(f"/home/csutter/cron/data/{s}/{day_of_nexthour}/*{upperbound_string_imgname}*")
+        
         # new way 1
-        imgs_current_hour = glob.glob(
-            f"/home/csutter/cron/data/{s}/{today}/*{currenthour_string_imgname}*"
-        )
-        # print("current hour dir of images")
-        # print(len(imgs_current_hour))
-        # print("example of one dir looking for")
+        # imgs_current_hour = glob.glob(
+        #     f"/home/csutter/cron/data/{s}/{today}/*{currenthour_string_imgname}*"
+        # )
+        # # print("current hour dir of images")
+        # # print(len(imgs_current_hour))
+        # # print("example of one dir looking for")
 
-        # print(len(imgs_current_hour))
+        # # print(len(imgs_current_hour))
+        # imgs_prev_hour = glob.glob(
+        #     f"/home/csutter/cron/data/{s}/{day_of_prevhour}/*{lowerbound_string_imgname}*"
+        # )
+        # # print(len(imgs_prev_hour))
+        # imgs_next_hour = glob.glob(
+        #     f"/home/csutter/cron/data/{s}/{day_of_nexthour}/*{upperbound_string_imgname}*"
+        # )
+
+        # Split dates for the new YYYY/MM/DD structure
+        t_yr, t_mo, t_dy = today[0:4], today[4:6], today[6:8]
+        p_yr, p_mo, p_dy = day_of_prevhour[0:4], day_of_prevhour[4:6], day_of_prevhour[6:8]
+        n_yr, n_mo, n_dy = day_of_nexthour[0:4], day_of_nexthour[4:6], day_of_nexthour[6:8]
+
+        # new way 1 (Updated for new base dir, new nested structure, and .webp)
+        imgs_current_hour = glob.glob(
+            f"{new_base_dir}/{s}/{t_yr}/{t_mo}/{t_dy}/{today}/*{currenthour_string_imgname}*.webp"
+        )
+        
         imgs_prev_hour = glob.glob(
-            f"/home/csutter/cron/data/{s}/{day_of_prevhour}/*{lowerbound_string_imgname}*"
+            f"{new_base_dir}/{s}/{p_yr}/{p_mo}/{p_dy}/{day_of_prevhour}/*{lowerbound_string_imgname}*.webp"
         )
-        # print(len(imgs_prev_hour))
+        
         imgs_next_hour = glob.glob(
-            f"/home/csutter/cron/data/{s}/{day_of_nexthour}/*{upperbound_string_imgname}*"
+            f"{new_base_dir}/{s}/{n_yr}/{n_mo}/{n_dy}/{day_of_nexthour}/*{upperbound_string_imgname}*.webp"
         )
+
         # print(len(imgs_next_hour))
         imgs = imgs_current_hour + imgs_prev_hour + imgs_next_hour
         # print(s)
@@ -263,10 +286,16 @@ def step1_fn(rundate, runhour, saveimgcsv, y, m, d, hour_str, min_str,max_time_d
         # filtered_list = [item for item in imgs_current_hour if any(sub in item for sub in [config.run_date, day_of_prevhour, day_of_nexthour])]
 
         # grab datetimes of all the img files being considered
-        # the date and time in image name will always be positioned here bc img filename ends in .jpg (-4) and then working backwards it is 2024-01-09-22:10:00.jpg (-23 character spots)
+        # # OLD- the date and time in image name will always be positioned here bc img filename ends in .jpg (-4) and then working backwards it is 2024-01-09-22:10:00.jpg (-23 character spots)
+        # imgs_datetime_str = [
+        #     im[len(im) - 23 : -4] for im in imgs
+        # ]  # grab the string date and time from file name
+
+        # the date and time in image name will always be positioned here bc img filename ends in .webp (-5) and then working backwards it is 2024-01-09-22:10:00.webp (-24 character spots)
         imgs_datetime_str = [
-            im[len(im) - 23 : -4] for im in imgs
+            im[len(im) - 24 : -5] for im in imgs
         ]  # grab the string date and time from file name
+
         # print(imgs_datetime_str)
         # convert to datetime format so that we can difference it with the datetime of interest
         imgs_datetime_dt = [

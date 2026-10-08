@@ -50,7 +50,14 @@ def format_df_for_mapping_hrrr(modelpreds, fcsthr_num=2):
         molist.append(datename[4:6])
         daylist.append(datename[6:8])
         datelist.append(datename)
-        timeisend = i.find(".jpg")
+        # timeisend = i.find(".jpg")
+        # timeis = i[timeisend - 8 : timeisend]
+        # timelist.append(timeis)
+        # Look for .webp, fallback to .jpg if testing on older files
+        timeisend = i.find(".webp")
+        if timeisend == -1:
+            timeisend = i.find(".jpg")
+            
         timeis = i[timeisend - 8 : timeisend]
         timelist.append(timeis)
 

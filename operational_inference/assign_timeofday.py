@@ -114,12 +114,22 @@ def identify_timeofday(timestamp_nysm, dictinput):
     return  timeofday
 
 
+# def eventtime(row):
+#     yyyymmdd = row["img_orig"][-23:][:10]
+#     hhmm = row["img_orig"][-12:][:-4]
+#     dt_st = f"{yyyymmdd} {hhmm}"
+#     return dt_st
+
 def eventtime(row):
-    yyyymmdd = row["img_orig"][-23:][:10]
-    hhmm = row["img_orig"][-12:][:-4]
+    # Extracts exactly "YYYY-MM-DD-HH:MM:SS" based on .webp (-24 to -5)
+    date_str = row["img_orig"][-24:-5] 
+    
+    # Splits the date and time, and joins them with a space
+    yyyymmdd = date_str[:10]
+    hhmm = date_str[11:]
     dt_st = f"{yyyymmdd} {hhmm}"
     return dt_st
-
+    
 def sunevent_row(row):
     dt_pd = pd.to_datetime(row["dt_str"])
     k = sunevents(dt_pd, row["Latitude"],row["Longitude"], row["site"])
